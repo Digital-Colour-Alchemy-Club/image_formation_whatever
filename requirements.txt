@@ -1,3 +1,14 @@
 streamlit
-colour
+colour_science
 glom
+rich
+fs
+networkx
+symfit
+options
+aenum
+addict
+lxml
+eliot-tree
+eliot
+fastai
