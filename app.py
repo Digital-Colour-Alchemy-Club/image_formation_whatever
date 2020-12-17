@@ -3,6 +3,7 @@ from pathlib import Path
 import streamlit as st
 import numpy as np
 import colour
+from boltons.ecoutils import get_profile
 
 
 file = Path(__file__).resolve()
@@ -55,10 +56,6 @@ But also with emoji stuff like :rainbow: and 👋.
 """
 
 def draw_main_page():
-    st.write(f"""
-    # Here's a thing that does stuff! 👋
-    """)
-
     st.write(intro)
 
     st.info("""
@@ -79,10 +76,11 @@ def test():
 
 
 def about():
+
     st.write(colour.utilities.describe_environment())
     for lib in ["OpenColorIO", "OpenImageIO"]:
-        if lib in _LIBRARY_VERSIONS.keys():
-            st.write(f"{lib}: {_LIBRARY_VERSIONS[lib]}")
+        st.write(f"{lib}: {_LIBRARY_VERSIONS[lib]}")
+    st.write(get_profile())
 
 
 demo_pages = {
