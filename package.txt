@@ -1,3 +1,0 @@
- libopenimageio-dev
- python3-openimageio
- openimageio-tools
