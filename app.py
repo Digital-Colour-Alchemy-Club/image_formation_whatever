@@ -82,7 +82,7 @@ def about():
     st.write(colour.utilities.describe_environment())
     for lib in ["OpenColorIO", "OpenImageIO"]:
         if lib in _LIBRARY_VERSIONS.keys():
-            st.write(lib): _LIBRARY_VERSIONS[lib]
+            st.write(f"{lib}: {_LIBRARY_VERSIONS[lib]}")
 
 
 demo_pages = {
