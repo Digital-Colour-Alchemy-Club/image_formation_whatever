@@ -105,7 +105,7 @@ def draw_main_page():
     st.write("""
     # Hello
     """)
-    #bootstrap()
+    bootstrap()
     st.info("""
         :point_left: **To get started, choose a demo on the left sidebar.**
     """)
