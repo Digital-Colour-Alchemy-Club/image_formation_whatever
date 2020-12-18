@@ -5,7 +5,7 @@ import numpy as np
 import colour
 from boltons.ecoutils import get_profile
 import attr
-from .util import RemoteData
+from util import RemoteData
 
 __author__ = "dcac@deadlythings.com"
 __license__ = "GPL3"
@@ -147,7 +147,7 @@ EXTERNAL_DEPENDENCIES = {
         size=2551883,
     ),
     "CLF Test Image": RemoteData(
-        filenme="CLF_testImagePrototype_v006.exr",
+        filename="CLF_testImagePrototype_v006.exr",
         url="https://github.com/alexfry/CLFTestImage/blob/master/images/CLF_testImagePrototype_v006.exr",
         size=201549,
     )
