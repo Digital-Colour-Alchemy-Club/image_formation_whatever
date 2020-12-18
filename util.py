@@ -30,7 +30,7 @@ class RemoteData:
 
             # handle cases where files hosted on gdrive someitimes fail to download
             if "google.com" in self.url:
-                gdown.cached_download(self.url, path=path)
+                gdown.download(self.url, output=path)
 
             else:
                 progress_bar = st.progress(0)
