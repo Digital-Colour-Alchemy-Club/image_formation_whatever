@@ -125,15 +125,6 @@ pages.insert(0, "Welcome.")
 st.sidebar.title(f"Demos v{VERSION}")
 selected_demo = st.sidebar.radio("", pages)
 
-# Draw main page
-if selected_demo in demo_pages:
-    demo_pages[selected_demo]()
-else:
-    draw_main_page()
-
-
-
-
 
 EXTERNAL_DEPENDENCIES = {
     "ACES-1.2 Config": RemoteData(
@@ -152,3 +143,16 @@ EXTERNAL_DEPENDENCIES = {
         size=201549,
     )
 }
+
+
+
+# Draw main page
+if selected_demo in demo_pages:
+    demo_pages[selected_demo]()
+else:
+    draw_main_page()
+
+
+
+
+
