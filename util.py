@@ -29,8 +29,8 @@ class RemoteData:
             status = st.warning("Downloading %s..." % path)
 
             # handle cases where files hosted on gdrive someitimes fail to download
-            if "google.com" in self.url:
-                gdown.download(self.url, output=path)
+            #if "google.com" in self.url:
+            #    gdown.download(self.url, output=path)
 
             else:
                 progress_bar = st.progress(0)
