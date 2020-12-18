@@ -5,7 +5,7 @@ import numpy as np
 import colour
 from boltons.ecoutils import get_profile
 import attr
-from .util import RemoteData
+from util import RemoteData
 
 __author__ = "dcac@deadlythings.com"
 __license__ = "GPL3"
