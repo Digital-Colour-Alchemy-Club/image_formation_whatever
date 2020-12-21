@@ -12,4 +12,5 @@ matplotlib>=2.2.2
 eliot
 addict
 antipathy
+Ninja
 
