@@ -1,10 +1,107 @@
 import os
-import attr
+from logging import getLogger
 from pathlib import Path
+from sysconfig import get_python_version
+import sys
 import urllib
-import streamlit as st
-import gdown
+
+import attr
 from boltons.fileutils import mkdir_p
+import gdown
+from plumbum import local
+import streamlit as st
+
+logger = getLogger(__name__)
+
+
+def build_ocio(install_path='/home/appuser', version='2.0.0-beta2',
+               build_shared=False, build_apps=False, force=False):
+    git = local['git']
+    cmake = local['cmake']
+    mkdir = local['mkdir']
+    ninja = local['ninja']
+    rm = local['rm']
+
+    def is_ocio_installed():
+        # Determine if PyOpenColorIO is already installed.
+        python_version = get_python_version()
+        pyopencolorio_path = f"{install_path}/lib/python{python_version}/site-packages"
+        if local.path(pyopencolorio_path).is_dir():
+            try:
+                if pyopencolorio_path not in sys.path:
+                    sys.path.append(pyopencolorio_path)
+                import PyOpenColorIO
+                logger.debug("PyOpenColorIO v{PyOpenColorIO.__version__} is installed.")
+                return True
+            except ImportError:
+                return False
+
+    if is_ocio_installed():
+        if force:
+            rm['-rf'](install_path)
+        else:
+            return True
+
+    # Configure OCIO build
+    releases = ['2.0.0-beta2', '2.0.0-beta1']
+    branch = f'v{version}' if version in releases else 'master'
+    url = 'https://github.com/AcademySoftwareFoundation/OpenColorIO.git'
+
+    ldflags = f'-Wl,-rpath,{install_path}/lib'
+    cxxflags = '-Wno-deprecated-declarations -fPIC'
+
+    cmake_options = [
+        '-G', 'Ninja',
+        f'-DOCIO_BUILD_APPS={build_apps}',
+        '-DOCIO_BUILD_NUKE=OFF',
+        '-DOCIO_BUILD_DOCS=OFF',
+        '-DOCIO_BUILD_TESTS=OFF',
+        '-DOCIO_BUILD_GPU_TESTS=OFF',
+        '-DOCIO_USE_HEADLESS=ON',
+        '-DOCIO_BUILD_PYTHON=ON',
+        '-DOCIO_BUILD_JAVA=OFF',
+        f'-DBUILD_SHARED_LIBS={build_shared}',
+        f'-DCMAKE_INSTALL_PREFIX={install_path}',
+        '-DCMAKE_BUILD_TYPE=Release',
+        '-DCMAKE_CXX_STANDARD=14',
+        '-DOCIO_INSTALL_EXT_PACKAGES=MISSING',
+        '-DOCIO_WARNING_AS_ERROR=OFF',
+    ]
+
+    # create temporary dir for building
+    tmp_dir = local.path('/tmp', 'build')
+    mkdir['-p'](tmp_dir)
+
+    with st.spinner("Building OpenColorIO... patience is a virtue..."):
+        with local.cwd(tmp_dir):
+            git_repo_path = local.cwd / "OpenColorIO"
+            build_dir = local.cwd / 'build'
+
+            # clone release tag (or master branch)
+            if not git_repo_path.is_dir():
+                logger.debug(f'cloning to {git_repo_path}')
+                git['clone', '--branch', branch, url](git_repo_path)
+
+            # clean build dir
+            rm['-rf'](build_dir)
+            mkdir['-p'](build_dir)
+
+            with local.cwd(build_dir):
+                with local.env(CXXFLAGS=cxxflags, LDFLAGS=ldflags):
+                    # build and install OCIO
+                    logger.debug('Invoking CMake...')
+                    cmake[cmake_options](git_repo_path)
+
+                    logger.debug('Building and installing...')
+                    ninja('install')
+
+            logger.info("Built and installed OpenColorIO ({branch}): {install_path}")
+
+    if is_ocio_installed():
+        rm['-rf'](tmp_dir)
+        return True
+    else:
+        raise ChildProcessError("Could not install OpenColorIO.")
 
 
 @attr.s(auto_attribs=True, frozen=True)
@@ -49,7 +146,7 @@ class RemoteData:
 
                             # We perform animation by overwriting the elements.
                             status.warning("Downloading %s... (%6.2f/%6.2f MB)" %
-                                (path, counter / MEGABYTES, length / MEGABYTES))
+                                           (path, counter / MEGABYTES, length / MEGABYTES))
                             progress_bar.progress(min(counter / length, 1.0))
 
         # Finally, we remove these visual elements by calling .empty().

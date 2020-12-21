@@ -5,7 +5,7 @@ import numpy as np
 import colour
 from boltons.ecoutils import get_profile
 import attr
-from util import RemoteData
+from util import RemoteData, build_ocio
 import fs
 import logging
 
@@ -40,26 +40,27 @@ def get_dependency(key, local_dir=LOCAL_DATA):
 
 
 
-def install_opencolorio():
-    import gdown
-    from functools import partial
-    from plumbum import local
-    extract = partial(gdown.extractall, to='/home/appuser')
-    git = local['git']
-    
-    #unzip = local['unzip']
-    url = "https://drive.google.com/uc?export=download&id=1sqgQ6e_aLffGiW-92XTRO7WYhLywaXh1"
-    archive = gdown.cached_download(url, path=str(LOCAL_DATA/'OpenColorIO.zip'), postprocess=extract)
-    st.write(archive)
-    #unzip['-d', '/'](archive)
+# def install_opencolorio():
+#     import gdown
+#     from functools import partial
+#     from plumbum import local
+#     extract = partial(gdown.extractall, to='/home/appuser')
+#     git = local['git']
+#     mv = local['mv']
+#
+#
+#     #unzip = local['unzip']
+#     url = "https://drive.google.com/uc?export=download&id=1sqgQ6e_aLffGiW-92XTRO7WYhLywaXh1"
+#     archive = gdown.cached_download(url, path=str(LOCAL_DATA/'OpenColorIO.zip'), postprocess=extract)
+#     st.write(archive)
+#     #unzip['-d', '/'](archive)
 
 
 def bootstrap():
     import imageio
     imageio.plugins.freeimage.download()
-    data = localize_dependencies()
-    install_opencolorio()
-    logger.warning(data)
+    _ = localize_dependencies()
+    build_ocio(version='master')
 
 
 
