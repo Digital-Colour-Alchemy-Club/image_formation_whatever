@@ -21,6 +21,7 @@ def build_ocio(install_path='/home/appuser', version='2.0.0-beta2',
     mkdir = local['mkdir']
     ninja = local['ninja']
     rm = local['rm']
+    make = local['make']
 
     def is_ocio_installed():
         # Determine if PyOpenColorIO is already installed.
@@ -51,7 +52,7 @@ def build_ocio(install_path='/home/appuser', version='2.0.0-beta2',
     cxxflags = '-Wno-deprecated-declarations -fPIC'
 
     cmake_options = [
-        '-G', 'Ninja',
+        #'-G', 'Ninja',
         f'-DOCIO_BUILD_APPS={build_apps}',
         '-DOCIO_BUILD_NUKE=OFF',
         '-DOCIO_BUILD_DOCS=OFF',
@@ -93,7 +94,9 @@ def build_ocio(install_path='/home/appuser', version='2.0.0-beta2',
                     cmake[cmake_options](git_repo_path)
 
                     logger.debug('Building and installing...')
-                    ninja('install')
+                    #ninja('install')
+                    make('build')
+                    make('install')
 
             logger.info("Built and installed OpenColorIO ({branch}): {install_path}")
 
