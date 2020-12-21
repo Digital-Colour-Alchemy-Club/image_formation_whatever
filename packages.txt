@@ -1,3 +1,5 @@
 unzip
 wget
 git
+cmake
+gcc
