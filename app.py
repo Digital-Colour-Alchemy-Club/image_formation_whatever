@@ -108,7 +108,7 @@ def about():
 
     st.write("### Locally-installed libraries")
     library_versions = get_library_versions()
-    for library, version in library_versions.keys():
+    for library, version in library_versions.items():
         st.write(f"{library}: {version}")
 
     st.subheader("Local contents")
