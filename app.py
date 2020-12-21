@@ -43,8 +43,10 @@ def get_dependency(key, local_dir=LOCAL_DATA):
 def install_opencolorio():
     import gdown
     from functools import partial
-    extract = partial(gdown.extractall, to='/')
-    #from plumbum import local
+    from plumbum import local
+    extract = partial(gdown.extractall, to='/home/appuser')
+    git = local['git']
+    
     #unzip = local['unzip']
     url = "https://drive.google.com/uc?export=download&id=1sqgQ6e_aLffGiW-92XTRO7WYhLywaXh1"
     archive = gdown.cached_download(url, path=str(LOCAL_DATA/'OpenColorIO.zip'), postprocess=extract)
