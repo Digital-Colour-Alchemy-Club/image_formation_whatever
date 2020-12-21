@@ -6,28 +6,33 @@ import colour
 from boltons.ecoutils import get_profile
 import attr
 from util import RemoteData
+import fs
+import logging
 
+__app__ = "Image Formation Whatever"
 __author__ = "dcac@deadlythings.com"
 __license__ = "GPL3"
 __version__ = "0.1.3"
 
 VERSION = '.'.join(__version__.split('.')[:2])
 LOCAL_DATA = Path.cwd() / "data"
-st.title("Image Formation Whatever")
+st.title(__app__)
+
+
+logger = logging.getLogger(__app__)
 
 
 
 
-
-@st.cache
 def localize_dependencies(local_dir=LOCAL_DATA):
     data = EXTERNAL_DEPENDENCIES.copy()
     for name, remote_file in EXTERNAL_DEPENDENCIES.items():
-        remote_file.download(output_dir=local_dir)
-        data[name] = local_dir / remote_file.filename
+        path = remote_file.download(output_dir=local_dir)
+        data[name] = path
+        assert(Path(path).exists())
     return data
 
-@st.cache
+
 def get_dependency(key, local_dir=LOCAL_DATA):
     remote_file = EXTERNAL_DEPENDENCIES[key]
     remote_file.download(output_dir=local_dir)
@@ -37,15 +42,23 @@ def get_dependency(key, local_dir=LOCAL_DATA):
 
 def install_opencolorio():
     import gdown
-    from plumbum.cmd import unzip
+    from functools import partial
+    extract = partial(gdown.extractall, to='/')
+    #from plumbum import local
+    #unzip = local['unzip']
     url = "https://drive.google.com/uc?export=download&id=1sqgQ6e_aLffGiW-92XTRO7WYhLywaXh1"
-    archive = gdown.cached_download(url, path=LOCAL_DATA/'OpenColorIO.zip')
-    unzip['-d', '/'](archive)
+    archive = gdown.cached_download(url, path=str(LOCAL_DATA/'OpenColorIO.zip'), postprocess=extract)
+    st.write(archive)
+    #unzip['-d', '/'](archive)
+
 
 def bootstrap():
     import imageio
     imageio.plugins.freeimage.download()
-    _ = localize_dependencies()
+    data = localize_dependencies()
+    install_opencolorio()
+    logger.warning(data)
+
 
 
 def marcie():
@@ -57,7 +70,7 @@ def marcie():
         colour.models.RGB_COLOURSPACE_sRGB,
         chromatic_adaptation_transform="Bradford"
     )
-    st.image(DIGITAL_LAD_SRGB)
+    st.image(DIGITAL_LAD_SRGB, clamp=[0., 1.])
 
 
 
@@ -84,20 +97,20 @@ def about():
 
         return libraries
 
-
-    # system info
-    st.write("Streamlit instance info")
+    st.write("### Streamlit instance info")
     st.write(get_profile())
 
-    # colour-science info
-    st.write("`colour-science` library info")
+    st.write("### `colour-science` library info")
     st.write(colour.utilities.describe_environment())
 
-    # locally-installed libraries
-    st.write("Locally-installed libraries")
+    st.write("### Locally-installed libraries")
     library_versions = get_library_versions()
     for library, version in library_versions.keys():
         st.write(f"{library}: {version}")
+
+    st.subheader("Local contents")
+    data_dir = fs.open_fs(str(LOCAL_DATA))
+    data_dir.tree()
 
 
 
@@ -120,7 +133,7 @@ demo_pages = {
 
 # Draw sidebar
 pages = list(demo_pages.keys())
-pages.insert(0, "Welcome.")
+pages.insert(0, "Welcome")
 
 st.sidebar.title(f"Demos v{VERSION}")
 selected_demo = st.sidebar.radio("", pages)
@@ -134,12 +147,12 @@ EXTERNAL_DEPENDENCIES = {
     ),
     "Marcie ACES2065-1": RemoteData(
         filename="DigitalLAD.2048x1556.exr",
-        url="https://drive.google.com/uc?id=1GrltrT4cb8PPhVIMII4fWRgIgAPdrpi",
-        size=2551883,
+        url="https://zozobra.s3.us-east-1.amazonaws.com/colour/images/DigitalLAD.2048x1556.exr",
+        size=25518832,
     ),
     "CLF Test Image": RemoteData(
         filename="CLF_testImagePrototype_v006.exr",
-        url="https://github.com/alexfry/CLFTestImage/blob/master/images/CLF_testImagePrototype_v006.exr",
+        url="https://raw.githubusercontent.com/alexfry/CLFTestImage/master/images/CLF_testImagePrototype_v006.exr",
         size=201549,
     )
 }

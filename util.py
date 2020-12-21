@@ -4,7 +4,7 @@ from pathlib import Path
 import urllib
 import streamlit as st
 import gdown
-
+from boltons.fileutils import mkdir_p
 
 
 @attr.s(auto_attribs=True, frozen=True)
@@ -13,7 +13,7 @@ class RemoteData:
     url: str = "https://path/to/resource.exr"
     size: int = 0
 
-    def download(self, output_dir="."):
+    def download(self, output_dir=Path.cwd()):
         # mostly taken from https://github.com/streamlit/demo-face-gan/blob/master/streamlit_app.py
         root = Path(output_dir).resolve()
         path = root / self.filename
@@ -23,16 +23,16 @@ class RemoteData:
             if not self.size or os.path.getsize(path) == self.size:
                 return path
 
+        mkdir_p(path.parent)
+
         # These are handles to two visual elements to animate.
         status, progress_bar = None, None
         try:
             status = st.warning("Downloading %s..." % path)
 
             # handle cases where files hosted on gdrive someitimes fail to download
-            #if "google.com" in self.url:
-            #    gdown.download(self.url, output=path)
-            if False:
-                pass
+            if "google.com" in self.url:
+                _ = gdown.cached_download(self.url, path=path)
             else:
                 progress_bar = st.progress(0)
                 with open(path, "wb") as output_file:
@@ -58,3 +58,5 @@ class RemoteData:
                 status.empty()
             if progress_bar is not None:
                 progress_bar.empty()
+
+        return path
