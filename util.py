@@ -7,6 +7,8 @@ import urllib
 
 import attr
 from boltons.fileutils import mkdir_p
+import fs
+from fs.zipfs import ZipFS
 import gdown
 from plumbum import local
 import streamlit as st
@@ -19,7 +21,6 @@ def build_ocio(install_path='/home/appuser', version='2.0.0-beta2',
     git = local['git']
     cmake = local['cmake']
     mkdir = local['mkdir']
-    ninja = local['ninja']
     rm = local['rm']
     make = local['make']
 
@@ -36,6 +37,15 @@ def build_ocio(install_path='/home/appuser', version='2.0.0-beta2',
                 return True
             except ImportError:
                 return False
+
+    def archive_ocio_payload(filename='ocio_streamlit.zip'):
+        root = fs.open_fs(install_path)
+        archive_path = f"{install_path}/{filename}"
+        with ZipFS(f"{archive_path}", write=True) as archive:
+            fs.copy.copy_dir(root, 'include', archive, install_path)
+            fs.copy.copy_dir(root, 'lib', archive, install_path)
+            logger.debug(f"Archived {archive_path}")
+        return archive_path
 
     if is_ocio_installed():
         if force:
@@ -88,19 +98,20 @@ def build_ocio(install_path='/home/appuser', version='2.0.0-beta2',
             mkdir['-p'](build_dir)
 
             with local.cwd(build_dir):
+                # build and install OCIO
                 with local.env(CXXFLAGS=cxxflags, LDFLAGS=ldflags):
-                    # build and install OCIO
                     logger.debug('Invoking CMake...')
                     cmake[cmake_options](git_repo_path)
 
                     logger.debug('Building and installing...')
-                    #ninja('install')
                     make['-j1']()
                     make('install')
 
+            _ = archive_ocio_payload()
             logger.info(f"Built and installed OpenColorIO ({branch}): {install_path}")
 
     if is_ocio_installed():
+        # Clean up
         rm['-rf'](tmp_dir)
         return True
     else:

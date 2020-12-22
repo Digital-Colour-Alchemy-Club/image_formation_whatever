@@ -7,6 +7,8 @@ from boltons.ecoutils import get_profile
 import attr
 from util import RemoteData, build_ocio
 import fs
+from fs.zipfs import ZipFS
+
 import logging
 
 __app__ = "Image Formation Whatever"
@@ -39,21 +41,23 @@ def get_dependency(key, local_dir=LOCAL_DATA):
     return local_dir / remote_file.filename
 
 
+def archive_ocio_payload(install_path='/home/appuser',
+                         filename='ocio_streamlit.zip'):
+    root = fs.open_fs(install_path)
+    archive_path = f"{install_path}/{filename}"
+    with ZipFS(f"{archive_path}", write=True) as archive:
+        fs.copy.copy_dir(root, 'include', archive, install_path)
+        fs.copy.copy_dir(root, 'lib', archive, install_path)
+        logger.debug(f"Archived {archive_path}")
+    return archive_path
 
 # def install_opencolorio():
 #     import gdown
 #     from functools import partial
 #     from plumbum import local
 #     extract = partial(gdown.extractall, to='/home/appuser')
-#     git = local['git']
-#     mv = local['mv']
-#
-#
-#     #unzip = local['unzip']
 #     url = "https://drive.google.com/uc?export=download&id=1sqgQ6e_aLffGiW-92XTRO7WYhLywaXh1"
 #     archive = gdown.cached_download(url, path=str(LOCAL_DATA/'OpenColorIO.zip'), postprocess=extract)
-#     st.write(archive)
-#     #unzip['-d', '/'](archive)
 
 
 def bootstrap():
