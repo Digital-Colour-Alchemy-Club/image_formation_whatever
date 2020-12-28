@@ -14,7 +14,7 @@ required = {
     "gdown",
     "plumbum",
     "numpy"
-    #, "PyOpenColorIO"
+    # , "PyOpenColorIO"
 }
 installed = {pkg.key for pkg in pkg_resources.working_set}
 missing = required - installed
@@ -129,14 +129,25 @@ def marcie():
 
 def lookup_method_tests():
 
-    gamma = 2.2
-    exposure = st.slider(label='exposure',
-                         min_value=2.0**-2,
-                         max_value=2.)
+    EOTF = st.number_input(
+        label="Inverse EOTF",
+        min_value=1.0,
+        max_value=3.0,
+        value=2.2,
+        step=0.01)
+    exposure = st.slider(
+        label="Exposure Adjustment",
+        min_value=-5.0,
+        max_value=+5.0,
+        value=0.0,
+        step=0.1)
+
+    def apply_inverse_EOTF(RGB):
+        return RGB**(1.0 / EOTF)
 
     # @st.cache
     def video_buffer(x):
-        return exposure * x ** gamma
+        return ((2.0**exposure) * x)
 
     # @st.cache
     @maxrgb_lookup
@@ -155,15 +166,15 @@ def lookup_method_tests():
         return img
 
     st.subheader('Per-channel')
-    img = video_buffer(get_marcie())
+    img = apply_inverse_EOTF(video_buffer(get_marcie()))
     st.image(img, clamp=[0., 1.], use_column_width=True)
 
     st.subheader('maxRGB')
-    img = video_buffer_maxrgb(get_marcie())
+    img = apply_inverse_EOTF(video_buffer_maxrgb(get_marcie()))
     st.image(img, clamp=[0., 1.], use_column_width=True)
 
     st.subheader('Yellow-Weighted Norm')
-    img = video_buffer_norm(get_marcie())
+    img = apply_inverse_EOTF(video_buffer_norm(get_marcie()))
     st.image(img, clamp=[0., 1.], use_column_width=True)
 
 

@@ -1,4 +1,5 @@
 import numpy as np
+import streamlit as st
 from colour.utilities import tsplit, as_float_array
 from functools import wraps
 
@@ -38,20 +39,26 @@ def hue_restore_dw3_lookup(func):
         return RGB_out
 
 
+def perchannel_lookup(func):
+    @wraps(func)
+    def wrapper(RGB, *args, **kwargs):
+        return func(RGB)
+    return wrapper
+
+
 def maxrgb_lookup(func):
     @wraps(func)
     def wrapper(RGB, *args, **kwargs):
-        RGB_out = np.ones(3) * np.copy(as_float_array(RGB))
-        peak = np.amax(RGB_out)
-        ratio = RGB_out / peak
-        RGB_out = func(peak, *args, **kwargs) * ratio
-        return RGB_out
+        peaks = np.amax(RGB, axis=2, keepdims=True)
+        ratios = RGB / peaks
+        return func(peaks, *args, **kwargs) * ratios
     return wrapper
 
 
 def norm_lookup(f_py=None, degree=5, weights=(1.22, 1.20, 0.58)):
     # https://stackoverflow.com/a/60832711/13576081
     assert callable(f_py) or f_py is None
+
     def _decorator(func):
         @wraps(func)
         def wrapper(RGB, *args, **kwargs):
