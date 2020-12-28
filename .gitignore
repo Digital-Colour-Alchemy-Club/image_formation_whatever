@@ -87,6 +87,9 @@ target/
 profile_default/
 ipython_config.py
 
+# Streamlit
+data
+
 # pyenv
 .python-version
 
