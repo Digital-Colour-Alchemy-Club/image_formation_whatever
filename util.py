@@ -23,7 +23,7 @@ def build_ocio(install_path='/home/appuser', version='2.0.0-beta2',
     mkdir = local['mkdir']
     rm = local['rm']
     make = local['make']
-    
+
     def is_ocio_installed():
         # Determine if PyOpenColorIO is already installed.
         python_version = get_python_version()

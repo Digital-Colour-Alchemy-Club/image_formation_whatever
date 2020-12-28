@@ -93,7 +93,9 @@ def lookup_method_tests():
     from lookup_methods import maxrgb_lookup, norm_lookup
 
     gamma = 2.2
-    exposure = st.slider(label='exposure', min_value=2**-8, max_value=2**8)
+    exposure = st.slider(label='exposure',
+                         min_value=2.0**-8,
+                         max_value=2.0**8)
 
     @st.cache
     def video_buffer(x):
