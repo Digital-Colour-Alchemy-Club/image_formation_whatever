@@ -79,6 +79,14 @@ def marcie():
     )
     st.image(DIGITAL_LAD_SRGB, clamp=[0., 1.])
 
+    st.subheader("ACES Marcie")
+    st.image(DIGITAL_LAD_ACES2065_1)
+
+    st.subheader("Not-ACES Marcie")
+    img_path = get_dependency("Marcie 4K")
+    st.image(img_path, clamp=[0., 1.])
+
+
 
 
 
@@ -161,7 +169,12 @@ EXTERNAL_DEPENDENCIES = {
         filename="CLF_testImagePrototype_v006.exr",
         url="https://raw.githubusercontent.com/alexfry/CLFTestImage/master/images/CLF_testImagePrototype_v006.exr",
         size=201549,
-    )
+    ),
+    "Marcie 4K": RemoteData(
+        filename="DigitalLAD.2048x1556.exr",
+        url="https://zozobra.s3.us-east-1.amazonaws.com/colour/images/marcie-4k.exr",
+        size=63015668,
+    ),
 }
 
 
