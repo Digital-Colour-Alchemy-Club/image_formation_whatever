@@ -1,16 +1,56 @@
 import sys
-from pathlib import Path
-import streamlit as st
-import numpy as np
-import colour
-from boltons.ecoutils import get_profile
-import attr
-from util import RemoteData, build_ocio
-from lookup_methods import norm_lookup, maxrgb_lookup
-import fs
-from fs.zipfs import ZipFS
+import subprocess
+import pkg_resources
 
 import logging
+
+# The proceeding auto-pip installation process should streamline
+# local Streamlit development. In theory, the OpenColorIO check
+# might be handled in the missing component here?
+required = {
+    "colour-science",
+    "boltons",
+    "fs",
+    "gdown",
+    "plumbum",
+    "numpy"
+    #, "PyOpenColorIO"
+}
+installed = {pkg.key for pkg in pkg_resources.working_set}
+missing = required - installed
+
+if missing:
+    # Check if PyOpenColorIO is in the missing list, and if
+    # it is, handle it here.
+    # build_ocio(version='master')
+
+    python = sys.executable
+    subprocess.check_call(
+        [
+            python,
+            "-m",
+            "pip",
+            "install",
+            *missing
+        ],
+        stdout=subprocess.DEVNULL
+    )
+
+# The following will trip PEP errors, so explicitly turn off
+# the errors via the noqa: E402 comment. There might be a more
+# PEP compliant method to import after the top of file with the above
+# logic, and it would be great to do it.
+
+from pathlib import Path  # noqa: E402
+import streamlit as st  # noqa: E402
+import numpy as np  # noqa: E402
+import colour  # noqa: E402
+from boltons.ecoutils import get_profile  # noqa: E402
+import attr  # noqa: E402
+from util import RemoteData, build_ocio  # noqa: E402
+from lookup_methods import norm_lookup, maxrgb_lookup  # noqa: E402
+import fs  # noqa: E402
+from fs.zipfs import ZipFS  # noqa: E402
 
 __app__ = "Image Formation Whatever"
 __author__ = "dcac@deadlythings.com"
@@ -23,8 +63,6 @@ st.title(__app__)
 
 
 logger = logging.getLogger(__app__)
-
-
 
 
 def localize_dependencies(local_dir=LOCAL_DATA):
@@ -57,16 +95,16 @@ def archive_ocio_payload(install_path='/home/appuser',
 #     from functools import partial
 #     from plumbum import local
 #     extract = partial(gdown.extractall, to='/home/appuser')
-#     url = "https://drive.google.com/uc?export=download&id=1sqgQ6e_aLffGiW-92XTRO7WYhLywaXh1"
-#     archive = gdown.cached_download(url, path=str(LOCAL_DATA/'OpenColorIO.zip'), postprocess=extract)
+#     url = "https://drive.google.com/uc?export=download&id="
+#           "1sqgQ6e_aLffGiW-92XTRO7WYhLywaXh1"
+#     archive = gdown.cached_download(url, path=str(
+#       LOCAL_DATA/'OpenColorIO.zip'), postprocess=extract)
 
 
 def bootstrap():
     import imageio
     imageio.plugins.freeimage.download()
     _ = localize_dependencies()
-    build_ocio(version='master')
-
 
 
 def marcie():
@@ -89,7 +127,6 @@ def marcie():
     st.image(img, clamp=[0., 1.])
 
 
-
 def lookup_method_tests():
 
     gamma = 2.2
@@ -97,16 +134,16 @@ def lookup_method_tests():
                          min_value=2.0**-2,
                          max_value=2.)
 
-    #@st.cache
+    # @st.cache
     def video_buffer(x):
         return exposure * x ** gamma
 
-    #@st.cache
+    # @st.cache
     @maxrgb_lookup
     def video_buffer_maxrgb(x):
         return video_buffer(x)
 
-    #@st.cache
+    # @st.cache
     @norm_lookup(degree=5, weights=[1.22, 1.20, 0.58])
     def video_buffer_norm(x):
         return video_buffer(x)
@@ -128,17 +165,6 @@ def lookup_method_tests():
     st.subheader('Yellow-Weighted Norm')
     img = video_buffer_norm(get_marcie())
     st.image(img, clamp=[0., 1.], use_column_width=True)
-
-
-
-
-
-
-
-
-
-
-
 
 
 def about():
@@ -176,7 +202,6 @@ def about():
     data_dir.tree()
 
 
-
 def draw_main_page():
     st.write("""
     # Hello
@@ -186,7 +211,6 @@ def draw_main_page():
         :point_left: **To get started, choose a demo on the left sidebar.**
     """)
     st.balloons()
-
 
 
 demo_pages = {
@@ -206,26 +230,29 @@ selected_demo = st.sidebar.radio("", pages)
 EXTERNAL_DEPENDENCIES = {
     # "ACES-1.2 Config": RemoteData(
     #     filename="OpenColorIO-Config-ACES-1.2.zip",
-    #     url="https://github.com/colour-science/OpenColorIO-Configs/releases/download/v1.2/OpenColorIO-Config-ACES-1.2.zip",
+    #     url="https://github.com/colour-science/OpenColorIO-Configs/"
+    #       "releases/download/v1.2/OpenColorIO-Config-ACES-1.2.zip",
     #     size=130123781,
     # ),
     "Marcie ACES2065-1": RemoteData(
         filename="DigitalLAD.2048x1556.exr",
-        url="https://zozobra.s3.us-east-1.amazonaws.com/colour/images/DigitalLAD.2048x1556.exr",
+        url="https://zozobra.s3.us-east-1.amazonaws.com/colour/"
+            "images/DigitalLAD.2048x1556.exr",
         size=25518832,
     ),
     "CLF Test Image": RemoteData(
         filename="CLF_testImagePrototype_v006.exr",
-        url="https://raw.githubusercontent.com/alexfry/CLFTestImage/master/images/CLF_testImagePrototype_v006.exr",
+        url="https://raw.githubusercontent.com/alexfry/CLFTestImage/"
+            "master/images/CLF_testImagePrototype_v006.exr",
         size=201549,
     ),
     "Marcie 4K": RemoteData(
         filename="marcie-4k.exr",
-        url="https://zozobra.s3.us-east-1.amazonaws.com/colour/images/marcie-4k.exr",
+        url="https://zozobra.s3.us-east-1.amazonaws.com/colour/"
+            "images/marcie-4k.exr",
         size=63015668,
     ),
 }
-
 
 
 # Draw main page
@@ -233,8 +260,3 @@ if selected_demo in demo_pages:
     demo_pages[selected_demo]()
 else:
     draw_main_page()
-
-
-
-
-
