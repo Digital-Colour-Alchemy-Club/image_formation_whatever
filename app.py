@@ -89,6 +89,51 @@ def marcie():
 
 
 
+def lookup_method_tests():
+    from lookup_methods import maxrgb_lookup, norm_lookup
+
+    gamma = 2.2
+    exposure = st.slider(label='exposure', min_value=2**-8, max_value=2**8)
+
+    @st.cache
+    def video_buffer(x):
+        return exposure * x ** gamma
+
+    @st.cache
+    @maxrgb_lookup
+    def video_buffer_maxrgb(x):
+        return video_buffer(x)
+
+    @st.cache
+    @norm_lookup(degree=5, weights=[1.22, 1.20, 0.58])
+    def video_buffer_norm(x):
+        return video_buffer(x)
+
+    @st.cache
+    def get_marcie():
+        img_path = get_dependency("Marcie 4K")
+        img = colour.read_image(img_path)[..., 0:3]
+        return img
+
+    st.subheader('Per-channel')
+    img = video_buffer(get_marcie())
+    st.image(img, clamp=[0., 1.], use_column_width=True)
+
+    st.subheader('maxRGB')
+    img = video_buffer_maxrgb(get_marcie())
+    st.image(img, clamp=[0., 1.], use_column_width=True)
+
+    st.subheader('Yellow-Weighted Norm')
+    img = video_buffer_norm(get_marcie())
+    st.image(img, clamp=[0., 1.], use_column_width=True)
+
+
+
+
+
+
+
+
 
 
 
@@ -144,7 +189,8 @@ def draw_main_page():
 
 demo_pages = {
     'About': about,
-    'Marcie': marcie
+    'Marcie': marcie,
+    'Lookup Methods': lookup_method_tests,
 }
 
 # Draw sidebar
@@ -156,11 +202,11 @@ selected_demo = st.sidebar.radio("", pages)
 
 
 EXTERNAL_DEPENDENCIES = {
-    "ACES-1.2 Config": RemoteData(
-        filename="OpenColorIO-Config-ACES-1.2.zip",
-        url="https://github.com/colour-science/OpenColorIO-Configs/releases/download/v1.2/OpenColorIO-Config-ACES-1.2.zip",
-        size=130123781,
-    ),
+    # "ACES-1.2 Config": RemoteData(
+    #     filename="OpenColorIO-Config-ACES-1.2.zip",
+    #     url="https://github.com/colour-science/OpenColorIO-Configs/releases/download/v1.2/OpenColorIO-Config-ACES-1.2.zip",
+    #     size=130123781,
+    # ),
     "Marcie ACES2065-1": RemoteData(
         filename="DigitalLAD.2048x1556.exr",
         url="https://zozobra.s3.us-east-1.amazonaws.com/colour/images/DigitalLAD.2048x1556.exr",
