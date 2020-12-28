@@ -6,6 +6,7 @@ import colour
 from boltons.ecoutils import get_profile
 import attr
 from util import RemoteData, build_ocio
+from lookup_methods import norm_lookup, maxrgb_lookup
 import fs
 from fs.zipfs import ZipFS
 
@@ -90,23 +91,22 @@ def marcie():
 
 
 def lookup_method_tests():
-    from lookup_methods import maxrgb_lookup, norm_lookup
 
     gamma = 2.2
     exposure = st.slider(label='exposure',
                          min_value=2.0**-2,
                          max_value=2)
 
-    @st.cache
+    #@st.cache
     def video_buffer(x):
         return exposure * x ** gamma
 
-    @st.cache
+    #@st.cache
     @maxrgb_lookup
     def video_buffer_maxrgb(x):
         return video_buffer(x)
 
-    @st.cache
+    #@st.cache
     @norm_lookup(degree=5, weights=[1.22, 1.20, 0.58])
     def video_buffer_norm(x):
         return video_buffer(x)

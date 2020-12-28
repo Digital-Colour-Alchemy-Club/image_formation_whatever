@@ -31,7 +31,7 @@ def build_ocio(install_path='/home/appuser', version='2.0.0-beta2',
         if local.path(pyopencolorio_path).is_dir():
             if pyopencolorio_path not in sys.path:
                 sys.path.append(pyopencolorio_path)
-        
+
         try:
             import PyOpenColorIO
             logger.debug("PyOpenColorIO v{PyOpenColorIO.__version__} is installed.")
