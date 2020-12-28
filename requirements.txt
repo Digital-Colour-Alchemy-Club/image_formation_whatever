@@ -2,16 +2,9 @@ streamlit>=0.73.0
 colour_science>=0.3.16
 gdown
 glom
-rich
 fs
-symfit
 aenum
 plumbum
-dvc
 matplotlib>=2.2.2
 eliot
-addict
-antipathy
-eliot
 options
-
