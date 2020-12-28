@@ -80,7 +80,7 @@ def marcie():
     st.image(DIGITAL_LAD_SRGB, clamp=[0., 1.])
 
     st.subheader("ACES Marcie")
-    st.image(DIGITAL_LAD_ACES2065_1)
+    st.image(DIGITAL_LAD_ACES2065_1, clamp=[0., 1.])
 
     st.subheader("Not-ACES Marcie")
     img_path = get_dependency("Marcie 4K")
