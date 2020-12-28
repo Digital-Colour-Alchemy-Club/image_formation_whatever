@@ -23,20 +23,22 @@ def build_ocio(install_path='/home/appuser', version='2.0.0-beta2',
     mkdir = local['mkdir']
     rm = local['rm']
     make = local['make']
-
+    
     def is_ocio_installed():
         # Determine if PyOpenColorIO is already installed.
         python_version = get_python_version()
         pyopencolorio_path = f"{install_path}/lib/python{python_version}/site-packages"
         if local.path(pyopencolorio_path).is_dir():
-            try:
-                if pyopencolorio_path not in sys.path:
-                    sys.path.append(pyopencolorio_path)
-                import PyOpenColorIO
-                logger.debug("PyOpenColorIO v{PyOpenColorIO.__version__} is installed.")
-                return True
-            except ImportError:
-                return False
+            if pyopencolorio_path not in sys.path:
+                sys.path.append(pyopencolorio_path)
+
+        try:
+            import PyOpenColorIO
+            logger.debug("PyOpenColorIO v{PyOpenColorIO.__version__} is installed.")
+            return True
+        except ImportError:
+            return False
+
 
     def archive_ocio_payload(filename='ocio_streamlit.zip'):
         root = fs.open_fs(install_path)
