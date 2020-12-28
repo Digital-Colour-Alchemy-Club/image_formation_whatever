@@ -84,7 +84,8 @@ def marcie():
 
     st.subheader("Not-ACES Marcie")
     img_path = get_dependency("Marcie 4K")
-    st.image(img_path, clamp=[0., 1.])
+    img = colour.read_image(img_path)[..., 0:3]
+    st.image(img, clamp=[0., 1.])
 
 
 
