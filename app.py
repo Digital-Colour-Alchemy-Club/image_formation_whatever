@@ -95,7 +95,7 @@ def lookup_method_tests():
     gamma = 2.2
     exposure = st.slider(label='exposure',
                          min_value=2.0**-2,
-                         max_value=2)
+                         max_value=2.)
 
     #@st.cache
     def video_buffer(x):
