@@ -172,7 +172,7 @@ EXTERNAL_DEPENDENCIES = {
         size=201549,
     ),
     "Marcie 4K": RemoteData(
-        filename="DigitalLAD.2048x1556.exr",
+        filename="marcie-4k.exr",
         url="https://zozobra.s3.us-east-1.amazonaws.com/colour/images/marcie-4k.exr",
         size=63015668,
     ),
