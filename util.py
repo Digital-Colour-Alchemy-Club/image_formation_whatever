@@ -7,6 +7,7 @@ import urllib
 
 import attr
 from boltons.fileutils import mkdir_p
+import certifi
 import fs
 from fs.zipfs import ZipFS
 import gdown
@@ -15,9 +16,15 @@ import streamlit as st
 
 logger = getLogger(__name__)
 
+VALID_OCIO_VERSIONS = ['2.0.0-beta2', '2.0.0-beta1']
+LOCAL_INSTALL_PREFIX = os.path.expanduser("~")
 
-def build_ocio(install_path='/home/appuser', version='2.0.0-beta2',
-               build_shared=False, build_apps=False, force=False):
+
+def build_ocio(install_path=LOCAL_INSTALL_PREFIX,
+               version='2.0.0-beta2',
+               build_shared=False,
+               build_apps=False,
+               force=False):
     git = local['git']
     cmake = local['cmake']
     mkdir = local['mkdir']
@@ -39,7 +46,6 @@ def build_ocio(install_path='/home/appuser', version='2.0.0-beta2',
         except ImportError:
             return False
 
-
     def archive_ocio_payload(filename='ocio_streamlit.zip'):
         root = fs.open_fs(install_path)
         archive_path = f"{install_path}/{filename}"
@@ -56,8 +62,7 @@ def build_ocio(install_path='/home/appuser', version='2.0.0-beta2',
             return True
 
     # Configure OCIO build
-    releases = ['2.0.0-beta2', '2.0.0-beta1']
-    branch = f'v{version}' if version in releases else 'master'
+    branch = f'v{version}' if version in VALID_OCIO_VERSIONS else 'master'
     url = 'https://github.com/AcademySoftwareFoundation/OpenColorIO.git'
 
     ldflags = f'-Wl,-rpath,{install_path}/lib'
