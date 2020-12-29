@@ -55,7 +55,7 @@ from fs.zipfs import ZipFS  # noqa: E402
 __app__ = "Image Formation Whatever"
 __author__ = "dcac@deadlythings.com"
 __license__ = "GPL3"
-__version__ = "0.1.3"
+__version__ = "0.1.4"
 
 VERSION = '.'.join(__version__.split('.')[:2])
 LOCAL_DATA = Path.cwd() / "data"
