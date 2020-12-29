@@ -55,7 +55,6 @@ def maxrgb_lookup(func):
     def wrapper(RGB, *args, **kwargs):
         peaks = np.amax(RGB, axis=2, keepdims=True)
         ratios = np.ma.divide(RGB, peaks)
-        print(peaks.shape)
         return func(peaks, *args, **kwargs) * ratios.filled(fill_value=0.0)
     return wrapper
 

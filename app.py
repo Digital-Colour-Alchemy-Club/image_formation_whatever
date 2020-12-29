@@ -164,9 +164,15 @@ def lookup_method_tests():
         return ((2.0**exposure) * x)
 
     # @st.cache
+    def LUT_buffer(x, LUT):
+        return LUT.apply(
+            np.clip((2.0**exposure) * x, LUT.domain[0], LUT.domain[1])
+        )
+
+    # @st.cache
     @maxrgb_lookup
     def video_buffer_maxrgb(x):
-        return video_buffer(x)
+        return LUT_buffer(x, get_LUT()._LUT)
 
     # @st.cache
     @norm_lookup(degree=5, weights=[1.22, 1.20, 0.58])
