@@ -55,6 +55,9 @@ def maxrgb_lookup(func):
     def wrapper(RGB, *args, **kwargs):
         peaks = np.amax(RGB, axis=2, keepdims=True)
         ratios = np.ma.divide(RGB, peaks)
+        # LUT.apply(
+        #     np.clip((2.0**exposure * x), LUT.domain[0], LUT.table[-1])
+        # )
         return func(peaks, *args, **kwargs) * ratios.filled(fill_value=0.0)
     return wrapper
 
@@ -171,6 +174,21 @@ class generic_aesthetic_transfer_function:
             table=self.evaluate(
                 np.linspace(0.0, self._radiometric_maximum, LUT_size)),
             name="Generic Lottes 2016 with Fixes",
-            domain=[0.0, self._radiometric_maximum]
+            domain=[0.0, self._radiometric_maximum + 0.0001]
         )
         self._LUT_size = LUT_size
+
+    def apply(self, RGB, gamut_clip_alert=False):
+        gamut_clipped_above = np.where(RGB >= self._radiometric_maximum)
+
+        RGB = np.clip(RGB, 0.0, self._LUT.domain[-1])
+        # print(self._radiometric_maximum)
+        RGB[gamut_clipped_above[0], gamut_clipped_above[1], :] = \
+            self._LUT.domain[-1]
+        max_RGBs = np.amax(RGB, axis=2, keepdims=True)
+        output_RGBs = self._LUT.apply(max_RGBs) * \
+            np.ma.divide(RGB, max_RGBs).filled(fill_value=0.0)
+        if gamut_clip_alert is True:
+            output_RGBs[gamut_clipped_above[0], gamut_clipped_above[1], :] = \
+                [1.0, 0.0, 0.0]
+        return output_RGBs

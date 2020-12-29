@@ -56,6 +56,8 @@ from lookup_methods import (
 import fs  # noqa: E402
 from fs.zipfs import ZipFS  # noqa: E402
 
+st.set_page_config(layout="wide")
+
 __app__ = "Image Formation Whatever"
 __author__ = "dcac@deadlythings.com"
 __license__ = "GPL3"
@@ -132,29 +134,31 @@ def marcie():
 
 
 def lookup_method_tests():
-    @st.cache
-    def get_LUT():
-        LUT = generic_aesthetic_transfer_function()
-        return LUT
+    # @st.cache
+    LUT = generic_aesthetic_transfer_function()
 
-    EOTF = st.number_input(
-        label="Inverse EOTF",
-        min_value=1.0,
-        max_value=3.0,
-        value=2.2,
-        step=0.01)
-    exposure = st.slider(
-        label="Exposure Adjustment",
-        min_value=-5.0,
-        max_value=+5.0,
-        value=0.0,
-        step=0.1)
-    LUT_plot = st.line_chart(
-        data=get_LUT()._LUT.table
-    )
-    LUT_test = st.text(
-        body=get_LUT()._LUT.apply([2**6*0.18, 2**6*0.18, 2**6*0.18])
-    )
+    col1, col2 = st.beta_columns([1, 3])
+    with col1:
+        EOTF = st.number_input(
+            label="Inverse EOTF",
+            min_value=1.0,
+            max_value=3.0,
+            value=2.2,
+            step=0.01)
+        exposure = st.slider(
+            label="Exposure Adjustment",
+            min_value=-10.0,
+            max_value=+10.0,
+            value=0.0,
+            step=0.25)
+        contrast = st.slider(
+            label="Contrast",
+            min_value=0.01,
+            max_value=3.00,
+            value=1.0,
+            step=0.01
+        )
+        gamut_clipping = st.checkbox("Gamut Clipping Indicator")
 
     def apply_inverse_EOTF(RGB):
         return np.ma.power(RGB, (1.0 / EOTF)).filled(fill_value=0.0)
@@ -165,14 +169,12 @@ def lookup_method_tests():
 
     # @st.cache
     def LUT_buffer(x, LUT):
-        return LUT.apply(
-            np.clip((2.0**exposure) * x, LUT.domain[0], LUT.domain[1])
-        )
+        return x
 
     # @st.cache
-    @maxrgb_lookup
-    def video_buffer_maxrgb(x):
-        return LUT_buffer(x, get_LUT()._LUT)
+    # @maxrgb_lookup(LUT=get_LUT()._LUT)
+    # def video_buffer_maxrgb(x):
+    #     return video_buffer(x)
 
     # @st.cache
     @norm_lookup(degree=5, weights=[1.22, 1.20, 0.58])
@@ -185,17 +187,28 @@ def lookup_method_tests():
         img = colour.read_image(img_path)[..., 0:3]
         return img
 
-    st.subheader('Per-channel')
-    img = apply_inverse_EOTF(video_buffer(get_marcie()))
-    st.image(img, clamp=[0., 1.], use_column_width=True)
+    # st.subheader('maxRGB')
+    with col2:
+        LUT.set_transfer_details(contrast=contrast)
+        st.line_chart(data=LUT._LUT.table)
 
-    st.subheader('maxRGB')
-    img = apply_inverse_EOTF(video_buffer_maxrgb(get_marcie()))
-    st.image(img, clamp=[0., 1.], use_column_width=True)
+        img = LUT.apply(video_buffer(get_marcie()), gamut_clipping)
+        st.image(
+            apply_inverse_EOTF(img),
+            clamp=[0., 1.],
+            use_column_width=True,
+            caption=LUT._LUT.name)
 
-    st.subheader('Yellow-Weighted Norm')
-    img = apply_inverse_EOTF(video_buffer_norm(get_marcie()))
-    st.image(img, clamp=[0., 1.], use_column_width=True)
+        img = apply_inverse_EOTF(video_buffer(get_marcie()))
+        st.image(
+            img,
+            clamp=[0., 1.],
+            use_column_width=True,
+            caption="Generic Per Channel")
+
+    # st.subheader('Yellow-Weighted Norm')
+    # img = apply_inverse_EOTF(video_buffer_norm(get_marcie()))
+    # st.image(img, clamp=[0., 1.], use_column_width=True)
 
 
 def about():
