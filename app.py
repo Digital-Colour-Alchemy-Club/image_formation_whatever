@@ -167,6 +167,11 @@ def lookup_method_tests():
         )
         gamut_clipping = st.checkbox("Gamut Clipping Indicator")
 
+    LUT.set_transfer_details(
+            contrast=contrast,
+            shoulder_contrast=shoulder_contrast
+        )
+
     @st.cache
     def apply_inverse_EOTF(RGB):
         return np.ma.power(RGB, (1.0 / EOTF)).filled(fill_value=0.0)
@@ -174,8 +179,6 @@ def lookup_method_tests():
     @st.cache
     def video_buffer(x):
         return ((2.0**exposure) * x)
-
-        return x
     
     @st.cache
     @maxrgb_lookup
@@ -194,39 +197,29 @@ def lookup_method_tests():
         return img
 
     @st.cache
-    def compare_methods():
+    def transform_images():
         img = get_marcie()
-        per_channel = video_buffer(img)
-        maxrgb = video_buffer_maxrgb(img)
-        norm = video_buffer_norm(img)
-        return [apply_inverse_EOTF(i) for i in [per_channel, maxrgb, norm]]
+        img_maxrgb = apply_inverse_EOTF(
+            LUT.apply(video_buffer(img), gamut_clipping))
+        img_perchannel = apply_inverse_EOTF(video_buffer(img))
+        return img_maxrgb, img_perchannel
 
-    per_channel, maxrgb, norm = compare_methods()
-    # st.subheader('maxRGB')
+    img_maxrgb, img_perchannel = transform_images()
+
     with col2:
-        LUT.set_transfer_details(
-            contrast=contrast,
-            shoulder_contrast=shoulder_contrast
-        )
         st.line_chart(data=LUT._LUT.table)
 
-        img = LUT.apply(video_buffer(get_marcie()), gamut_clipping)
         st.image(
-            apply_inverse_EOTF(img),
+            img_maxrgb,
             clamp=[0., 1.],
             use_column_width=True,
             caption=LUT._LUT.name)
 
-        img = apply_inverse_EOTF(video_buffer(get_marcie()))
         st.image(
-            img,
+            img_perchannel,
             clamp=[0., 1.],
             use_column_width=True,
             caption="Generic Per Channel")
-
-    # st.subheader('Yellow-Weighted Norm')
-    # img = apply_inverse_EOTF(video_buffer_norm(get_marcie()))
-    # st.image(img, clamp=[0., 1.], use_column_width=True)
 
 
 def about():
