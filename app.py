@@ -167,23 +167,22 @@ def lookup_method_tests():
         )
         gamut_clipping = st.checkbox("Gamut Clipping Indicator")
 
+    @st.cache
     def apply_inverse_EOTF(RGB):
         return np.ma.power(RGB, (1.0 / EOTF)).filled(fill_value=0.0)
 
-    # @st.cache
+    @st.cache
     def video_buffer(x):
         return ((2.0**exposure) * x)
 
-    # @st.cache
-    def LUT_buffer(x, LUT):
         return x
+    
+    @st.cache
+    @maxrgb_lookup
+    def video_buffer_maxrgb(x):
+        return video_buffer(x)
 
-    # @st.cache
-    # @maxrgb_lookup(LUT=get_LUT()._LUT)
-    # def video_buffer_maxrgb(x):
-    #     return video_buffer(x)
-
-    # @st.cache
+    @st.cache
     @norm_lookup(degree=5, weights=[1.22, 1.20, 0.58])
     def video_buffer_norm(x):
         return video_buffer(x)
@@ -194,6 +193,15 @@ def lookup_method_tests():
         img = colour.read_image(img_path)[..., 0:3]
         return img
 
+    @st.cache
+    def compare_methods():
+        img = get_marcie()
+        per_channel = video_buffer(img)
+        maxrgb = video_buffer_maxrgb(img)
+        norm = video_buffer_norm(img)
+        return [apply_inverse_EOTF(i) for i in [per_channel, maxrgb, norm]]
+
+    per_channel, maxrgb, norm = compare_methods()
     # st.subheader('maxRGB')
     with col2:
         LUT.set_transfer_details(
