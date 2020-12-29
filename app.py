@@ -111,6 +111,7 @@ def bootstrap():
     import imageio
     imageio.plugins.freeimage.download()
     _ = localize_dependencies()
+    build_ocio()
 
 
 def marcie():
