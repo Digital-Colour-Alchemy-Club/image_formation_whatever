@@ -100,7 +100,7 @@ class generic_aesthetic_transfer_function:
         shoulder_contrast=1.0,
         middle_grey_in=0.18,
         middle_grey_out=0.18,
-        radiometric_maximum=(2**6)*0.18
+        radiometric_maximum=(2**5)*0.18
     ):
         self.set_transfer_details(
             contrast,

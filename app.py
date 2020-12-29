@@ -140,7 +140,7 @@ def lookup_method_tests():
     col1, col2 = st.beta_columns([1, 3])
     with col1:
         EOTF = st.number_input(
-            label="Inverse EOTF",
+            label="Display Hardware EOTF",
             min_value=1.0,
             max_value=3.0,
             value=2.2,
@@ -155,6 +155,13 @@ def lookup_method_tests():
             label="Contrast",
             min_value=0.01,
             max_value=3.00,
+            value=1.0,
+            step=0.01
+        )
+        shoulder_contrast = st.slider(
+            label="Shoulder Contrast",
+            min_value=0.01,
+            max_value=1.00,
             value=1.0,
             step=0.01
         )
@@ -189,7 +196,10 @@ def lookup_method_tests():
 
     # st.subheader('maxRGB')
     with col2:
-        LUT.set_transfer_details(contrast=contrast)
+        LUT.set_transfer_details(
+            contrast=contrast,
+            shoulder_contrast=shoulder_contrast
+        )
         st.line_chart(data=LUT._LUT.table)
 
         img = LUT.apply(video_buffer(get_marcie()), gamut_clipping)
