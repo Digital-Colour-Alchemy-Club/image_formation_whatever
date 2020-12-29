@@ -149,7 +149,7 @@ class RemoteData:
             else:
                 progress_bar = st.progress(0)
                 with open(path, "wb") as output_file:
-                    with urllib.request.urlopen(self.url) as response:
+                    with urllib.request.urlopen(self.url, cafile=certifi.where()) as response:
                         length = int(response.info()["Content-Length"])
                         counter = 0.0
                         MEGABYTES = 2.0 ** 20.0
