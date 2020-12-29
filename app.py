@@ -48,7 +48,11 @@ import colour  # noqa: E402
 from boltons.ecoutils import get_profile  # noqa: E402
 import attr  # noqa: E402
 from util import RemoteData, build_ocio  # noqa: E402
-from lookup_methods import norm_lookup, maxrgb_lookup  # noqa: E402
+from lookup_methods import (
+    norm_lookup,
+    maxrgb_lookup,
+    generic_aesthetic_transfer_function   # noqa: E402
+)
 import fs  # noqa: E402
 from fs.zipfs import ZipFS  # noqa: E402
 
@@ -128,6 +132,10 @@ def marcie():
 
 
 def lookup_method_tests():
+    @st.cache
+    def get_LUT():
+        LUT = generic_aesthetic_transfer_function()
+        return LUT
 
     EOTF = st.number_input(
         label="Inverse EOTF",
@@ -141,9 +149,15 @@ def lookup_method_tests():
         max_value=+5.0,
         value=0.0,
         step=0.1)
+    LUT_plot = st.line_chart(
+        data=get_LUT()._LUT.table
+    )
+    LUT_test = st.text(
+        body=get_LUT()._LUT.apply([2**6*0.18, 2**6*0.18, 2**6*0.18])
+    )
 
     def apply_inverse_EOTF(RGB):
-        return RGB**(1.0 / EOTF)
+        return np.ma.power(RGB, (1.0 / EOTF)).filled(fill_value=0.0)
 
     # @st.cache
     def video_buffer(x):
