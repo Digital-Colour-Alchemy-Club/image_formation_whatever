@@ -61,7 +61,7 @@ st.set_page_config(layout="wide")
 __app__ = "Image Formation Whatever"
 __author__ = "dcac@deadlythings.com"
 __license__ = "GPL3"
-__version__ = "0.1.3"
+__version__ = "0.1.4"
 
 VERSION = '.'.join(__version__.split('.')[:2])
 LOCAL_DATA = Path.cwd() / "data"
@@ -71,13 +71,7 @@ st.title(__app__)
 logger = logging.getLogger(__app__)
 
 
-def localize_dependencies(local_dir=LOCAL_DATA):
-    data = EXTERNAL_DEPENDENCIES.copy()
-    for name, remote_file in EXTERNAL_DEPENDENCIES.items():
-        path = remote_file.download(output_dir=local_dir)
-        data[name] = path
-        assert(Path(path).exists())
-    return data
+
 
 
 def get_dependency(key, local_dir=LOCAL_DATA):
@@ -85,16 +79,6 @@ def get_dependency(key, local_dir=LOCAL_DATA):
     remote_file.download(output_dir=local_dir)
     return local_dir / remote_file.filename
 
-
-def archive_ocio_payload(install_path='/home/appuser',
-                         filename='ocio_streamlit.zip'):
-    root = fs.open_fs(install_path)
-    archive_path = f"{install_path}/{filename}"
-    with ZipFS(f"{archive_path}", write=True) as archive:
-        fs.copy.copy_dir(root, 'include', archive, install_path)
-        fs.copy.copy_dir(root, 'lib', archive, install_path)
-        logger.debug(f"Archived {archive_path}")
-    return archive_path
 
 # def install_opencolorio():
 #     import gdown
@@ -108,9 +92,22 @@ def archive_ocio_payload(install_path='/home/appuser',
 
 
 def bootstrap():
+    def localize_dependencies(local_dir=LOCAL_DATA):
+        data = EXTERNAL_DEPENDENCIES.copy()
+        for name, remote_file in EXTERNAL_DEPENDENCIES.items():
+            path = remote_file.download(output_dir=local_dir)
+            data[name] = path
+            assert(Path(path).exists())
+        return data
+
+    # Install imageio freeimage plugin (i.e., for EXR support)
     import imageio
     imageio.plugins.freeimage.download()
+
+    # Download all app dependencies
     _ = localize_dependencies()
+
+    # Build and install OCIO
     build_ocio()
 
 
@@ -175,9 +172,6 @@ def lookup_method_tests():
     def video_buffer(x):
         return ((2.0**exposure) * x)
 
-    # @st.cache
-    def LUT_buffer(x, LUT):
-        return x
 
     # @st.cache
     # @maxrgb_lookup(LUT=get_LUT()._LUT)
@@ -263,10 +257,13 @@ def draw_main_page():
     st.write("""
     # Hello
     """)
+
     bootstrap()
+
     st.info("""
         :point_left: **To get started, choose a demo on the left sidebar.**
     """)
+
     st.balloons()
 
 

@@ -17,7 +17,7 @@ import streamlit as st
 logger = getLogger(__name__)
 
 VALID_OCIO_VERSIONS = ['2.0.0-beta2', '2.0.0-beta1']
-LOCAL_INSTALL_PREFIX = os.path.expanduser("~")
+LOCAL_INSTALL_PREFIX = os.path.expanduser("~/")
 
 
 def build_ocio(install_path=LOCAL_INSTALL_PREFIX,
@@ -25,20 +25,40 @@ def build_ocio(install_path=LOCAL_INSTALL_PREFIX,
                build_shared=False,
                build_apps=False,
                force=False):
-    git = local['git']
-    cmake = local['cmake']
-    mkdir = local['mkdir']
-    rm = local['rm']
-    make = local['make']
+    """
+    Builds and installs OpenColorIO.
+
+    Parameters
+    ----------
+    install_path : unicode, optional
+        Destination directory for installed libraries and headers
+    version : unicode, optional
+        Library version to build and install. If value does not match a known
+        version, the main branch of the github repository will be used.
+    build_shared : bool, optional
+        Whether to build shared libraries instead of static.
+    build_apps : bool, optional
+        Whether to build and install cli applications.
+    force : bool, optional
+        Whether to force a re-build and re-install, even if the library is
+        already installed.
+
+    Returns
+    -------
+    bool
+        Definition success.
+
+    """
 
     def is_ocio_installed():
-        # Determine if PyOpenColorIO is already installed.
+        """
+        Checks if `PyOpenColorIO` is installed and importable.
+        """
         python_version = get_python_version()
         pyopencolorio_path = f"{install_path}/lib/python{python_version}/site-packages"
         if local.path(pyopencolorio_path).is_dir():
             if pyopencolorio_path not in sys.path:
                 sys.path.append(pyopencolorio_path)
-
         try:
             import PyOpenColorIO
             logger.debug("PyOpenColorIO v{PyOpenColorIO.__version__} is installed.")
@@ -46,22 +66,34 @@ def build_ocio(install_path=LOCAL_INSTALL_PREFIX,
         except ImportError:
             return False
 
-    def archive_ocio_payload(filename='ocio_streamlit.zip'):
-        root = fs.open_fs(install_path)
+    def archive_ocio_payload(filename='ocio_streamlit.tar'):
+        """
+        Creates a compressed archive of the compiled library and headers.
+        """
         archive_path = f"{install_path}/{filename}"
-        with ZipFS(f"{archive_path}", write=True) as archive:
-            fs.copy.copy_dir(root, 'include', archive, install_path)
-            fs.copy.copy_dir(root, 'lib', archive, install_path)
-            logger.debug(f"Archived {archive_path}")
+        local['tar']['-cf',
+                     f"{archive_path}",
+                     f"{install_path}/lib",
+                     f"{install_path}/include"]()
+        logger.debug(f"Archived {archive_path}")
         return archive_path
 
     if is_ocio_installed():
         if force:
-            rm['-rf'](install_path)
+            # Clean prefix and proceed with build + install
+            python_version = get_python_version()
+            logger.debug("Removing existing OCIO artifacts...")
+            paths = [f"{install_path}/lib/python{python_version}"
+                     f"/site-packages/PyOpenColorIO.so",
+                     f"{install_path}/lib/libOpenColorIO*",
+                     f"{install_path}/include/OpenColorIO",
+                     f"{install_path}/bin/ocio*"]
+            _ = [local['rm']['-rf'](p) for p in paths]
         else:
+            # Bypass build + install.
             return True
 
-    # Configure OCIO build
+    # Configure build variables
     branch = f'v{version}' if version in VALID_OCIO_VERSIONS else 'master'
     url = 'https://github.com/AcademySoftwareFoundation/OpenColorIO.git'
 
@@ -88,7 +120,7 @@ def build_ocio(install_path=LOCAL_INSTALL_PREFIX,
 
     # create temporary dir for building
     tmp_dir = local.path('/tmp', 'build')
-    mkdir['-p'](tmp_dir)
+    local['mkdir']['-p'](tmp_dir)
 
     with st.spinner("Building OpenColorIO... patience is a virtue..."):
         with local.cwd(tmp_dir):
@@ -98,28 +130,28 @@ def build_ocio(install_path=LOCAL_INSTALL_PREFIX,
             # clone release tag (or master branch)
             if not git_repo_path.is_dir():
                 logger.debug(f'cloning to {git_repo_path}')
-                git['clone', '--branch', branch, url](git_repo_path)
+                local['git']['clone', '--branch', branch, url](git_repo_path)
 
             # clean build dir
-            rm['-rf'](build_dir)
-            mkdir['-p'](build_dir)
+            local['rm']['-rf'](build_dir)
+            local['mkdir']['-p'](build_dir)
 
             with local.cwd(build_dir):
                 # build and install OCIO
                 with local.env(CXXFLAGS=cxxflags, LDFLAGS=ldflags):
                     logger.debug('Invoking CMake...')
-                    cmake[cmake_options](git_repo_path)
+                    local['cmake'][cmake_options](git_repo_path)
 
                     logger.debug('Building and installing...')
-                    make['-j1']()
-                    make('install')
+                    local['make']['-j1']()
+                    local['make']('install')
 
             _ = archive_ocio_payload()
             logger.info(f"Built and installed OpenColorIO ({branch}): {install_path}")
 
     if is_ocio_installed():
-        # Clean up
-        rm['-rf'](tmp_dir)
+        # Clean up build dir
+        local['rm']['-rf'](tmp_dir)
         return True
     else:
         raise ChildProcessError("Could not install OpenColorIO.")
