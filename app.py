@@ -83,7 +83,7 @@ def installation_tools():
         print(f"OCIO Library path: {ocio.__file__}")
 
     st_file_downloader(os.path.expanduser("~/ocio_streamlit.tar"),
-                       "Compiled OCIO libs")x
+                       "Compiled OCIO libs")
 
 
 
