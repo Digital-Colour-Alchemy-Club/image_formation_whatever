@@ -30,6 +30,12 @@ EXTERNAL_DEPENDENCIES = {
             "images/marcie-4k.exr",
         size=63015668,
     ),
+    "OCIO v2.0.0beta2": util.RemoteData(
+        filename="ocio_streamlit_v2.0.0beta2.tar",
+        url="https://zozobra.s3.us-east-1.amazonaws.com/colour/"
+            "data/ocio_streamlit_v2.0.0beta2.tar",
+        size=28119040,
+    )
 }
 
 def st_file_downloader(bin_file, file_label='File'):
