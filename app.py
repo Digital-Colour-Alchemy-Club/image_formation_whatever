@@ -203,16 +203,18 @@ def lookup_method_tests():
         )
         st.line_chart(data=LUT._LUT.table)
 
-        img = LUT.apply(video_buffer(get_marcie()), gamut_clipping)
+        img = LUT.apply_maxRGB(
+            video_buffer(get_marcie()), gamut_clipping)
         st.image(
             apply_inverse_EOTF(img),
             clamp=[0., 1.],
             use_column_width=True,
             caption=LUT._LUT.name)
 
-        img = apply_inverse_EOTF(video_buffer(get_marcie()))
+        img = LUT.apply_per_channel(
+            video_buffer(get_marcie()), gamut_clipping)
         st.image(
-            img,
+            apply_inverse_EOTF(img),
             clamp=[0., 1.],
             use_column_width=True,
             caption="Generic Per Channel")

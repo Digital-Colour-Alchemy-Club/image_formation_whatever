@@ -100,7 +100,7 @@ class generic_aesthetic_transfer_function:
         shoulder_contrast=1.0,
         middle_grey_in=0.18,
         middle_grey_out=0.18,
-        radiometric_maximum=(2**5)*0.18
+        radiometric_maximum=(2**4)*0.18
     ):
         self.set_transfer_details(
             contrast,
@@ -118,7 +118,7 @@ class generic_aesthetic_transfer_function:
         shoulder_contrast=1.0,
         middle_grey_in=0.18,
         middle_grey_out=0.18,
-        radiometric_maximum=(2**6)*0.18
+        radiometric_maximum=(2**4)*0.18
     ):
         self._contrast = contrast
         self._shoulder_contrast = shoulder_contrast
@@ -174,11 +174,11 @@ class generic_aesthetic_transfer_function:
             table=self.evaluate(
                 np.linspace(0.0, self._radiometric_maximum, LUT_size)),
             name="Generic Lottes 2016 with Fixes",
-            domain=[0.0, self._radiometric_maximum + 0.0001]
+            domain=[0.0, self._radiometric_maximum + 0.005]
         )
         self._LUT_size = LUT_size
 
-    def apply(self, RGB, gamut_clip_alert=False):
+    def apply_maxRGB(self, RGB, gamut_clip_alert=False):
         gamut_clipped_above = np.where(RGB >= self._radiometric_maximum)
 
         RGB = np.clip(RGB, 0.0, self._LUT.domain[-1])
@@ -188,6 +188,17 @@ class generic_aesthetic_transfer_function:
         max_RGBs = np.amax(RGB, axis=2, keepdims=True)
         output_RGBs = self._LUT.apply(max_RGBs) * \
             np.ma.divide(RGB, max_RGBs).filled(fill_value=0.0)
+        if gamut_clip_alert is True:
+            output_RGBs[gamut_clipped_above[0], gamut_clipped_above[1], :] = \
+                [1.0, 0.0, 0.0]
+        return output_RGBs
+
+    def apply_per_channel(self, RGB, gamut_clip_alert=False):
+        gamut_clipped_above = np.where(RGB >= self._radiometric_maximum)
+
+        RGB = np.clip(RGB, 0.0, self._LUT.domain[-1])
+
+        output_RGBs = self._LUT.apply(RGB)
         if gamut_clip_alert is True:
             output_RGBs[gamut_clipped_above[0], gamut_clipped_above[1], :] = \
                 [1.0, 0.0, 0.0]
