@@ -1,5 +1,8 @@
 import pathlib
 import util
+import os
+import base64
+import streamlit as st
 
 LOCAL_DATA = pathlib.Path.cwd() / "data"
 EXTERNAL_DEPENDENCIES = {
@@ -28,6 +31,17 @@ EXTERNAL_DEPENDENCIES = {
         size=63015668,
     ),
 }
+
+def st_file_downloader(bin_file, file_label='File'):
+    def get_binary_file_downloader_html(bin_file, file_label='File'):
+        # https://discuss.streamlit.io/t/how-to-download-file-in-streamlit/1806/27
+        with open(bin_file, 'rb') as f:
+            data = f.read()
+        bin_str = base64.b64encode(data).decode()
+        href = f'<a href="data:application/octet-stream;base64,{bin_str}"' \
+               f' download="{os.path.basename(bin_file)}">Download {file_label}</a>'
+        return href
+    st.markdown(get_binary_file_downloader_html(bin_file, file_label), unsafe_allow_html=True)
 
 
 def get_dependency(key, local_dir=LOCAL_DATA):
