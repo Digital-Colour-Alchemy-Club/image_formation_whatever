@@ -8,19 +8,18 @@ import image_formation
 
 import logging
 
-st.set_page_config(
-    page_title="Experimental Image Formation Toolset",
-    layout="wide")
-
-__app__ = "Image Formation Whatever"
-__author__ = "dcac@deadlythings.com"
+__app__ = "Experimental Image Formation Toolset"
+__author__ = "THE HERMETIC BROTHERHOOD OV SPECTRA"
 __license__ = "GPL3"
 __version__ = "0.1.4"
 
-VERSION = '.'.join(__version__.split('.')[:2])
+LOCAL_DATA = Path.cwd() / "data"
 
 logger = logging.getLogger(__app__)
 
+st.set_page_config(
+    page_title=__app__,
+    layout="wide")
 
 def bootstrap():
     def localize_dependencies(local_dir=LOCAL_DATA):
@@ -76,7 +75,6 @@ def diagnostics():
 
 def installation_tools():
     pass
-    # bootstrap()
 
 
 demo_pages = {
@@ -92,7 +90,7 @@ demo_pages = {
 pages = list(demo_pages.keys())
 
 applications = st.sidebar.selectbox(
-    "Applications Version {}".format(VERSION),
+    "Applications Version {}".format(__version__),
     pages
 )
 
