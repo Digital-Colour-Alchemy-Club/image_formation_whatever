@@ -1,7 +1,12 @@
 import numpy as np
 import colour
-from colour.utilities import tsplit, as_float_array
+from colour.utilities import (
+    tsplit,
+    as_float_array
+)
 from functools import wraps
+import data_utilities
+import streamlit as st
 
 
 def hue_restore_dw3_lookup(func):
@@ -202,3 +207,84 @@ class generic_aesthetic_transfer_function:
             output_RGBs[gamut_clipped_above[0], gamut_clipped_above[1], :] = \
                 [1.0, 0.0, 0.0]
         return output_RGBs
+
+
+def application_experimental_image_formation():
+    # @st.cache
+    LUT = generic_aesthetic_transfer_function()
+
+    col1, col2 = st.beta_columns([1, 3])
+    with col1:
+        EOTF = st.number_input(
+            label="Display Hardware EOTF",
+            min_value=1.0,
+            max_value=3.0,
+            value=2.2,
+            step=0.01)
+        exposure = st.slider(
+            label="Exposure Adjustment",
+            min_value=-10.0,
+            max_value=+10.0,
+            value=0.0,
+            step=0.25)
+        contrast = st.slider(
+            label="Contrast",
+            min_value=0.01,
+            max_value=3.00,
+            value=1.0,
+            step=0.01
+        )
+        shoulder_contrast = st.slider(
+            label="Shoulder Contrast",
+            min_value=0.01,
+            max_value=1.00,
+            value=1.0,
+            step=0.01
+        )
+        gamut_clipping = st.checkbox("Gamut Clipping Indicator")
+
+    def apply_inverse_EOTF(RGB):
+        return np.ma.power(RGB, (1.0 / EOTF)).filled(fill_value=0.0)
+
+    # @st.cache
+    def video_buffer(x):
+        return ((2.0**exposure) * x)
+
+    # @st.cache
+    @norm_lookup(degree=5, weights=[1.22, 1.20, 0.58])
+    def video_buffer_norm(x):
+        return video_buffer(x)
+
+    @st.cache
+    def get_marcie():
+        img_path = data_utilities.get_dependency("Marcie 4K")
+        img = colour.read_image(img_path)[..., 0:3]
+        return img
+
+    # st.subheader('maxRGB')
+    with col2:
+        LUT.set_transfer_details(
+            contrast=contrast,
+            shoulder_contrast=shoulder_contrast
+        )
+        st.line_chart(data=LUT._LUT.table)
+
+        img = LUT.apply_maxRGB(
+            video_buffer(get_marcie()), gamut_clipping)
+        st.image(
+            apply_inverse_EOTF(img),
+            clamp=[0., 1.],
+            use_column_width=True,
+            caption=LUT._LUT.name)
+
+        img = LUT.apply_per_channel(
+            video_buffer(get_marcie()), gamut_clipping)
+        st.image(
+            apply_inverse_EOTF(img),
+            clamp=[0., 1.],
+            use_column_width=True,
+            caption="Generic Per Channel")
+
+    # st.subheader('Yellow-Weighted Norm')
+    # img = apply_inverse_EOTF(video_buffer_norm(get_marcie()))
+    # st.image(img, clamp=[0., 1.], use_column_width=True)
