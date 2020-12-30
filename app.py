@@ -3,8 +3,8 @@ import streamlit as st
 import numpy as np
 import colour
 from boltons.ecoutils import get_profile
-from util import build_ocio
-from data_utilities import EXTERNAL_DEPENDENCIES
+from util import build_ocio, st_stdout
+from data_utilities import EXTERNAL_DEPENDENCIES, st_file_downloader
 import image_formation
 
 import logging
@@ -75,7 +75,16 @@ def diagnostics():
 
 
 def installation_tools():
+    import os
     bootstrap()
+    import PyOpenColorIO as ocio
+
+    with st_stdout('info'):
+        print(f"OCIO Library path: {ocio.__file__}")
+
+    st_file_downloader(os.path.expanduser("~/ocio_streamlit.tar"),
+                       "Compiled OCIO libs")x
+
 
 
 demo_pages = {
