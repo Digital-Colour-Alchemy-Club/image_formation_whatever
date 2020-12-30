@@ -222,18 +222,20 @@ def application_experimental_image_formation():
         else:
             img = get_marcie()
 
-        img = LUT.apply_maxRGB(
-            video_buffer(img), gamut_clipping, gamut_warning)
         st.image(
-            apply_inverse_EOTF(img),
+            apply_inverse_EOTF(
+                LUT.apply_maxRGB(
+                    video_buffer(img), gamut_clipping, gamut_warning)
+                ),
             clamp=[0., 1.],
             use_column_width=True,
             caption=LUT._LUT.name)
 
-        img = LUT.apply_per_channel(
-            video_buffer(img), gamut_clipping, gamut_warning)
         st.image(
-            apply_inverse_EOTF(img),
+            apply_inverse_EOTF(
+                LUT.apply_per_channel(
+                    video_buffer(img), gamut_clipping, gamut_warning)
+            ),
             clamp=[0., 1.],
             use_column_width=True,
             caption="Generic Per Channel")
