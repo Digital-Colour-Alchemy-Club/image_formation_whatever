@@ -1,5 +1,5 @@
 streamlit>=0.73.0
-colour_science>=0.3.16
+colour-science>=0.3.16
 gdown
 glom
 fs

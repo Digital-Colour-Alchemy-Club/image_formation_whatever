@@ -27,18 +27,19 @@ def build_ocio(install_path='/home/appuser', version='2.0.0-beta2',
     def is_ocio_installed():
         # Determine if PyOpenColorIO is already installed.
         python_version = get_python_version()
-        pyopencolorio_path = f"{install_path}/lib/python{python_version}/site-packages"
+        pyopencolorio_path = \
+            f"{install_path}/lib/python{python_version}/site-packages"
         if local.path(pyopencolorio_path).is_dir():
             if pyopencolorio_path not in sys.path:
                 sys.path.append(pyopencolorio_path)
 
         try:
             import PyOpenColorIO
-            logger.debug("PyOpenColorIO v{PyOpenColorIO.__version__} is installed.")
+            logger.debug(
+                "PyOpenColorIO v{PyOpenColorIO.__version__} is installed.")
             return True
         except ImportError:
             return False
-
 
     def archive_ocio_payload(filename='ocio_streamlit.zip'):
         root = fs.open_fs(install_path)
@@ -64,7 +65,7 @@ def build_ocio(install_path='/home/appuser', version='2.0.0-beta2',
     cxxflags = '-Wno-deprecated-declarations -fPIC'
 
     cmake_options = [
-        #'-G', 'Ninja',
+        # '-G', 'Ninja',
         f'-DOCIO_BUILD_APPS={build_apps}',
         '-DOCIO_BUILD_NUKE=OFF',
         '-DOCIO_BUILD_DOCS=OFF',
@@ -110,7 +111,8 @@ def build_ocio(install_path='/home/appuser', version='2.0.0-beta2',
                     make('install')
 
             _ = archive_ocio_payload()
-            logger.info(f"Built and installed OpenColorIO ({branch}): {install_path}")
+            logger.info(
+                f"Built and installed OpenColorIO ({branch}): {install_path}")
 
     if is_ocio_installed():
         # Clean up
@@ -127,11 +129,13 @@ class RemoteData:
     size: int = 0
 
     def download(self, output_dir=Path.cwd()):
-        # mostly taken from https://github.com/streamlit/demo-face-gan/blob/master/streamlit_app.py
+        # mostly taken from https://github.com/streamlit/demo-face-gan/
+        #   blob/master/streamlit_app.py
         root = Path(output_dir).resolve()
         path = root / self.filename
 
-        # Don't download the file twice. (If possible, verify the download using the file length.)
+        # Don't download the file twice. (If possible, verify the
+        # download using the file length.)
         if os.path.exists(path):
             if not self.size or os.path.getsize(path) == self.size:
                 return path
@@ -143,7 +147,8 @@ class RemoteData:
         try:
             status = st.warning("Downloading %s..." % path)
 
-            # handle cases where files hosted on gdrive someitimes fail to download
+            # handle cases where files hosted on gdrive sometimes fail
+            # to download
             if "google.com" in self.url:
                 _ = gdown.cached_download(self.url, path=path)
             else:
@@ -161,8 +166,14 @@ class RemoteData:
                             output_file.write(data)
 
                             # We perform animation by overwriting the elements.
-                            status.warning("Downloading %s... (%6.2f/%6.2f MB)" %
-                                           (path, counter / MEGABYTES, length / MEGABYTES))
+                            status.warning(
+                                "Downloading %s... (%6.2f/%6.2f MB)" %
+                                (
+                                    path,
+                                    counter / MEGABYTES,
+                                    length / MEGABYTES
+                                )
+                            )
                             progress_bar.progress(min(counter / length, 1.0))
 
         # Finally, we remove these visual elements by calling .empty().
