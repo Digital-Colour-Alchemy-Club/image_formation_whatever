@@ -8,8 +8,6 @@ from lookup_methods import (
     norm_lookup,
     generic_aesthetic_transfer_function
 )
-import fs
-from fs.zipfs import ZipFS
 
 import logging
 
@@ -20,21 +18,12 @@ st.set_page_config(
 __app__ = "Image Formation Whatever"
 __author__ = "dcac@deadlythings.com"
 __license__ = "GPL3"
-__version__ = "0.1.3"
+__version__ = "0.1.4"
 
 VERSION = '.'.join(__version__.split('.')[:2])
 LOCAL_DATA = Path.cwd() / "data"
 
 logger = logging.getLogger(__app__)
-
-
-def localize_dependencies(local_dir=LOCAL_DATA):
-    data = EXTERNAL_DEPENDENCIES.copy()
-    for name, remote_file in EXTERNAL_DEPENDENCIES.items():
-        path = remote_file.download(output_dir=local_dir)
-        data[name] = path
-        assert(Path(path).exists())
-    return data
 
 
 def get_dependency(key, local_dir=LOCAL_DATA):
@@ -43,21 +32,24 @@ def get_dependency(key, local_dir=LOCAL_DATA):
     return local_dir / remote_file.filename
 
 
-def archive_ocio_payload(install_path='/home/appuser',
-                         filename='ocio_streamlit.zip'):
-    root = fs.open_fs(install_path)
-    archive_path = f"{install_path}/{filename}"
-    with ZipFS(f"{archive_path}", write=True) as archive:
-        fs.copy.copy_dir(root, 'include', archive, install_path)
-        fs.copy.copy_dir(root, 'lib', archive, install_path)
-        logger.debug(f"Archived {archive_path}")
-    return archive_path
-
-
 def bootstrap():
+    def localize_dependencies(local_dir=LOCAL_DATA):
+        data = EXTERNAL_DEPENDENCIES.copy()
+        for name, remote_file in EXTERNAL_DEPENDENCIES.items():
+            path = remote_file.download(output_dir=local_dir)
+            data[name] = path
+            assert(Path(path).exists())
+        return data
+
+    # Install imageio freeimage plugin (i.e., for EXR support)
     import imageio
     imageio.plugins.freeimage.download()
+
+    # Download all app dependencies
     _ = localize_dependencies()
+    build_ocio()
+
+    # Build and install OCIO
     build_ocio()
 
 
@@ -101,10 +93,6 @@ def experimental_image_formation():
     # @st.cache
     def video_buffer(x):
         return ((2.0**exposure) * x)
-
-    # @st.cache
-    def LUT_buffer(x, LUT):
-        return x
 
     # @st.cache
     @norm_lookup(degree=5, weights=[1.22, 1.20, 0.58])
@@ -176,10 +164,6 @@ def diagnostics():
     for library, version in library_versions.items():
         st.write(f"{library}: {version}")
 
-    st.subheader("Local contents")
-    data_dir = fs.open_fs(str(LOCAL_DATA))
-    data_dir.tree()
-
 
 def installation_tools():
     pass
@@ -194,10 +178,7 @@ demo_pages = {
 
 # Draw sidebar
 pages = list(demo_pages.keys())
-# pages.insert(0, "Welcome")
 
-# st.sidebar.title(f"Demos v{VERSION}")
-# selected_demo = st.sidebar.radio("", pages)
 applications = st.sidebar.selectbox(
     "Applications Version {}".format(VERSION),
     pages
