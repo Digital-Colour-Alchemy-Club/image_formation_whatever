@@ -11,31 +11,43 @@ class generic_aesthetic_transfer_function:
         shoulder_contrast=1.0,
         middle_grey_in=0.18,
         middle_grey_out=0.18,
-        radiometric_maximum=(2**4)*0.18
+        ev_above_middle_grey=4.0
     ):
         self.set_transfer_details(
             contrast,
             shoulder_contrast,
             middle_grey_in,
             middle_grey_out,
-            radiometric_maximum
+            ev_above_middle_grey
         )
         self.calculate_LUT()
-        print(self._LUT)
+
+    @property
+    def ev_above_middle_grey(self):
+        return self._ev_above_middle_grey
+
+    @ev_above_middle_grey.setter
+    def ev_above_middle_grey(self, ev):
+        min_ev = 1.0
+        max_ev = 20.0
+        ev = np.clip(ev, min_ev, max_ev)
+        self._ev_above_middle_grey = ev
+        self._radiometric_maximum = \
+            np.power(2.0, ev) * self._middle_grey_in
 
     def set_transfer_details(
         self,
-        contrast=1.0,
-        shoulder_contrast=1.0,
-        middle_grey_in=0.18,
-        middle_grey_out=0.18,
-        radiometric_maximum=(2**4)*0.18
+        contrast,
+        shoulder_contrast,
+        middle_grey_in,
+        middle_grey_out,
+        ev_above_middle_grey,
     ):
         self._contrast = contrast
         self._shoulder_contrast = shoulder_contrast
         self._middle_grey_in = middle_grey_in
         self._middle_grey_out = middle_grey_out
-        self._radiometric_maximum = radiometric_maximum
+        self.ev_above_middle_grey = ev_above_middle_grey
 
         self._shoulder_multiplied = self._contrast * self._shoulder_contrast
 
@@ -89,13 +101,13 @@ class generic_aesthetic_transfer_function:
         )
         self._LUT_size = LUT_size
 
-    def apply_maxRGB(self, RGB, gamut_clip_alert=False):
+    def apply_maxRGB(self, RGB, gamut_clip=False, gamut_clip_alert=False):
         gamut_clipped_above = np.where(RGB >= self._radiometric_maximum)
 
         RGB = np.clip(RGB, 0.0, self._LUT.domain[-1])
-        # print(self._radiometric_maximum)
-        RGB[gamut_clipped_above[0], gamut_clipped_above[1], :] = \
-            self._LUT.domain[-1]
+        if gamut_clip is True:
+            RGB[gamut_clipped_above[0], gamut_clipped_above[1], :] = \
+                self._LUT.domain[-1]
         max_RGBs = np.amax(RGB, axis=2, keepdims=True)
         output_RGBs = self._LUT.apply(max_RGBs) * \
             np.ma.divide(RGB, max_RGBs).filled(fill_value=0.0)
@@ -104,10 +116,13 @@ class generic_aesthetic_transfer_function:
                 [1.0, 0.0, 0.0]
         return output_RGBs
 
-    def apply_per_channel(self, RGB, gamut_clip_alert=False):
+    def apply_per_channel(self, RGB, gamut_clip=False, gamut_clip_alert=False):
         gamut_clipped_above = np.where(RGB >= self._radiometric_maximum)
 
         RGB = np.clip(RGB, 0.0, self._LUT.domain[-1])
+        if gamut_clip is True:
+            RGB[gamut_clipped_above[0], gamut_clipped_above[1], :] = \
+                self._LUT.domain[-1]
 
         output_RGBs = self._LUT.apply(RGB)
         if gamut_clip_alert is True:
@@ -120,7 +135,7 @@ def application_experimental_image_formation():
 
     LUT = generic_aesthetic_transfer_function()
 
-    col1, col2 = st.beta_columns([1, 3])
+    col1, col2 = st.beta_columns([1, 2])
     with col1:
         EOTF = st.number_input(
             label="Display Hardware EOTF",
@@ -128,6 +143,27 @@ def application_experimental_image_formation():
             max_value=3.0,
             value=2.2,
             step=0.01)
+        middle_grey_input = st.number_input(
+            label="Middle Grey Input Value, Radiometric",
+            min_value=0.01,
+            max_value=1.0,
+            value=0.18,
+            step=0.001
+        )
+        middle_grey_output = st.number_input(
+            label="Middle Grey Output Display Value, Radiometric",
+            min_value=0.01,
+            max_value=1.0,
+            value=0.18,
+            step=0.001
+        )
+        maximum_ev = st.slider(
+            label="Maximum EV Above Middle Grey",
+            min_value=1.0,
+            max_value=15.0,
+            value=4.0,
+            step=0.25
+        )
         exposure = st.slider(
             label="Exposure Adjustment",
             min_value=-10.0,
@@ -138,7 +174,7 @@ def application_experimental_image_formation():
             label="Contrast",
             min_value=0.01,
             max_value=3.00,
-            value=1.0,
+            value=1.75,
             step=0.01
         )
         shoulder_contrast = st.slider(
@@ -148,7 +184,11 @@ def application_experimental_image_formation():
             value=1.0,
             step=0.01
         )
-        gamut_clipping = st.checkbox("Gamut Clipping Indicator")
+        gamut_clipping = st.checkbox(
+            "Gamut Clip to Maximum",
+            value=True
+        )
+        gamut_warning = st.checkbox("Exceeds Gamut Indicator")
 
     def apply_inverse_EOTF(RGB):
         return np.ma.power(RGB, (1.0 / EOTF)).filled(fill_value=0.0)
@@ -166,12 +206,15 @@ def application_experimental_image_formation():
     with col2:
         LUT.set_transfer_details(
             contrast=contrast,
-            shoulder_contrast=shoulder_contrast
+            shoulder_contrast=shoulder_contrast,
+            middle_grey_in=middle_grey_input,
+            middle_grey_out=middle_grey_output,
+            ev_above_middle_grey=maximum_ev
         )
         st.line_chart(data=LUT._LUT.table)
 
         img = LUT.apply_maxRGB(
-            video_buffer(get_marcie()), gamut_clipping)
+            video_buffer(get_marcie()), gamut_clipping, gamut_warning)
         st.image(
             apply_inverse_EOTF(img),
             clamp=[0., 1.],
@@ -179,7 +222,7 @@ def application_experimental_image_formation():
             caption=LUT._LUT.name)
 
         img = LUT.apply_per_channel(
-            video_buffer(get_marcie()), gamut_clipping)
+            video_buffer(get_marcie()), gamut_clipping, gamut_warning)
         st.image(
             apply_inverse_EOTF(img),
             clamp=[0., 1.],
