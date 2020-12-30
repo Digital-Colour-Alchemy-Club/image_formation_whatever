@@ -39,7 +39,6 @@ def bootstrap(build_libs=False):
 
     # Download all app dependencies
     _ = localize_dependencies()
-    build_ocio()
 
     # Build and install OCIO
     if build_libs:
@@ -89,30 +88,28 @@ def installation_tools():
         ocio = Null()
         
     def fetch_and_install_prebuilt_ocio(version="2.0.0beta2", force=False):
-        status = st.empty()
 
         if not force and version == ocio.__version__:
-            status.info(f"OCIO v{version} already installed!")
             return
 
-        dst_path = Path('/')
+        dst_path = Path("~")
         archive_path = get_dependency(f"OCIO v{version}", local_dir=LOCAL_DATA)
         archive = fs.open_fs(f"tar://{archive_path}")
 
         # copy archive contents to dst path
         def _update_status(src_fs, src_path, dst_fs, dst_path):
-            status.info(f"Extracted {dst_path}...")
+            logger.debug(f"Extracted {dst_path}...")
 
         with fs.open_fs(str(dst_path), writeable=True) as dst:
-            fs.copy.copy_fs_if_newer(archive, dst, on_copy=_update_status)
+            fs.copy.copy_dir(archive, '/home/appuser', dst, '.', on_copy=_update_status)
 
         # add PyOpenColorIO to the system path
         pyocio_dir = dst_path / list(archive.glob("**/site-packages/"))[0].path
 
-        if pyocio_dir.exists():
+        if pyocio_dir.expanduser().exists():
             import sys
             sys.path.append(pyocio_dir)
-            status.success(f"OpenColorIO v{version} installed!")
+            logger.debug(f"OpenColorIO v{version} installed!")
 
     # Offer archive of existing libraries
     if ocio:
