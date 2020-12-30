@@ -137,6 +137,10 @@ def application_experimental_image_formation():
 
     col1, col2 = st.beta_columns([1, 2])
     with col1:
+        upload_image = st.file_uploader(
+            label="Input Image",
+            type=[".exr"]
+        )
         EOTF = st.number_input(
             label="Display Hardware EOTF",
             min_value=1.0,
@@ -213,8 +217,13 @@ def application_experimental_image_formation():
         )
         st.line_chart(data=LUT._LUT.table)
 
+        if upload_image is not None:
+            img = colour.read_image(upload_image.read())
+        else:
+            img = get_marcie()
+
         img = LUT.apply_maxRGB(
-            video_buffer(get_marcie()), gamut_clipping, gamut_warning)
+            video_buffer(img), gamut_clipping, gamut_warning)
         st.image(
             apply_inverse_EOTF(img),
             clamp=[0., 1.],
@@ -222,7 +231,7 @@ def application_experimental_image_formation():
             caption=LUT._LUT.name)
 
         img = LUT.apply_per_channel(
-            video_buffer(get_marcie()), gamut_clipping, gamut_warning)
+            video_buffer(img), gamut_clipping, gamut_warning)
         st.image(
             apply_inverse_EOTF(img),
             clamp=[0., 1.],
