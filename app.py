@@ -74,7 +74,7 @@ def diagnostics():
 
 
 def installation_tools():
-    pass
+    bootstrap()
 
 
 demo_pages = {
