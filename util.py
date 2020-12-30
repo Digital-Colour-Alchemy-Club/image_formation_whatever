@@ -8,8 +8,6 @@ import urllib
 import attr
 from boltons.fileutils import mkdir_p
 import certifi
-import fs
-from fs.zipfs import ZipFS
 import gdown
 from plumbum import local
 import streamlit as st

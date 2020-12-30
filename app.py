@@ -53,8 +53,6 @@ from lookup_methods import (
     maxrgb_lookup,
     generic_aesthetic_transfer_function   # noqa: E402
 )
-import fs  # noqa: E402
-from fs.zipfs import ZipFS  # noqa: E402
 
 st.set_page_config(layout="wide")
 
@@ -247,10 +245,6 @@ def about():
     library_versions = get_library_versions()
     for library, version in library_versions.items():
         st.write(f"{library}: {version}")
-
-    st.subheader("Local contents")
-    data_dir = fs.open_fs(str(LOCAL_DATA))
-    data_dir.tree()
 
 
 def draw_main_page():
