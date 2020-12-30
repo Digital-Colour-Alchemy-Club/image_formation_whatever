@@ -4,6 +4,7 @@ import numpy as np
 import colour
 from boltons.ecoutils import get_profile
 from util import build_ocio
+from data_utilities import EXTERNAL_DEPENDENCIES
 import image_formation
 
 import logging
