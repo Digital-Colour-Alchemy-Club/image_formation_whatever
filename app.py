@@ -22,6 +22,7 @@ st.set_page_config(
     page_title=__app__,
     layout="wide")
 
+
 def bootstrap():
     def localize_dependencies(local_dir=LOCAL_DATA):
         data = EXTERNAL_DEPENDENCIES.copy()
@@ -37,7 +38,6 @@ def bootstrap():
 
     # Download all app dependencies
     _ = localize_dependencies()
-    build_ocio()
 
     # Build and install OCIO
     build_ocio()
