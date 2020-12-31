@@ -93,7 +93,7 @@ def installation_tools():
 
         install_opencolorio(prefix=prefix, version=version, force=False)
 
-    setup_opencolorio(prefix='/usr/local', version="2.0.0beta3", force=True)
+    setup_opencolorio(prefix='/home/appuser', version="2.0.0beta2", force=False)
 
 
 demo_pages = {
