@@ -201,7 +201,7 @@ def application_experimental_image_formation():
     def video_buffer(x):
         return ((2.0**exposure) * x)
 
-    @st.cache
+    @st.cache(suppress_st_warning=True)
     def get_marcie():
         img_path = data_utilities.get_dependency("Marcie 4K")
         img = colour.read_image(img_path)[..., 0:3]
