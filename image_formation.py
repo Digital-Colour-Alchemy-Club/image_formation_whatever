@@ -1,6 +1,7 @@
 import numpy as np
 import colour
 import data_utilities
+import matplotlib
 import streamlit as st
 
 
@@ -104,30 +105,46 @@ class generic_aesthetic_transfer_function:
     def apply_maxRGB(self, RGB, gamut_clip=False, gamut_clip_alert=False):
         gamut_clipped_above = np.where(RGB >= self._radiometric_maximum)
 
-        RGB = np.clip(RGB, 0.0, self._LUT.domain[-1])
+        maximum_RGBs = np.amax(RGB, axis=2, keepdims=True)
+        ratios = np.ma.divide(RGB, maximum_RGBs).filled(fill_value=0.0)
+
+        clipped_RGBs = np.clip(RGB, 0.0, self._LUT.domain[-1])
+        max_clipped_RGBs = np.amax(clipped_RGBs, axis=2, keepdims=True)
+
+        print(
+            "Shapes: max{}, rat{}, clip{}, maxclip{}".format(
+                maximum_RGBs.shape,
+                ratios.shape,
+                clipped_RGBs.shape,
+                max_clipped_RGBs.shape
+            )
+        )
+        curve_evaluation = self._LUT.apply(max_clipped_RGBs)
+
+        output_RGBs = curve_evaluation * ratios
         if gamut_clip is True:
-            RGB[gamut_clipped_above[0], gamut_clipped_above[1], :] = \
-                self._LUT.domain[-1]
-        max_RGBs = np.amax(RGB, axis=2, keepdims=True)
-        output_RGBs = self._LUT.apply(max_RGBs) * \
-            np.ma.divide(RGB, max_RGBs).filled(fill_value=0.0)
+            output_RGBs[gamut_clipped_above[0], gamut_clipped_above[1], :] =\
+                 self._LUT.table[-1]
+
+        print("Shape: outRGB{}".format(output_RGBs.shape))
+
         if gamut_clip_alert is True:
             output_RGBs[gamut_clipped_above[0], gamut_clipped_above[1], :] = \
                 [1.0, 0.0, 0.0]
+
         return output_RGBs
 
     def apply_per_channel(self, RGB, gamut_clip=False, gamut_clip_alert=False):
         gamut_clipped_above = np.where(RGB >= self._radiometric_maximum)
 
-        RGB = np.clip(RGB, 0.0, self._LUT.domain[-1])
-        if gamut_clip is True:
-            RGB[gamut_clipped_above[0], gamut_clipped_above[1], :] = \
-                self._LUT.domain[-1]
+        clipped_RGBs = np.clip(RGB, 0.0, self._LUT.domain[-1])
 
-        output_RGBs = self._LUT.apply(RGB)
+        output_RGBs = self._LUT.apply(clipped_RGBs)
+
         if gamut_clip_alert is True:
             output_RGBs[gamut_clipped_above[0], gamut_clipped_above[1], :] = \
                 [1.0, 0.0, 0.0]
+
         return output_RGBs
 
 
@@ -146,7 +163,8 @@ def application_experimental_image_formation():
             min_value=1.0,
             max_value=3.0,
             value=2.2,
-            step=0.01)
+            step=0.01
+        )
         middle_grey_input = st.number_input(
             label="Middle Grey Input Value, Radiometric",
             min_value=0.01,
@@ -173,7 +191,8 @@ def application_experimental_image_formation():
             min_value=-10.0,
             max_value=+10.0,
             value=0.0,
-            step=0.25)
+            step=0.25
+        )
         contrast = st.slider(
             label="Contrast",
             min_value=0.01,
@@ -229,7 +248,8 @@ def application_experimental_image_formation():
                 ),
             clamp=[0., 1.],
             use_column_width=True,
-            caption=LUT._LUT.name)
+            caption=LUT._LUT.name
+        )
 
         st.image(
             apply_inverse_EOTF(
