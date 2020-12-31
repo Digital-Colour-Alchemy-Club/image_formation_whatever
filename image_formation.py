@@ -108,25 +108,13 @@ class generic_aesthetic_transfer_function:
         maximum_RGBs = np.amax(RGB, axis=2, keepdims=True)
         ratios = np.ma.divide(RGB, maximum_RGBs).filled(fill_value=0.0)
 
-        clipped_RGBs = np.clip(RGB, 0.0, self._LUT.domain[-1])
-        max_clipped_RGBs = np.amax(clipped_RGBs, axis=2, keepdims=True)
-
-        print(
-            "Shapes: max{}, rat{}, clip{}, maxclip{}".format(
-                maximum_RGBs.shape,
-                ratios.shape,
-                clipped_RGBs.shape,
-                max_clipped_RGBs.shape
-            )
-        )
-        curve_evaluation = self._LUT.apply(max_clipped_RGBs)
+        curve_evaluation = self.evaluate(RGB)
 
         output_RGBs = curve_evaluation * ratios
+
         if gamut_clip is True:
             output_RGBs[gamut_clipped_above[0], gamut_clipped_above[1], :] =\
                  self._LUT.table[-1]
-
-        print("Shape: outRGB{}".format(output_RGBs.shape))
 
         if gamut_clip_alert is True:
             output_RGBs[gamut_clipped_above[0], gamut_clipped_above[1], :] = \
@@ -137,10 +125,11 @@ class generic_aesthetic_transfer_function:
     def apply_per_channel(self, RGB, gamut_clip=False, gamut_clip_alert=False):
         gamut_clipped_above = np.where(RGB >= self._radiometric_maximum)
 
-        clipped_RGBs = np.clip(RGB, 0.0, self._LUT.domain[-1])
+        output_RGBs = self.evaluate(RGB)
 
-        output_RGBs = self._LUT.apply(clipped_RGBs)
-
+        if gamut_clip is True:
+            output_RGBs[gamut_clipped_above[0], gamut_clipped_above[1], :] =\
+                self._LUT.table[-1]
         if gamut_clip_alert is True:
             output_RGBs[gamut_clipped_above[0], gamut_clipped_above[1], :] = \
                 [1.0, 0.0, 0.0]
