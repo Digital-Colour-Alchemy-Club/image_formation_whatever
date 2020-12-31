@@ -7,8 +7,9 @@ import colour
 import fs
 import streamlit as st
 
-from util import build_ocio, st_stdout
-from data_utilities import EXTERNAL_DEPENDENCIES, st_file_downloader, get_dependency
+from util import st_stdout
+from ocioutils import build_ocio, fetch_and_install_prebuilt_ocio
+from data_utilities import st_file_downloader
 import image_formation
 
 __app__ = "Experimental Image Formation Toolset"
@@ -29,10 +30,10 @@ def bootstrap(build_libs=False):
     # Install imageio freeimage plugin (i.e., for EXR support)
     import imageio
     imageio.plugins.freeimage.download()
-
-    # Build and install OCIO
-    if build_libs:
-        build_ocio()
+    #
+    # # Build and install OCIO
+    # if build_libs:
+    #     build_ocio()
 
 
 def diagnostics():
@@ -58,51 +59,36 @@ def diagnostics():
 
 def installation_tools():
     bootstrap(build_libs=False)
-    try:
-        import PyOpenColorIO as ocio
-    except ImportError:
-        class Null(object):
-            def __getattr__(self, name): return None
-            def __bool__(self): return False
-        ocio = Null()
-        
-    def fetch_and_install_prebuilt_ocio(prefix="/home/appuser",
-                                        version="2.0.0beta2",
-                                        force=False):
-        if not force and version == ocio.__version__:
-            return
 
-        # TODO: catch exception, invoke build_ocio if resource not available
-        archive_path = get_dependency(f"OCIO v{version}", local_dir=LOCAL_DATA)
-        archive = fs.open_fs(f"tar://{archive_path}")
-
-        with fs.open_fs(prefix, writeable=True) as dst:
-            fs.copy.copy_dir(archive, prefix, dst, '.')
-        dst = fs.open_fs(prefix)
-        sys.path.extend(
-            [dst.getsyspath(p.path) for p in dst.glob("**/site-packages/")])
-
+    def setup_opencolorio(prefix='/usr/local', version="2.0.0beta2", force=False):
         try:
-            import PyOpenColorIO
+            import PyOpenColorIO as ocio
         except ImportError:
-            with st_stdout("error"):
-                print("""***NICE WORK, GENIUS: ***
-                You've managed to build, archive, retrieve, and deploy OCIO...
-                yet you couldn't manage to import PyOpenColorIO.""")
-        logger.debug(f"OpenColorIO v{version} installed!")
+            class Null(object):
+                def __getattr__(self, name): return None
+                def __bool__(self): return False
+            ocio = Null()
 
-    # Offer archive of existing libraries
-    if ocio:
-        with st_stdout('write'):
-            print(f"OCIO Library path: {ocio.__file__}")
+        def install_opencolorio(prefix=prefix, version=version, force=force):
+            with st.spinner("Setting up OpenColorIO..."):
+                try:
+                    fetch_and_install_prebuilt_ocio(prefix=prefix, version=version, force=force)
+                except:
+                    build_ocio(prefix=prefix, version=version, force=force,
+                               build_apps=True, build_shared=False)
 
-        lib_archive = Path(ocio.__file__).parents[3] / "ocio_streamlit.tar"
+        # Offer archive of existing libraries
+        if ocio:
+            with st_stdout('write'):
+                print(f"OCIO Library path: {ocio.__file__}")
 
-        if lib_archive.exists():
-            # archive generated at build time (see `build_ocio` method)
-            st_file_downloader(lib_archive, f"OCIO v{ocio.__version__} libs")
+            lib_archive = Path(ocio.__file__).parents[3] / "ocio_streamlit.tar"
 
-    fetch_and_install_prebuilt_ocio(version="2.0.0beta2", force=False)
+            if lib_archive.exists():
+                # archive generated at build time (see `build_ocio` method)
+                st_file_downloader(lib_archive, f"OCIO v{ocio.__version__} libs")
+
+        setup_opencolorio(prefix='/home/appuser', version="2.0.0beta2", force=False)
 
 
 demo_pages = {
