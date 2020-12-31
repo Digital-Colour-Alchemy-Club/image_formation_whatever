@@ -73,26 +73,27 @@ def installation_tools():
 
         def install_opencolorio(prefix=prefix, version=version, force=force):
             with st.spinner("Setting up OpenColorIO..."):
-                try:
-                    fetch_and_install_prebuilt_ocio(prefix=prefix, version=version, force=force)
-                except:
+                if force:
                     build_ocio(prefix=prefix, version=version, force=force,
                                build_apps=True, build_shared=False)
+                else:
+                    try:
+                        fetch_and_install_prebuilt_ocio(prefix=prefix, version=version, force=force)
+                    except:
+                        build_ocio(prefix=prefix, version=version, force=force,
+                                   build_apps=True, build_shared=False)
 
         # Offer archive of existing libraries
         if ocio:
-            with st_stdout('write'):
-                print(f"OCIO Library path: {ocio.__file__}")
-
             lib_archive = Path(ocio.__file__).parents[3] / "ocio_streamlit.tar"
 
             if lib_archive.exists():
                 # archive generated at build time (see `build_ocio` method)
                 st_file_downloader(lib_archive, f"OCIO v{ocio.__version__} libs")
 
-        install_opencolorio(prefix='/home/appuser', version="2.0.0beta2", force=False)
+        install_opencolorio(prefix=prefix, version=version, force=False)
 
-    setup_opencolorio(prefix='/home/appuser', version="2.0.0beta2", force=False)
+    setup_opencolorio(prefix='/usr/local', version="2.0.0beta3", force=True)
 
 
 demo_pages = {
