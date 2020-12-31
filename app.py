@@ -39,7 +39,8 @@ def bootstrap(build_libs=False):
 def diagnostics():
     st.header("Streamlit instance info")
     st.write(get_profile())
-    st.header("Python")
+    st.header("Python ")
+    st.subheader("System paths")
     st.write(sys.path)
     st.subheader("`colour-science` library info")
     with st_stdout("code"):
@@ -52,9 +53,10 @@ def diagnostics():
         pass
 
     st.header("Local contents")
+    st.write(LOCAL_DATA)
     with st_stdout("code"):
         fs.open_fs(str(LOCAL_DATA)).tree()
-    st.write(LOCAL_DATA)
+
 
 
 def installation_tools():
@@ -88,7 +90,9 @@ def installation_tools():
                 # archive generated at build time (see `build_ocio` method)
                 st_file_downloader(lib_archive, f"OCIO v{ocio.__version__} libs")
 
-        setup_opencolorio(prefix='/home/appuser', version="2.0.0beta2", force=False)
+        install_opencolorio(prefix='/home/appuser', version="2.0.0beta2", force=False)
+
+    setup_opencolorio(prefix='/home/appuser', version="2.0.0beta2", force=False)
 
 
 demo_pages = {
