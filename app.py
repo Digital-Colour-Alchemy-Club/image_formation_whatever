@@ -26,20 +26,9 @@ st.set_page_config(
 
 
 def bootstrap(build_libs=False):
-    def localize_dependencies(local_dir=LOCAL_DATA):
-        data = EXTERNAL_DEPENDENCIES.copy()
-        for name, remote_file in EXTERNAL_DEPENDENCIES.items():
-            path = remote_file.download(output_dir=local_dir)
-            data[name] = path
-            assert(Path(path).exists())
-        return data
-
     # Install imageio freeimage plugin (i.e., for EXR support)
     import imageio
     imageio.plugins.freeimage.download()
-
-    # Download all app dependencies
-    _ = localize_dependencies()
 
     # Build and install OCIO
     if build_libs:
@@ -47,39 +36,28 @@ def bootstrap(build_libs=False):
 
 
 def diagnostics():
-    @st.cache
-    def get_library_versions():
-        libraries = {}
-
-        try:
-            import OpenImageIO as oiio
-            libraries['OpenImageIO'] = oiio.__version__
-        except ImportError:
-            pass
-
-        try:
-            import PyOpenColorIO as ocio
-            libraries['OpenColorIO'] = ocio.__version__
-        except ImportError:
-            pass
-
-        return libraries
-
-    st.write("### Streamlit instance info")
+    st.header("Streamlit instance info")
     st.write(get_profile())
+    st.header("Python")
+    st.write(sys.path)
+    st.subheader("`colour-science` library info")
+    with st_stdout("code"):
+        colour.utilities.describe_environment()
+    st.subheader("Locally-installed libraries")
+    try:
+        import PyOpenColorIO as ocio
+        st.write(f"PyOpenColorIO: v{ocio.__version__}")
+    except ImportError:
+        pass
 
-    st.write("### `colour-science` library info")
-    st.write(colour.utilities.describe_environment())
-
-    st.write("### Locally-installed libraries")
-    library_versions = get_library_versions()
-    for library, version in library_versions.items():
-        st.write(f"{library}: {version}")
+    st.header("Local contents")
+    with st_stdout("code"):
+        fs.open_fs(str(LOCAL_DATA)).tree()
+    st.write(LOCAL_DATA)
 
 
 def installation_tools():
     bootstrap(build_libs=False)
-
     try:
         import PyOpenColorIO as ocio
     except ImportError:
@@ -91,7 +69,6 @@ def installation_tools():
     def fetch_and_install_prebuilt_ocio(prefix="/home/appuser",
                                         version="2.0.0beta2",
                                         force=False):
-
         if not force and version == ocio.__version__:
             return
 
@@ -102,19 +79,16 @@ def installation_tools():
         with fs.open_fs(prefix, writeable=True) as dst:
             fs.copy.copy_dir(archive, prefix, dst, '.')
         dst = fs.open_fs(prefix)
-        sys.path.extend([dst.getsyspath(p.path) for p in dst.glob("**/site-packages/")])
-
+        sys.path.extend(
+            [dst.getsyspath(p.path) for p in dst.glob("**/site-packages/")])
 
         try:
             import PyOpenColorIO
         except ImportError:
             with st_stdout("error"):
                 print("""***NICE WORK, GENIUS: ***
-                You've managed to build, archive, retrieve, and unpack OCIO...
+                You've managed to build, archive, retrieve, and deploy OCIO...
                 yet you couldn't manage to import PyOpenColorIO.""")
-                st.write(sys.path)
-            with st_stdout("code"):
-                dst.opendir('lib').tree()
         logger.debug(f"OpenColorIO v{version} installed!")
 
     # Offer archive of existing libraries
