@@ -7,3 +7,4 @@ plumbum
 matplotlib>=2.2.2
 eliot
 options
+fs

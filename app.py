@@ -1,13 +1,16 @@
-from pathlib import Path
-import streamlit as st
-import numpy as np
-import colour
-from boltons.ecoutils import get_profile
-from util import build_ocio, st_stdout
-from data_utilities import EXTERNAL_DEPENDENCIES, st_file_downloader
-import image_formation
-
 import logging
+from pathlib import Path
+import sys
+
+from boltons.ecoutils import get_profile
+import colour
+import fs
+import streamlit as st
+
+from util import st_stdout
+from ocioutils import build_ocio, fetch_and_install_prebuilt_ocio
+from data_utilities import st_file_downloader
+import image_formation
 
 __app__ = "Experimental Image Formation Toolset"
 __author__ = "THE HERMETIC BROTHERHOOD OV SPECTRA"
@@ -23,68 +26,74 @@ st.set_page_config(
     layout="wide")
 
 
-def bootstrap():
-    def localize_dependencies(local_dir=LOCAL_DATA):
-        data = EXTERNAL_DEPENDENCIES.copy()
-        for name, remote_file in EXTERNAL_DEPENDENCIES.items():
-            path = remote_file.download(output_dir=local_dir)
-            data[name] = path
-            assert(Path(path).exists())
-        return data
-
+def bootstrap(build_libs=False):
     # Install imageio freeimage plugin (i.e., for EXR support)
     import imageio
     imageio.plugins.freeimage.download()
-
-    # Download all app dependencies
-    _ = localize_dependencies()
-
-    # Build and install OCIO
-    build_ocio()
+    #
+    # # Build and install OCIO
+    # if build_libs:
+    #     build_ocio()
 
 
 def diagnostics():
-    @st.cache
-    def get_library_versions():
-        libraries = {}
-
-        try:
-            import OpenImageIO as oiio
-            libraries['OpenImageIO'] = oiio.__version__
-        except ImportError:
-            pass
-
-        try:
-            import PyOpenColorIO as ocio
-            libraries['OpenColorIO'] = ocio.__version__
-        except ImportError:
-            pass
-
-        return libraries
-
-    st.write("### Streamlit instance info")
+    st.header("Streamlit instance info")
     st.write(get_profile())
+    st.header("Python ")
+    st.subheader("System paths")
+    st.write(sys.path)
+    st.subheader("`colour-science` library info")
+    with st_stdout("code"):
+        colour.utilities.describe_environment()
+    st.subheader("Locally-installed libraries")
+    try:
+        import PyOpenColorIO as ocio
+        st.write(f"PyOpenColorIO: v{ocio.__version__}")
+    except ImportError:
+        pass
 
-    st.write("### `colour-science` library info")
-    st.write(colour.utilities.describe_environment())
+    st.header("Local contents")
+    st.write(LOCAL_DATA)
+    with st_stdout("code"):
+        fs.open_fs(str(LOCAL_DATA)).tree()
 
-    st.write("### Locally-installed libraries")
-    library_versions = get_library_versions()
-    for library, version in library_versions.items():
-        st.write(f"{library}: {version}")
 
 
 def installation_tools():
-    import os
-    bootstrap()
-    import PyOpenColorIO as ocio
+    bootstrap(build_libs=False)
 
-    with st_stdout('info'):
-        print(f"OCIO Library path: {ocio.__file__}")
+    def setup_opencolorio(prefix='/usr/local', version="2.0.0beta2", force=False):
+        try:
+            import PyOpenColorIO as ocio
+        except ImportError:
+            class Null(object):
+                def __getattr__(self, name): return None
+                def __bool__(self): return False
+            ocio = Null()
 
-    st_file_downloader(os.path.expanduser("~/ocio_streamlit.tar"),
-                       "Compiled OCIO libs")
+        def install_opencolorio(prefix=prefix, version=version, force=force):
+            with st.spinner("Setting up OpenColorIO..."):
+                if force:
+                    build_ocio(prefix=prefix, version=version, force=force,
+                               build_apps=True, build_shared=False)
+                else:
+                    try:
+                        fetch_and_install_prebuilt_ocio(prefix=prefix, version=version, force=force)
+                    except:
+                        build_ocio(prefix=prefix, version=version, force=force,
+                                   build_apps=True, build_shared=False)
 
+        # Offer archive of existing libraries
+        if ocio:
+            lib_archive = Path(ocio.__file__).parents[3] / "ocio_streamlit.tar"
+
+            if lib_archive.exists():
+                # archive generated at build time (see `build_ocio` method)
+                st_file_downloader(lib_archive, f"OCIO v{ocio.__version__} libs")
+
+        install_opencolorio(prefix=prefix, version=version, force=False)
+
+    setup_opencolorio(prefix='/home/appuser', version="2.0.0beta2", force=False)
 
 
 demo_pages = {
@@ -104,9 +113,6 @@ applications = st.sidebar.selectbox(
     pages
 )
 
+installation_tools()
+demo_pages[applications]()
 
-# Draw main page
-if applications in demo_pages:
-    demo_pages[applications]()
-else:
-    installation_tools()
