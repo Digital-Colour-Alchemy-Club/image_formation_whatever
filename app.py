@@ -1,5 +1,6 @@
 import logging
 from pathlib import Path
+import sys
 
 from boltons.ecoutils import get_profile
 import colour
@@ -87,29 +88,34 @@ def installation_tools():
             def __bool__(self): return False
         ocio = Null()
         
-    def fetch_and_install_prebuilt_ocio(version="2.0.0beta2", force=False):
+    def fetch_and_install_prebuilt_ocio(prefix="/home/appuser",
+                                        version="2.0.0beta2",
+                                        force=False):
 
         if not force and version == ocio.__version__:
             return
 
-        dst_path = Path("~")
+        # TODO: catch exception, invoke build_ocio if resource not available
         archive_path = get_dependency(f"OCIO v{version}", local_dir=LOCAL_DATA)
         archive = fs.open_fs(f"tar://{archive_path}")
 
-        # copy archive contents to dst path
-        def _update_status(src_fs, src_path, dst_fs, dst_path):
-            logger.debug(f"Extracted {dst_path}...")
+        with fs.open_fs(prefix, writeable=True) as dst:
+            fs.copy.copy_dir(archive, prefix, dst, '.')
+        dst = fs.open_fs(prefix)
+        sys.path.extend([dst.getsyspath(p.path) for p in dst.glob("**/site-packages/")])
 
-        with fs.open_fs(str(dst_path), writeable=True) as dst:
-            fs.copy.copy_dir(archive, '/home/appuser', dst, '.', on_copy=_update_status)
 
-        # add PyOpenColorIO to the system path
-        pyocio_dir = dst_path / list(archive.glob("**/site-packages/"))[0].path
-
-        if pyocio_dir.expanduser().exists():
-            import sys
-            sys.path.append(pyocio_dir)
-            logger.debug(f"OpenColorIO v{version} installed!")
+        try:
+            import PyOpenColorIO
+        except ImportError:
+            with st_stdout("error"):
+                print("""***NICE WORK, GENIUS: ***
+                You've managed to build, archive, retrieve, and unpack OCIO...
+                yet you couldn't manage to import PyOpenColorIO.""")
+                st.write(sys.path)
+            with st_stdout("code"):
+                dst.opendir('lib').tree()
+        logger.debug(f"OpenColorIO v{version} installed!")
 
     # Offer archive of existing libraries
     if ocio:
@@ -123,8 +129,6 @@ def installation_tools():
             st_file_downloader(lib_archive, f"OCIO v{ocio.__version__} libs")
 
     fetch_and_install_prebuilt_ocio(version="2.0.0beta2", force=False)
-
-
 
 
 demo_pages = {
