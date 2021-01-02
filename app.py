@@ -8,14 +8,14 @@ import fs
 import streamlit as st
 
 from util import st_stdout
-from ocioutils import build_ocio, fetch_and_install_prebuilt_ocio
+from ocioutils import build_ocio, fetch_ocio
 from data_utilities import st_file_downloader
 import image_formation
 
 __app__ = "Experimental Image Formation Toolset"
 __author__ = "THE HERMETIC BROTHERHOOD OV SPECTRA"
 __license__ = "GPL3"
-__version__ = "0.1.4"
+__version__ = "0.1.5"
 
 LOCAL_DATA = Path.cwd() / "data"
 
@@ -58,7 +58,6 @@ def diagnostics():
         fs.open_fs(str(LOCAL_DATA)).tree()
 
 
-
 def installation_tools():
     bootstrap(build_libs=False)
 
@@ -78,7 +77,7 @@ def installation_tools():
                                build_apps=True, build_shared=False)
                 else:
                     try:
-                        fetch_and_install_prebuilt_ocio(prefix=prefix, version=version, force=force)
+                        fetch_ocio(prefix=prefix, version=version, force=force)
                     except:
                         build_ocio(prefix=prefix, version=version, force=force,
                                    build_apps=True, build_shared=False)
@@ -96,13 +95,28 @@ def installation_tools():
     setup_opencolorio(prefix='/home/appuser', version="2.0.0beta2", force=False)
 
 
+def ocio_mini():
+    import PyOpenColorIO as ocio
+    import ocioutils as ocu
+
+    st.header("BABY SKELETON CONFIG :baby: :skull:")
+
+    cfg = ocu.baby_config()
+    with st_stdout("code"):
+        print(cfg)
+
+    st.write(cfg)
+    
+
 demo_pages = {
     "Experimental Image Formation":
         image_formation.application_experimental_image_formation,
     "Diagnostics":
         diagnostics,
     "Installation Tools":
-        installation_tools
+        installation_tools,
+    "Baby bones":
+        ocio_mini
 }
 
 # Draw sidebar
