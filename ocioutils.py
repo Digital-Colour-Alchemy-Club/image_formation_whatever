@@ -67,7 +67,7 @@ def build_ocio(prefix="/usr/local",
         src = fs.open_fs(f"{prefix}")
         glob_filters = ["**/OpenColorIO/**/*.h", "**/ocio*", "**/lib/**/*penColor*"]
         files_to_archive = [p.path for g in glob_filters for p in src.glob(g)]
-        with fs.open_fs(f"{archive_path}", writeable=True, create=True) as dst:
+        with fs.open_fs(f"tar:///{archive_path}", writeable=True, create=True) as dst:
             for file in files_to_archive:
                 fs.copy.copy_file(src, file, dst, file)
         logger.debug(f"Archived {archive_path}")
