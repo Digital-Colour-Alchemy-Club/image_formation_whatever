@@ -3,9 +3,9 @@ import colour
 import data_utilities
 import matplotlib
 import streamlit as st
+from colour.io.luts import AbstractLUTSequenceOperator
 
-
-class generic_aesthetic_transfer_function:
+class generic_aesthetic_transfer_function(AbstractLUTSequenceOperator):
     def __init__(
         self,
         contrast=1.0,
@@ -102,6 +102,12 @@ class generic_aesthetic_transfer_function:
         )
         self._LUT_size = LUT_size
 
+    def apply(self, RGB, per_channel=False, **kwargs):
+        if per_channel:
+            return self.apply_maxRGB(RGB, **kwargs)
+        else:
+            return self.apply_per_channel(RGB, **kwargs)
+
     def apply_maxRGB(self, RGB, gamut_clip=False, gamut_clip_alert=False):
         gamut_clipped_above = np.where(RGB >= self._radiometric_maximum)
 
@@ -137,6 +143,23 @@ class generic_aesthetic_transfer_function:
         return output_RGBs
 
 
+import attr
+
+@attr.s(auto_attribs=True)
+class AestheticTransferFunction(AbstractLUTSequenceOperator):
+    contrast: float = 1.0
+    shoulder_contrast: float = 1.0
+    middle_grey_in: float = 0.18
+    middle_grey_out: float = 0.18
+    ev_above_middle_grey: float = 4.0
+
+    def radiometric_maximum(self):
+        ev = np.clip(self.ev_above_middle_grey, 1., 20.)
+        np.power(2.0, ev) * self._middle_grey_in
+
+
+
+
 def application_experimental_image_formation():
 
     LUT = generic_aesthetic_transfer_function()
@@ -154,6 +177,7 @@ def application_experimental_image_formation():
             value=2.2,
             step=0.01
         )
+
         middle_grey_input = st.number_input(
             label="Middle Grey Input Value, Radiometric",
             min_value=0.01,

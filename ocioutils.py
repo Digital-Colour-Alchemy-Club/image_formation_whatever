@@ -574,9 +574,12 @@ def _add_default_colorspaces_and_roles(config=None, scene_linear='ACEScg'):
 
 
 
+import streamlit as st
 
-
-def create_new_config(scene_linear='ACEScg', config=None):
+#@st.cache(hash_funcs={ocio.Config: id})
+def create_new_config(scene_linear='ACEScg',
+                      default_display=Displays.SRGB,
+                      config=None):
     cfg = _add_default_colorspaces_and_roles(scene_linear=scene_linear, config=config)
 
     default_spaces = list(cfg.getColorSpaces())
@@ -593,22 +596,24 @@ def create_new_config(scene_linear='ACEScg', config=None):
 
     # todo: add default displays
 
-    default_display = Displays.SRGB
-    #cfg.addDisplayView(default_display.value, 'Colorimetry','Colorimetry')
-    cfg.addSharedView('Colorimetry', 'colorimetry', '<USE_DISPLAY_NAME>')
-    cfg.addDisplaySharedView(default_display.value, 'Colorimetry')
+    if hasattr(default_display, 'value'):
+        default_display = default_display.value
+    cfg.addDisplayView(default_display, 'Colorimetry','Colorimetry')
+    #cfg.addSharedView('Colorimetry', 'colorimetry', '<USE_DISPLAY_NAME>')
+    #cfg.addDisplaySharedView(default_display.value, 'Colorimetry')
     return cfg
 
 
 def serialize_processor(processor, format='Color Transform Format', filename=None):
     if ('clf' in str(format).lower() or
         str(format).lower().startswith('academy') or
-        str(filename).lower().endswith('clf')):
-        format = 'Academy/ASC Common LUT Format'
+            str(filename).lower().endswith('clf')):
+        fmt = 'Academy/ASC Common LUT Format'
     if filename:
         #TODO: return CLF stuff
-        processor.write(format, filename)
-    return processor.write(format)
+        #TODO: use GroupTransform.write interface
+        processor.write(fmt, filename)
+    return processor.write(fmt)
 
 
 
@@ -633,6 +638,23 @@ def ocio_colourspace_process(a, config, source, target=None, display=None, view=
 
     image_desc = ocio.PackedImageDesc(a,
         width, height, channels)
+
+    processor.apply(image_desc)
+
+    return image_desc.getData().reshape([height, width, channels])
+
+
+def apply_ocio_processor(processor, RGB, use_gpu=False):
+    a = colour.utilities.as_float_array(RGB, dtype=np.float32)
+    height, width, channels = a.shape
+    image_desc = ocio.PackedImageDesc(a,
+        width, height, channels)
+
+    processor = (
+        processor.getDefaultGPUProcessor()
+        if use_gpu else
+        processor.getDefaultCPUProcessor()
+    )
 
     processor.apply(image_desc)
 
