@@ -3,9 +3,9 @@ import colour
 import data_utilities
 import matplotlib
 import streamlit as st
+from colour.io.luts import AbstractLUTSequenceOperator
 
-
-class generic_aesthetic_transfer_function:
+class generic_aesthetic_transfer_function(AbstractLUTSequenceOperator):
     def __init__(
         self,
         contrast=1.0,
@@ -101,6 +101,12 @@ class generic_aesthetic_transfer_function:
             domain=[0.0, self._radiometric_maximum + 0.005]
         )
         self._LUT_size = LUT_size
+
+    def apply(self, RGB, per_channel=False, **kwargs):
+        if per_channel:
+            return self.apply_maxRGB(RGB, **kwargs)
+        else:
+            return self.apply_per_channel(RGB, **kwargs)
 
     def apply_maxRGB(self, RGB, gamut_clip=False, gamut_clip_alert=False):
         gamut_clipped_above = np.where(RGB >= self._radiometric_maximum)
