@@ -7,8 +7,7 @@ import fs
 import streamlit as st
 from plumbum import local
 
-from data_utilities import get_dependency, st_file_downloader
-from util import logger, st_stdout
+from helpers import get_dependency, logger, st_file_downloader, st_stdout
 
 
 def setup_opencolorio(prefix='/usr/local', version="2.0.0beta2", force=False):

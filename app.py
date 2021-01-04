@@ -1,23 +1,12 @@
-import logging
-from pathlib import Path
+from functools import partial
 
 import streamlit as st
 import numpy as np
 
-from bootstrap import run_bootstrap
-run_bootstrap()
-
-from helpers import diagnostics
-from util import st_stdout
-import image_formation
-
 __app__ = "Experimental Image Formation Toolset"
 __author__ = "THE HERMETIC BROTHERHOOD OV SPECTRA"
 __license__ = "GPL3"
-__version__ = "0.1.5"
-
-LOCAL_DATA = Path.cwd() / "data"
-logger = logging.getLogger(__app__)
+__version__ = "0.1.6"
 
 st.set_page_config(
     page_title=__app__,
@@ -25,10 +14,19 @@ st.set_page_config(
 
 
 
+from bootstrap import run_bootstrap
+run_bootstrap()
+
+from helpers import st_stdout
+from apps.diagnostics import diagnostics
+from settings import LOCAL_DATA
+from apps import image_formation
+
+
 def ocio_skeleton_config():
     import PyOpenColorIO as ocio
     import ocioutils as ocu
-    from data_utilities import get_dependency
+    from helpers import get_dependency
     from operators import AestheticTransferFunction
     from colour import read_image
 
@@ -215,7 +213,7 @@ demo_pages = {
     "Experimental Image Formation":
         image_formation.application_experimental_image_formation,
     "Diagnostics":
-        diagnostics,
+        partial(diagnostics, LOCAL_DATA),
     "Baby bones":
         ocio_skeleton_config
 }
