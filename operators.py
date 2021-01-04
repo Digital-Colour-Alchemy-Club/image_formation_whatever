@@ -79,7 +79,7 @@ class AestheticTransferFunction(AbstractLUTSequenceOperator):
             RGB_out[gamut_clipped_above[0], gamut_clipped_above[1], :] = max_val
 
         if self.gamut_warning and (RGB_out.size > 1 or RGB_out.shape[-1] > 1):
-            warning = np.ones(RGB_out.shape) * [1., 0., 0.]
+            warning = [1., 0., 0.]
             RGB_out[gamut_clipped_above[0], gamut_clipped_above[1], :] = warning
 
         return RGB_out
