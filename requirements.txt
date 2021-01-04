@@ -8,3 +8,5 @@ matplotlib>=2.2.2
 eliot
 options
 fs
+black
+pre-commit
