@@ -1,18 +1,18 @@
 import numpy as np
 import colour
 import data_utilities
-import matplotlib
 import streamlit as st
 from colour.io.luts import AbstractLUTSequenceOperator
 
+
 class generic_aesthetic_transfer_function(AbstractLUTSequenceOperator):
     def __init__(
-        self,
-        contrast=1.0,
-        shoulder_contrast=1.0,
-        middle_grey_in=0.18,
-        middle_grey_out=0.18,
-        ev_above_middle_grey=4.0
+            self,
+            contrast=1.0,
+            shoulder_contrast=1.0,
+            middle_grey_in=0.18,
+            middle_grey_out=0.18,
+            ev_above_middle_grey=4.0
     ):
         self.set_transfer_details(
             contrast,
@@ -37,12 +37,12 @@ class generic_aesthetic_transfer_function(AbstractLUTSequenceOperator):
             np.power(2.0, ev) * self._middle_grey_in
 
     def set_transfer_details(
-        self,
-        contrast,
-        shoulder_contrast,
-        middle_grey_in,
-        middle_grey_out,
-        ev_above_middle_grey,
+            self,
+            contrast,
+            shoulder_contrast,
+            middle_grey_in,
+            middle_grey_out,
+            ev_above_middle_grey,
     ):
         self._contrast = contrast
         self._shoulder_contrast = shoulder_contrast
@@ -69,20 +69,19 @@ class generic_aesthetic_transfer_function(AbstractLUTSequenceOperator):
         v = middle_grey_shoulder_contrast * self._middle_grey_out
 
         self.b = -(
-            (
-                -middle_grey_contrast + (
-                    self._middle_grey_out *
-                    (
-                        radiometric_multiplied_contrast *
-                        middle_grey_contrast - radiometric_contrast * v
-                    )
+                (
+                        -middle_grey_contrast + (
+                        self._middle_grey_out * (
+                                radiometric_multiplied_contrast *
+                                middle_grey_contrast - radiometric_contrast * v
+                        )
                 ) / u
-            ) / v
+                ) / v
         )
         self.c = (
-            radiometric_multiplied_contrast * middle_grey_contrast -
-            radiometric_contrast * v
-        ) / u
+                         radiometric_multiplied_contrast * middle_grey_contrast -
+                         radiometric_contrast * v
+                 ) / u
 
         self.calculate_LUT()
 
@@ -119,8 +118,8 @@ class generic_aesthetic_transfer_function(AbstractLUTSequenceOperator):
         output_RGBs = curve_evaluation * ratios
 
         if gamut_clip is True:
-            output_RGBs[gamut_clipped_above[0], gamut_clipped_above[1], :] =\
-                 self._LUT.table[-1]
+            output_RGBs[gamut_clipped_above[0], gamut_clipped_above[1], :] = \
+                self._LUT.table[-1]
 
         if gamut_clip_alert is True:
             output_RGBs[gamut_clipped_above[0], gamut_clipped_above[1], :] = \
@@ -134,7 +133,7 @@ class generic_aesthetic_transfer_function(AbstractLUTSequenceOperator):
         output_RGBs = self.evaluate(RGB)
 
         if gamut_clip is True:
-            output_RGBs[gamut_clipped_above[0], gamut_clipped_above[1], :] =\
+            output_RGBs[gamut_clipped_above[0], gamut_clipped_above[1], :] = \
                 self._LUT.table[-1]
         if gamut_clip_alert is True:
             output_RGBs[gamut_clipped_above[0], gamut_clipped_above[1], :] = \
@@ -143,25 +142,7 @@ class generic_aesthetic_transfer_function(AbstractLUTSequenceOperator):
         return output_RGBs
 
 
-import attr
-
-@attr.s(auto_attribs=True)
-class AestheticTransferFunction(AbstractLUTSequenceOperator):
-    contrast: float = 1.0
-    shoulder_contrast: float = 1.0
-    middle_grey_in: float = 0.18
-    middle_grey_out: float = 0.18
-    ev_above_middle_grey: float = 4.0
-
-    def radiometric_maximum(self):
-        ev = np.clip(self.ev_above_middle_grey, 1., 20.)
-        np.power(2.0, ev) * self._middle_grey_in
-
-
-
-
 def application_experimental_image_formation():
-
     LUT = generic_aesthetic_transfer_function()
 
     col1, col2 = st.beta_columns([1, 2])
@@ -231,7 +212,7 @@ def application_experimental_image_formation():
 
     # @st.cache
     def video_buffer(x):
-        return ((2.0**exposure) * x)
+        return ((2.0 ** exposure) * x)
 
     @st.cache(suppress_st_warning=True)
     def get_marcie():
@@ -258,7 +239,7 @@ def application_experimental_image_formation():
             apply_inverse_EOTF(
                 LUT.apply_maxRGB(
                     video_buffer(img), gamut_clipping, gamut_warning)
-                ),
+            ),
             clamp=[0., 1.],
             use_column_width=True,
             caption=LUT._LUT.name
