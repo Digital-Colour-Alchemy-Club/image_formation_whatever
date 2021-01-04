@@ -76,11 +76,11 @@ class AestheticTransferFunction(AbstractLUTSequenceOperator):
 
         if self.gamut_clip:
             max_val = self._apply(self.radiometric_maximum)
-            RGB_out[gamut_clipped_above, :] = max_val
+            RGB_out[gamut_clipped_above[0], gamut_clipped_above[1], :] = max_val
 
-        if self.gamut_warning and (RGB_out.size > 1 or RGB_out.shape[-1] > 1) :
+        if self.gamut_warning and (RGB_out.size > 1 or RGB_out.shape[-1] > 1):
             warning = np.ones(RGB_out.shape) * [1., 0., 0.]
-            RGB_out[gamut_clipped_above, :] = warning
+            RGB_out[gamut_clipped_above[0], gamut_clipped_above[1], :] = warning
 
         return RGB_out
 
