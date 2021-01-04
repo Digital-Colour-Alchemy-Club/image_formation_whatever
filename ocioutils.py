@@ -3,9 +3,12 @@ import re
 import sys
 from sysconfig import get_python_version
 
+import PyOpenColorIO
 import colour
 import fs
 import PyOpenColorIO as ocio
+import numpy
+import streamlit
 from plumbum import local
 import numpy as np
 from six import string_types
@@ -200,7 +203,6 @@ def fetch_ocio(prefix="/home/appuser",
     logger.debug(f"OpenColorIO v{version} installed!")
 
 
-import PyOpenColorIO as OCIO
 from aenum import Enum, MultiValueEnum
 
 class Displays(Enum):
@@ -224,6 +226,7 @@ class DisplayCCTFs(Enum):
     GAMMA24 = "Gamma 2.4"
     GAMMA22 = "Gamma 2.2"
     GAMMA18 = "Gamma 1.8"
+    GAMMA10 = "Gamma 1.0"
     PFWL = 'ARRI Gamma ~2.4'
     PFWL26 = 'ARRI Gamma ~2.6'
     ADOBE_1998 = "Adobe (1998)"
@@ -246,12 +249,9 @@ class DisplayCCTFs(Enum):
 
     @property
     def encoding_xform(self):
-        cls = DisplayCCTFs
         xf = self.decoding_xform
-        xf.setDirection(ocio.TRANSFORM_DIR_INVERSE)
+        xf.setDirection(1)
         return xf
-
-
 
 
 DISPLAY_BUILTINS = {
@@ -281,16 +281,20 @@ def collapse_redundant_channels(table, max_channels=3):
         return t[..., 0]
     return t
 
+
 def _rgba_tuple(x, alpha=1.):
     return [x] * 3 + [float(alpha)]
 
 
 def get_name(obj):
     """Retrieve the name of an OCIO object"""
-    if isinstance(obj, string_types):
+    if hasattr(obj, 'getName'):
+        return obj.getName()
+    elif hasattr(obj, 'name'):
+        return obj.name
+    else:
         return obj
 
-    return obj.getName()
 
 # transform helpers
 def display_cctf(gamma=1., offset=None, direction=None, negative_style=None):
@@ -348,8 +352,6 @@ def get_camera_colorspaces(family=''):
                 toReference=ocio.BuiltinTransform(name))
             colorspaces.append(cs)
     return colorspaces
-
-
 
 
 def get_display_colorspaces(family=''):
@@ -419,7 +421,8 @@ def get_display_colorspaces(family=''):
         bitDepth=ocio.BIT_DEPTH_UINT10,
         fromReference=ocio.GroupTransform([
             xyzd65_to_rec709,
-            display_cctf(gamma=2.4, offset=0.055, direction=ocio.TRANSFORM_DIR_INVERSE)
+            display_cctf(gamma=2.4, offset=0.055, direction=ocio.TRANSFORM_DIR_INVERSE),
+            ocio.RangeTransform(minInValue=0, minOutValue=0, maxInValue=1, maxOutValue=1)
         ]),
     )
 
@@ -432,7 +435,8 @@ def get_display_colorspaces(family=''):
         bitDepth=ocio.BIT_DEPTH_UINT10,
         fromReference=ocio.GroupTransform([
             xyzd65_to_rec709,
-            display_cctf(gamma=2.2, direction=ocio.TRANSFORM_DIR_INVERSE)
+            display_cctf(gamma=2.2, direction=ocio.TRANSFORM_DIR_INVERSE),
+            ocio.RangeTransform(minInValue=0, minOutValue=0, maxInValue=1, maxOutValue=1)
         ]),
     )
     Rec709_display = ocio.ColorSpace(
@@ -444,7 +448,8 @@ def get_display_colorspaces(family=''):
         bitDepth=ocio.BIT_DEPTH_UINT10,
         fromReference=ocio.GroupTransform([
             xyzd65_to_rec709,
-            display_cctf(gamma=1/0.45, offset=0.099, direction=ocio.TRANSFORM_DIR_INVERSE)
+            display_cctf(gamma=1/0.45, offset=0.099, direction=ocio.TRANSFORM_DIR_INVERSE),
+            ocio.RangeTransform(minInValue=0, minOutValue=0, maxInValue=1, maxOutValue=1)
         ]),
     )
 
@@ -457,7 +462,8 @@ def get_display_colorspaces(family=''):
         bitDepth=ocio.BIT_DEPTH_UINT10,
         fromReference=ocio.GroupTransform([
             xyzd65_to_rec709,
-            display_cctf(gamma=2.4, direction=ocio.TRANSFORM_DIR_INVERSE)
+            display_cctf(gamma=2.4, direction=ocio.TRANSFORM_DIR_INVERSE),
+            ocio.RangeTransform(minInValue=0, minOutValue=0, maxInValue=1, maxOutValue=1)
         ]),
     )
 
@@ -470,7 +476,8 @@ def get_display_colorspaces(family=''):
         bitDepth=ocio.BIT_DEPTH_UINT10,
         fromReference=ocio.GroupTransform([
             xyzd65_to_p3,
-            display_cctf(gamma=2.6, direction=ocio.TRANSFORM_DIR_INVERSE)
+            display_cctf(gamma=2.6, direction=ocio.TRANSFORM_DIR_INVERSE),
+            ocio.RangeTransform(minInValue=0, minOutValue=0, maxInValue=1, maxOutValue=1)
         ]),
     )
 
@@ -483,7 +490,8 @@ def get_display_colorspaces(family=''):
         bitDepth=ocio.BIT_DEPTH_UINT10,
         fromReference=ocio.GroupTransform([
             xyzd65_to_p3d65,
-            display_cctf(gamma=2.6, direction=ocio.TRANSFORM_DIR_INVERSE)
+            display_cctf(gamma=2.6, direction=ocio.TRANSFORM_DIR_INVERSE),
+            ocio.RangeTransform(minInValue=0, minOutValue=0, maxInValue=1, maxOutValue=1)
         ]),
     )
     # TODO: D60 sim; hdr colorspaces
@@ -494,9 +502,6 @@ def get_display_colorspaces(family=''):
         DCI_P3,
         P3_D65,
     ]
-
-
-
 
 
 
@@ -673,17 +678,22 @@ def baby_config():
         #allocation=ocio.ALLOCATION_LG2,
         #allocationVars=[-15, 6]
     )
-
     sRGB_inv_eotf = ocio.ColorSpace(
         referenceSpace=ocio.REFERENCE_SPACE_SCENE,
         name="sRGB (gamma ~2.2)",
         description="sRGB inverse EOTF",
         encoding='sdr-video',
         bitDepth=ocio.BIT_DEPTH_UINT10,
-        fromReference=ocio.ExponentWithLinearTransform(gamma=[2.4, 2.4, 2.4, 1.],
-                                             offset=[0.055, 0.055, 0.055, 0.0],
-                                             direction=ocio.TRANSFORM_DIR_INVERSE),
-
+        fromReference=ocio.GroupTransform([
+            ocio.ExponentWithLinearTransform(
+                gamma=[2.4, 2.4, 2.4, 1.],
+                offset=[0.055, 0.055, 0.055, 0.0],
+                direction=ocio.TRANSFORM_DIR_INVERSE
+            ),
+            ocio.RangeTransform(
+                minInValue=0, minOutValue=0, maxInValue=1, maxOutValue=1
+            )
+        ])
     )
 
     sRGB = ocio.ColorSpace(
@@ -693,8 +703,14 @@ def baby_config():
         encoding='sdr-video',
         bitDepth=ocio.BIT_DEPTH_UINT10,
         fromReference=ocio.GroupTransform([
-            ocio.ExponentTransform(value=[2.2, 2.2, 2.2, 1.], direction=ocio.TRANSFORM_DIR_INVERSE)
-        ]),
+            ocio.ExponentTransform(
+                value=[2.2, 2.2, 2.2, 1.],
+                direction=ocio.TRANSFORM_DIR_INVERSE
+            ),
+            ocio.RangeTransform(
+                minInValue=0, minOutValue=0, maxInValue=1, maxOutValue=1
+            )
+        ])
     )
     data = ocio.ColorSpace(
         referenceSpace=ocio.REFERENCE_SPACE_SCENE,
@@ -734,3 +750,45 @@ def baby_config():
     #cfg.addSharedView('Colorimetry', 'colorimetry', '<USE_DISPLAY_NAME>')
     #cfg.addDisplaySharedView(default_display, 'Colorimetry')
     return cfg
+
+
+def ocio_viewer(RGB,
+                source=None,
+                display=None,
+                view=None,
+                exposure=0.0,
+                contrast=1.0,
+                gamma=1.0,
+                style=ocio.EXPOSURE_CONTRAST_LINEAR,
+                use_gpu=False,
+                config=None,
+                context=None
+                ):
+
+    RGB_out = np.copy(RGB)
+    cfg = config or create_new_config()
+    context = context or cfg.getCurrentContext()
+
+    exposure_contrast_transform = ocio.ExposureContrastTransform(
+        exposure=exposure, gamma=gamma, contrast=contrast, style=style
+    )
+
+    proc = cfg.getProcessor(
+        context=context,
+        direction=ocio.TRANSFORM_DIR_FORWARD,
+        transform=ocio.GroupTransform([
+            exposure_contrast_transform,
+            ocio.DisplayViewTransform(
+                src=source or 'scene_linear',
+                display=display or cfg.getDefaultDisplay(),
+                view=view or cfg.getDefaultView(),
+            )
+        ]),
+    )
+
+    RGB_out = apply_ocio_processor(proc, RGB_out, use_gpu=use_gpu)
+
+    return RGB_out
+
+
+
