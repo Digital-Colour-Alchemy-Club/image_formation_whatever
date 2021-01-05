@@ -230,7 +230,7 @@ def application_experimental_image_formation():
         upload_image = st.file_uploader(label="Input Image", type=[".exr"])
         image_scale = st.slider(
             label="Downsize Image",
-            min_value=0,
+            min_value=1,
             max_value=10,
             value=3,
             step=1,
