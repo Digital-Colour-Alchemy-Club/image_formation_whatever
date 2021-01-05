@@ -173,10 +173,7 @@ dim_x_small, dim_y_small = image_shape[0:2]
 dim_x_small = int(dim_x_small / 3.0)
 dim_y_small = int(dim_y_small / 3.0)
 
-
-# default_image_small = np.interp(
-
-# )
+default_image_small = np.empty((dim_x_small, dim_y_small, 3))
 
 
 def application_experimental_image_formation():
