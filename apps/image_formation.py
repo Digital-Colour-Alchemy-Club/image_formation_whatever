@@ -93,7 +93,7 @@ class generic_aesthetic_transfer_function(AbstractLUTSequenceOperator):
 
     def evaluate(self, x):
         x = np.minimum(self._radiometric_maximum, x)
-        z = np.power(x, self._contrast)
+        z = np.ma.power(x, self._contrast).filled(fill_value=0.0)
         y = z / (np.power(z, self._shoulder_contrast) * self.b + self.c)
 
         return np.asarray(y)
@@ -158,8 +158,8 @@ class generic_aesthetic_transfer_function(AbstractLUTSequenceOperator):
 def application_experimental_image_formation():
     LUT = generic_aesthetic_transfer_function()
 
-    col1, col2 = st.beta_columns([1, 2])
-    with col1:
+    # col1, col2 = st.beta_columns([1, 2])
+    with st.sidebar:
         upload_image = st.file_uploader(label="Input Image", type=[".exr"])
         EOTF = st.number_input(
             label="Display Hardware EOTF",
@@ -168,7 +168,6 @@ def application_experimental_image_formation():
             value=2.2,
             step=0.01,
         )
-
         middle_grey_input = st.number_input(
             label="Middle Grey Input Value, Radiometric",
             min_value=0.01,
@@ -223,35 +222,35 @@ def application_experimental_image_formation():
         img = colour.read_image(img_path)[..., 0:3]
         return img
 
-    with col2:
-        LUT.set_transfer_details(
-            contrast=contrast,
-            shoulder_contrast=shoulder_contrast,
-            middle_grey_in=middle_grey_input,
-            middle_grey_out=middle_grey_output,
-            ev_above_middle_grey=maximum_ev,
-        )
-        st.line_chart(data=LUT._LUT.table)
+    # with col2:
+    LUT.set_transfer_details(
+        contrast=contrast,
+        shoulder_contrast=shoulder_contrast,
+        middle_grey_in=middle_grey_input,
+        middle_grey_out=middle_grey_output,
+        ev_above_middle_grey=maximum_ev,
+    )
+    st.line_chart(data=LUT._LUT.table)
 
-        if upload_image is not None:
-            img = colour.read_image(upload_image.read())
-        else:
-            img = get_marcie()
+    if upload_image is not None:
+        img = colour.read_image(upload_image.read())
+    else:
+        img = get_marcie()
 
-        st.image(
-            apply_inverse_EOTF(
-                LUT.apply_maxRGB(video_buffer(img), gamut_clipping, gamut_warning)
-            ),
-            clamp=[0.0, 1.0],
-            use_column_width=True,
-            caption=LUT._LUT.name,
-        )
+    st.image(
+        apply_inverse_EOTF(
+            LUT.apply_maxRGB(video_buffer(img), gamut_clipping, gamut_warning)
+        ),
+        clamp=[0.0, 1.0],
+        use_column_width=True,
+        caption=LUT._LUT.name,
+    )
 
-        st.image(
-            apply_inverse_EOTF(
-                LUT.apply_per_channel(video_buffer(img), gamut_clipping, gamut_warning)
-            ),
-            clamp=[0.0, 1.0],
-            use_column_width=True,
-            caption="Generic Per Channel",
-        )
+    st.image(
+        apply_inverse_EOTF(
+            LUT.apply_per_channel(video_buffer(img), gamut_clipping, gamut_warning)
+        ),
+        clamp=[0.0, 1.0],
+        use_column_width=True,
+        caption="Generic Per Channel",
+    )
