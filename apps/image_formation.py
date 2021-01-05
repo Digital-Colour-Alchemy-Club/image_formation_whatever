@@ -168,13 +168,6 @@ def video_buffer(x, exposure_adjustment=0.0):
 img_path = helpers.get_dependency("Marcie 4K")
 default_image = colour.read_image(img_path)[..., 0:3]
 
-image_shape = default_image.shape
-dim_x_small, dim_y_small = image_shape[0:2]
-dim_x_small = int(dim_x_small / 3.0)
-dim_y_small = int(dim_y_small / 3.0)
-
-default_image_small = np.empty((dim_x_small, dim_y_small, 3))
-
 
 def application_experimental_image_formation():
     LUT = generic_aesthetic_transfer_function()
@@ -235,12 +228,21 @@ def application_experimental_image_formation():
 
     with region_1_2:
         upload_image = st.file_uploader(label="Input Image", type=[".exr"])
+        image_scale = st.slider(
+            label="Downsize Image",
+            min_value=0,
+            max_value=10,
+            value=3,
+            step=1,
+        )
         if upload_image is not None:
-            img = colour.read_image(upload_image.read())
+            original_image = colour.read_image(upload_image.read())
+            reduced_image = original_image[::image_scale, ::image_scale, ...]
         else:
-            img = default_image
+            reduced_image = default_image[::image_scale, ::image_scale, ...]
 
-    # with col2:
+        img = reduced_image
+
     LUT.set_transfer_details(
         contrast=contrast,
         shoulder_contrast=shoulder_contrast,
