@@ -10,28 +10,41 @@ from plumbum import local
 from helpers import get_dependency, logger, st_file_downloader, st_stdout
 
 
-def setup_opencolorio(prefix='/usr/local', version="2.0.0beta2", force=False):
+def setup_opencolorio(prefix="/usr/local", version="2.0.0beta2", force=False):
     try:
         import PyOpenColorIO as ocio
     except ImportError:
+
         class Null(object):
             def __getattr__(self, name):
                 return None
+
             def __bool__(self):
                 return False
+
         ocio = Null()
 
     def install_opencolorio(prefix=prefix, version=version, force=force):
         with st.spinner("Setting up OpenColorIO..."):
             if force:
-                build_ocio(prefix=prefix, version=version, force=force,
-                           build_apps=True, build_shared=False)
+                build_ocio(
+                    prefix=prefix,
+                    version=version,
+                    force=force,
+                    build_apps=True,
+                    build_shared=False,
+                )
             else:
                 try:
                     fetch_ocio(prefix=prefix, version=version, force=force)
                 except:
-                    build_ocio(prefix=prefix, version=version, force=force,
-                               build_apps=True, build_shared=False)
+                    build_ocio(
+                        prefix=prefix,
+                        version=version,
+                        force=force,
+                        build_apps=True,
+                        build_shared=False,
+                    )
 
     # Offer archive of existing libraries
     if ocio:
@@ -47,19 +60,22 @@ def setup_opencolorio(prefix='/usr/local', version="2.0.0beta2", force=False):
 def update_imageio(build_libs=False):
     # Install imageio freeimage plugin (i.e., for EXR support)
     import imageio
+
     imageio.plugins.freeimage.download()
 
 
 def run_bootstrap():
     update_imageio(build_libs=False)
-    setup_opencolorio(prefix='/home/appuser', version="2.0.0beta2", force=False)
+    setup_opencolorio(prefix="/home/appuser", version="2.0.0beta2", force=False)
 
 
-def build_ocio(prefix="/usr/local",
-               version='2.0.0beta2',
-               build_shared=False,
-               build_apps=False,
-               force=False):
+def build_ocio(
+    prefix="/usr/local",
+    version="2.0.0beta2",
+    build_shared=False,
+    build_apps=False,
+    force=False,
+):
     """
     Builds and installs OpenColorIO.
 
@@ -90,20 +106,19 @@ def build_ocio(prefix="/usr/local",
         Checks if `PyOpenColorIO` is installed and importable.
         """
         python_version = get_python_version()
-        pyopencolorio_path = \
-            f"{prefix}/lib/python{python_version}/site-packages"
+        pyopencolorio_path = f"{prefix}/lib/python{python_version}/site-packages"
         if local.path(pyopencolorio_path).is_dir():
             if pyopencolorio_path not in sys.path:
                 sys.path.append(pyopencolorio_path)
         try:
             import PyOpenColorIO
-            logger.debug(
-                "PyOpenColorIO v{PyOpenColorIO.__version__} is installed.")
+
+            logger.debug("PyOpenColorIO v{PyOpenColorIO.__version__} is installed.")
             return True
         except ImportError:
             return False
 
-    def archive_ocio_payload(output_dir=prefix, filename='ocio_streamlit.tar'):
+    def archive_ocio_payload(output_dir=prefix, filename="ocio_streamlit.tar"):
         """
         Creates a compressed archive of the compiled library and headers.
         """
@@ -130,85 +145,82 @@ def build_ocio(prefix="/usr/local",
             return True
 
     mkdir, cmake, make, rm, git, tar = [
-        local[bin] for bin in [
-            'mkdir', 'cmake', 'make', 'rm', 'git', 'tar']
+        local[bin] for bin in ["mkdir", "cmake", "make", "rm", "git", "tar"]
     ]
 
     # Configure build variables
-    url = 'https://github.com/AcademySoftwareFoundation/OpenColorIO.git'
-    git_clone = git['clone']
-    if version in ['2.0.0beta1', '2.0.0beta2']:
-        branch = re.sub(r"(\d)(\w)", r"\1-\2", f'v{version}')
-        git_clone = git_clone['--branch', branch]
+    url = "https://github.com/AcademySoftwareFoundation/OpenColorIO.git"
+    git_clone = git["clone"]
+    if version in ["2.0.0beta1", "2.0.0beta2"]:
+        branch = re.sub(r"(\d)(\w)", r"\1-\2", f"v{version}")
+        git_clone = git_clone["--branch", branch]
     git_clone = git_clone[url]
 
-    ldflags = f'-Wl,-rpath,{prefix}/lib'
-    cxxflags = '-Wno-deprecated-declarations -fPIC'
+    ldflags = f"-Wl,-rpath,{prefix}/lib"
+    cxxflags = "-Wno-deprecated-declarations -fPIC"
 
     cmake_options = [
         # '-G', 'Ninja',
-        f'-DOCIO_BUILD_APPS={build_apps}',
-        '-DOCIO_BUILD_NUKE=OFF',
-        '-DOCIO_BUILD_DOCS=OFF',
-        '-DOCIO_BUILD_TESTS=OFF',
-        '-DOCIO_BUILD_GPU_TESTS=OFF',
-        '-DOCIO_USE_HEADLESS=ON',
-        '-DOCIO_BUILD_PYTHON=ON',
-        '-DOCIO_BUILD_JAVA=OFF',
-        f'-DBUILD_SHARED_LIBS={build_shared}',
-        f'-DCMAKE_INSTALL_PREFIX={prefix}',
-        '-DCMAKE_BUILD_TYPE=Release',
-        '-DCMAKE_CXX_STANDARD=14',
-        '-DOCIO_INSTALL_EXT_PACKAGES=MISSING',
-        '-DOCIO_WARNING_AS_ERROR=OFF',
+        f"-DOCIO_BUILD_APPS={build_apps}",
+        "-DOCIO_BUILD_NUKE=OFF",
+        "-DOCIO_BUILD_DOCS=OFF",
+        "-DOCIO_BUILD_TESTS=OFF",
+        "-DOCIO_BUILD_GPU_TESTS=OFF",
+        "-DOCIO_USE_HEADLESS=ON",
+        "-DOCIO_BUILD_PYTHON=ON",
+        "-DOCIO_BUILD_JAVA=OFF",
+        f"-DBUILD_SHARED_LIBS={build_shared}",
+        f"-DCMAKE_INSTALL_PREFIX={prefix}",
+        "-DCMAKE_BUILD_TYPE=Release",
+        "-DCMAKE_CXX_STANDARD=14",
+        "-DOCIO_INSTALL_EXT_PACKAGES=MISSING",
+        "-DOCIO_WARNING_AS_ERROR=OFF",
     ]
 
     # create temporary dir for building
-    tmp_dir = '/tmp/build'
-    mkdir['-p'](tmp_dir)
+    tmp_dir = "/tmp/build"
+    mkdir["-p"](tmp_dir)
 
     with local.cwd(tmp_dir):
         git_repo_path = local.cwd / "OpenColorIO"
-        build_dir = local.cwd / 'build'
+        build_dir = local.cwd / "build"
 
         # clone release tag (or master branch)
         if not git_repo_path.is_dir():
-            logger.debug(f'cloning to {git_repo_path}')
+            logger.debug(f"cloning to {git_repo_path}")
             git_clone(git_repo_path)
 
         # clean build dir
-        rm['-rf'](build_dir)
-        mkdir['-p'](build_dir)
+        rm["-rf"](build_dir)
+        mkdir["-p"](build_dir)
 
         with local.cwd(build_dir):
             # build and install OCIO
             with local.env(CXXFLAGS=cxxflags, LDFLAGS=ldflags):
-                logger.debug('Invoking CMake...')
+                logger.debug("Invoking CMake...")
                 cmake[cmake_options](git_repo_path)
 
-                logger.debug('Building and installing...')
-                make['-j1']('install')
+                logger.debug("Building and installing...")
+                make["-j1"]("install")
 
         _ = archive_ocio_payload()
-        logger.info(
-            f"Built and installed OpenColorIO ({version}): {prefix}")
+        logger.info(f"Built and installed OpenColorIO ({version}): {prefix}")
 
     if is_ocio_installed():
         # Clean up build dir
-        fs.open_fs(tmp_dir).removetree('.')
+        fs.open_fs(tmp_dir).removetree(".")
         return True
     else:
         raise ChildProcessError("Could not install OpenColorIO.")
 
 
-def fetch_ocio(prefix="/home/appuser",
-               version="2.0.0beta2",
-               force=False):
+def fetch_ocio(prefix="/home/appuser", version="2.0.0beta2", force=False):
 
     # Only download if not importable
     if not force:
         try:
             import PyOpenColorIO
+
             if version == PyOpenColorIO.__version__:
                 return
         except ImportError:
@@ -220,21 +232,21 @@ def fetch_ocio(prefix="/home/appuser",
 
     # unpack
     with fs.open_fs(prefix, writeable=True) as dst:
-        fs.copy.copy_dir(archive, prefix, dst, '.')
+        fs.copy.copy_dir(archive, prefix, dst, ".")
 
     # append to system path
     dst = fs.open_fs(prefix)
-    sys.path.extend([
-        dst.getsyspath(p.path) for p in dst.glob("**/site-packages/")
-    ])
+    sys.path.extend([dst.getsyspath(p.path) for p in dst.glob("**/site-packages/")])
 
     # validate
     try:
         import PyOpenColorIO
     except ImportError:
         with st_stdout("error"):
-            print("""***NICE WORK, GENIUS: ***
+            print(
+                """***NICE WORK, GENIUS: ***
             You've managed to build, archive, retrieve, and deploy OCIO...
-            yet you couldn't manage to import PyOpenColorIO.""")
+            yet you couldn't manage to import PyOpenColorIO."""
+            )
 
     logger.debug(f"OpenColorIO v{version} installed!")

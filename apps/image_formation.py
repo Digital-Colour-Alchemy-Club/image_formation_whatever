@@ -191,11 +191,7 @@ def application_experimental_image_formation():
             step=0.25,
         )
         contrast = st.slider(
-            label="Contrast",
-            min_value=0.01,
-            max_value=3.00,
-            value=1.75,
-            step=0.01
+            label="Contrast", min_value=0.01, max_value=3.00, value=1.75, step=0.01
         )
 
     region_1_1, region_1_2 = st.beta_columns(2)
@@ -247,7 +243,6 @@ def application_experimental_image_formation():
         else:
             img = default_image
 
-
     # with col2:
     LUT.set_transfer_details(
         contrast=contrast,
@@ -266,9 +261,9 @@ def application_experimental_image_formation():
                 LUT.apply_maxRGB(
                     video_buffer(img, exposure_adjustment),
                     gamut_clipping,
-                    gamut_warning
+                    gamut_warning,
                 ),
-                EOTF
+                EOTF,
             ),
             clamp=[0.0, 1.0],
             use_column_width=True,
@@ -281,9 +276,9 @@ def application_experimental_image_formation():
                 LUT.apply_per_channel(
                     video_buffer(img, exposure_adjustment),
                     gamut_clipping,
-                    gamut_warning
+                    gamut_warning,
                 ),
-                EOTF
+                EOTF,
             ),
             clamp=[0.0, 1.0],
             use_column_width=True,

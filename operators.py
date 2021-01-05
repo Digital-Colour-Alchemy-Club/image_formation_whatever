@@ -25,35 +25,34 @@ class AestheticTransferFunction(AbstractLUTSequenceOperator):
 
     @ev_above_middle_grey.validator
     def _check_ev_above_middle_grey(self, attribute, value):
-        return 1. <= value <= 20.
+        return 1.0 <= value <= 20.0
 
     @property
     def radiometric_maximum(self):
-        ev = np.clip(self.ev_above_middle_grey, 1., 20.)
+        ev = np.clip(self.ev_above_middle_grey, 1.0, 20.0)
         return np.power(2.0, ev) * self.middle_grey_in
 
     def _apply(self, RGB):
         RGB_out = np.copy(as_float_array(RGB))
 
-        shoulder_multiplied = \
-            self.contrast * self.shoulder_contrast
+        shoulder_multiplied = self.contrast * self.shoulder_contrast
 
-        middle_grey_contrast = \
-            pow(self.middle_grey_in, self.contrast)
+        middle_grey_contrast = pow(self.middle_grey_in, self.contrast)
 
-        middle_gray_shoulder_contrast = \
-            pow(self.middle_grey_in, shoulder_multiplied)
+        middle_gray_shoulder_contrast = pow(self.middle_grey_in, shoulder_multiplied)
 
-        radiometric_contrast = \
-            pow(self.radiometric_maximum, self.contrast)
+        radiometric_contrast = pow(self.radiometric_maximum, self.contrast)
 
-        radiometric_multiplied_contrast = \
-            pow(self.radiometric_maximum, shoulder_multiplied)
+        radiometric_multiplied_contrast = pow(
+            self.radiometric_maximum, shoulder_multiplied
+        )
 
         v = middle_gray_shoulder_contrast * self.middle_grey_out
         u = radiometric_multiplied_contrast * self.middle_grey_out - v
-        a = radiometric_multiplied_contrast * middle_grey_contrast - \
-            radiometric_contrast * v
+        a = (
+            radiometric_multiplied_contrast * middle_grey_contrast
+            - radiometric_contrast * v
+        )
         b = -((-middle_grey_contrast + (self.middle_grey_out * (a)) / u) / v)
         c = a / u
 
@@ -71,7 +70,7 @@ class AestheticTransferFunction(AbstractLUTSequenceOperator):
             RGB_out = self._apply(RGB_out)
         else:
             RGB_max = np.amax(RGB_out, axis=-1, keepdims=True)
-            ratios = np.ma.divide(RGB_out, RGB_max).filled(fill_value=0.)
+            ratios = np.ma.divide(RGB_out, RGB_max).filled(fill_value=0.0)
             RGB_out = self._apply(RGB_out) * ratios
 
         if self.gamut_clip:
@@ -79,55 +78,53 @@ class AestheticTransferFunction(AbstractLUTSequenceOperator):
             RGB_out[gamut_clipped_above[0], gamut_clipped_above[1], :] = max_val
 
         if self.gamut_warning and (RGB_out.size > 1 or RGB_out.shape[-1] > 1):
-            warning = [1., 0., 0.]
+            warning = [1.0, 0.0, 0.0]
             RGB_out[gamut_clipped_above[0], gamut_clipped_above[1], :] = warning
 
         return RGB_out
 
-    def generate_lut1d3d(self, size=33, shaper_size=2**14, min_exposure=-6.5):
-        cube = LUT3D(
-            size=size,
-            name=self.name,
-            comments=self.comments
-        )
+    def generate_lut1d3d(self, size=33, shaper_size=2 ** 14, min_exposure=-6.5):
+        cube = LUT3D(size=size, name=self.name, comments=self.comments)
         shaper = LUT1D(
             size=shaper_size,
             name=f"{self.name} -- Shaper",
-            domain=[0., self.radiometric_maximum],
-            comments=[f"{'Min Exposure:':<20}{min_exposure}",
-                      f"{'Max Exposure:':<20}{self.ev_above_middle_grey}",
-                      f"{'Middle Grey:':<20}{self.middle_grey_in}"]
+            domain=[0.0, self.radiometric_maximum],
+            comments=[
+                f"{'Min Exposure:':<20}{min_exposure}",
+                f"{'Max Exposure:':<20}{self.ev_above_middle_grey}",
+                f"{'Middle Grey:':<20}{self.middle_grey_in}",
+            ],
         )
         shaper.table = log_encoding_Log2(
             shaper.table,
             middle_grey=self.middle_grey_in,
             min_exposure=min_exposure,
-            max_exposure=self.ev_above_middle_grey
+            max_exposure=self.ev_above_middle_grey,
         )
         cube.table = log_decoding_Log2(
             cube.table,
             middle_grey=self.middle_grey_in,
             min_exposure=min_exposure,
-            max_exposure=self.ev_above_middle_grey
+            max_exposure=self.ev_above_middle_grey,
         )
         cube.table = self.apply(cube.table)
         return LUTSequence(shaper, cube)
 
     def generate_clf(self, size=33):
-        cube = LUT3D(
-            size=size,
-            name=self.name,
-            comments=self.comments
-        )
+        cube = LUT3D(size=size, name=self.name, comments=self.comments)
         shaper = Range(
-            min_in_value=0, max_in_value=self.radiometric_maximum,
-            min_out_value=0, max_out_value=1,
+            min_in_value=0,
+            max_in_value=self.radiometric_maximum,
+            min_out_value=0,
+            max_out_value=1,
             no_clamp=not self.gamut_clip,
-            name=f'{self.name} -- shaper'
+            name=f"{self.name} -- shaper",
         )
         inv_shaper = Range(
-            min_in_value=0, max_in_value=1,
-            min_out_value=0, max_out_value=self.radiometric_maximum,
+            min_in_value=0,
+            max_in_value=1,
+            min_out_value=0,
+            max_out_value=self.radiometric_maximum,
             no_clamp=not self.gamut_clip,
         )
         cube.table = inv_shaper.apply(cube.table)
@@ -135,21 +132,24 @@ class AestheticTransferFunction(AbstractLUTSequenceOperator):
         return LUTSequence(shaper, cube)
 
     def __str__(self):
-        return ('{0} - {1}\n'
-                '{2}\n\n'
-                f"{'Contrast:':<20}{self.contrast}\n"
-                f"{'Shoulder Contrast:':<20}{self.shoulder_contrast}\n"
-                f"{'Mid Grey In:':<20}{self.middle_grey_in}\n"
-                f"{'Mid Grey Out:':<20}{self.middle_grey_out}\n"
-                f"{'EV Above Mid Grey:':<20}{np.clip(self.ev_above_middle_grey, 1., 20.)}\n"
-                f"{'MaxRGB:':<20}{'ON' if not self.per_channel_lookup else 'OFF'}\n"
-                f"{'Gamut Clip:':<20}{'ON' if self.gamut_clip else 'OFF'}\n"
-                f"{'Gamut Warning:':<20}{'ON' if self.gamut_warning else 'OFF'}\n"
-                '{3}').format(
-                    self.__class__.__name__, self.name,
-                    '-' * (len(self.__class__.__name__) + 3 + len(self.name)),
-                    '\n\n{0}'.format('\n'.join(self.comments))
-                    if self.comments else '')
+        return (
+            "{0} - {1}\n"
+            "{2}\n\n"
+            f"{'Contrast:':<20}{self.contrast}\n"
+            f"{'Shoulder Contrast:':<20}{self.shoulder_contrast}\n"
+            f"{'Mid Grey In:':<20}{self.middle_grey_in}\n"
+            f"{'Mid Grey Out:':<20}{self.middle_grey_out}\n"
+            f"{'EV Above Mid Grey:':<20}{np.clip(self.ev_above_middle_grey, 1., 20.)}\n"
+            f"{'MaxRGB:':<20}{'ON' if not self.per_channel_lookup else 'OFF'}\n"
+            f"{'Gamut Clip:':<20}{'ON' if self.gamut_clip else 'OFF'}\n"
+            f"{'Gamut Warning:':<20}{'ON' if self.gamut_warning else 'OFF'}\n"
+            "{3}"
+        ).format(
+            self.__class__.__name__,
+            self.name,
+            "-" * (len(self.__class__.__name__) + 3 + len(self.name)),
+            "\n\n{0}".format("\n".join(self.comments)) if self.comments else "",
+        )
 
 
 # From Nick Shaw's colour-science feature/CLF branch
@@ -193,14 +193,17 @@ class Range(AbstractLUTSequenceOperator):
     <BLANKLINE>
     Clamping   : No
     """
-    def __init__(self,
-                 min_in_value=0.0,
-                 max_in_value=1.0,
-                 min_out_value=0.0,
-                 max_out_value=1.0,
-                 no_clamp=True,
-                 name='',
-                 comments=None):
+
+    def __init__(
+        self,
+        min_in_value=0.0,
+        max_in_value=1.0,
+        min_out_value=0.0,
+        max_out_value=1.0,
+        no_clamp=True,
+        name="",
+        comments=None,
+    ):
         self.min_in_value = min_in_value
         self.max_in_value = max_in_value
         self.min_out_value = min_out_value
@@ -235,8 +238,9 @@ class Range(AbstractLUTSequenceOperator):
         """
         RGB = np.asarray(RGB)
 
-        scale = ((self.max_out_value - self.min_out_value) /
-                 (self.max_in_value - self.min_in_value))
+        scale = (self.max_out_value - self.min_out_value) / (
+            self.max_in_value - self.min_in_value
+        )
         RGB_out = RGB * scale + self.min_out_value - self.min_in_value * scale
 
         if not self.no_clamp:
@@ -247,8 +251,10 @@ class Range(AbstractLUTSequenceOperator):
     @classmethod
     def from_ocio(cls, transform):
         min_in, max_in, min_out, max_out = (
-            transform.getMinInValue(), transform.getMaxInValue(),
-            transform.getMinOutValue(), transform.getMaxOutValue()
+            transform.getMinInValue(),
+            transform.getMaxInValue(),
+            transform.getMinOutValue(),
+            transform.getMaxOutValue(),
         )
         if transform.getDirection() == 1:
             max_in, max_out = max_out, max_in
@@ -263,17 +269,11 @@ class Range(AbstractLUTSequenceOperator):
 
     @classmethod
     def from_camel_case_dict(cls, data):
-        return cls(**filter_kwargs(cls, **{
-            camel2under(k): v
-            for k, v in data.items()
-        }))
+        return cls(**filter_kwargs(cls, **{camel2under(k): v for k, v in data.items()}))
 
     def to_camel_case_dict(self):
         # todo: lower camel case...
-        return {
-            under2camel(k): v
-            for k, v in self.__dict__.items()
-        }
+        return {under2camel(k): v for k, v in self.__dict__.items()}
 
     def __str__(self):
         """
@@ -285,23 +285,24 @@ class Range(AbstractLUTSequenceOperator):
             Formatted string representation.
         """
 
-        return ('{0} - {1}\n'
-                '{2}\n\n'
-                'Input      : {3} - {4}\n'
-                'Output     : {5} - {6}\n\n'
-                'Clamping   : {7}'
-                '{8}'.format(
-                    self.__class__.__name__,
-                    self.name,
-                    '-' * (len(self.__class__.__name__) + 3 + len(self.name)),
-                    self.min_in_value,
-                    self.max_in_value,
-                    self.min_out_value,
-                    self.max_out_value,
-                    'No' if self.no_clamp else 'Yes',
-                    '\n\n{0}'.format('\n'.join(self.comments))
-                    if self.comments else '',
-                ))
+        return (
+            "{0} - {1}\n"
+            "{2}\n\n"
+            "Input      : {3} - {4}\n"
+            "Output     : {5} - {6}\n\n"
+            "Clamping   : {7}"
+            "{8}".format(
+                self.__class__.__name__,
+                self.name,
+                "-" * (len(self.__class__.__name__) + 3 + len(self.name)),
+                self.min_in_value,
+                self.max_in_value,
+                self.min_out_value,
+                self.max_out_value,
+                "No" if self.no_clamp else "Yes",
+                "\n\n{0}".format("\n".join(self.comments)) if self.comments else "",
+            )
+        )
 
 
 # From Nick Shaw's colour-science feature/CLF branch
@@ -354,14 +355,15 @@ class Matrix(AbstractLUTSequenceOperator):
     A first comment.
     A second comment.
     """
-    def __init__(self, array=np.identity(3), name='', comments=None):
+
+    def __init__(self, array=np.identity(3), name="", comments=None):
         self.array = array
         self.name = name
         self.comments = comments
 
     @staticmethod
     def _validate_array(array):
-        assert array.shape in [(3, 4), (3, 3)], 'Matrix shape error!'
+        assert array.shape in [(3, 4), (3, 3)], "Matrix shape error!"
 
         return array
 
@@ -406,34 +408,40 @@ class Matrix(AbstractLUTSequenceOperator):
         unicode
             Formatted string representation.
         """
+
         def _indent_array(a):
             """
             Indents given array string representation.
             """
 
-            return str(a).replace(' [', ' ' * 14 + '[')
+            return str(a).replace(" [", " " * 14 + "[")
 
-        return ('{0} - {1}\n'
-                '{2}\n\n'
-                'Dimensions : {3}\n'
-                'Matrix     : {4}'
-                '{5}'.format(
-                    self.__class__.__name__, self.name,
-                    '-' * (len(self.__class__.__name__) + 3 + len(self.name)),
-                    self.array.shape, _indent_array(
-                        self.array), '\n\n{0}'.format('\n'.join(self.comments))
-                    if self.comments else ''))
+        return (
+            "{0} - {1}\n"
+            "{2}\n\n"
+            "Dimensions : {3}\n"
+            "Matrix     : {4}"
+            "{5}".format(
+                self.__class__.__name__,
+                self.name,
+                "-" * (len(self.__class__.__name__) + 3 + len(self.name)),
+                self.array.shape,
+                _indent_array(self.array),
+                "\n\n{0}".format("\n".join(self.comments)) if self.comments else "",
+            )
+        )
 
 
 # From Nick Shaw's colour-science feature/CLF branch
 class Exponent(AbstractLUTSequenceOperator):
     def __init__(
-            self,
-            exponent=[1, 1, 1],
-            offset=[0, 0, 0],  # ignored for basic
-            style='basicFwd',
-            name='',
-            comments=None):
+        self,
+        exponent=[1, 1, 1],
+        offset=[0, 0, 0],  # ignored for basic
+        style="basicFwd",
+        name="",
+        comments=None,
+    ):
         self.exponent = exponent
         self.offset = offset
         self.style = style
@@ -441,47 +449,59 @@ class Exponent(AbstractLUTSequenceOperator):
         self.comments = comments
 
     def apply(self, RGB):
-        if as_float_array(RGB).size == 3 or (isinstance(RGB, np.ndarray) and
-                                             RGB.shape[-1] == 3):
+        if as_float_array(RGB).size == 3 or (
+            isinstance(RGB, np.ndarray) and RGB.shape[-1] == 3
+        ):
             r, g, b = tsplit(np.asarray(RGB))
 
         else:
             r = g = b = np.asarray(RGB)
 
-        if self.style.lower()[:5] == 'basic':
+        if self.style.lower()[:5] == "basic":
             r = exponent_function_basic(r, self.exponent[0], self.style)
             g = exponent_function_basic(g, self.exponent[1], self.style)
             b = exponent_function_basic(b, self.exponent[2], self.style)
 
             return tstack((r, g, b))
 
-        if self.style.lower()[:8] == 'moncurve':
-            r = exponent_function_monitor_curve(r, self.exponent[0],
-                                                self.offset[0], self.style)
-            g = exponent_function_monitor_curve(g, self.exponent[1],
-                                                self.offset[1], self.style)
-            b = exponent_function_monitor_curve(b, self.exponent[2],
-                                                self.offset[2], self.style)
+        if self.style.lower()[:8] == "moncurve":
+            r = exponent_function_monitor_curve(
+                r, self.exponent[0], self.offset[0], self.style
+            )
+            g = exponent_function_monitor_curve(
+                g, self.exponent[1], self.offset[1], self.style
+            )
+            b = exponent_function_monitor_curve(
+                b, self.exponent[2], self.offset[2], self.style
+            )
 
             return tstack((r, g, b))
 
     def __str__(self):
-        return ('{0} - {1}\n'
-                '{2}\n\n'
-                'Exponent.r : {3}\n'
-                'Exponent.g : {4}\n'
-                'Exponent.b : {5}\n'
-                '{6}'
-                'Style : {7}\n'
-                '{8}'.format(
-                    self.__class__.__name__, self.name,
-                    '-' * (len(self.__class__.__name__) + 3 + len(self.name)),
-                    self.exponent[0], self.exponent[1], self.exponent[2],
-                    'Offset.r : {}\nOffset.g : {}\nOffset.b : {}\n'.format(
-                        self.offset[0], self.offset[1], self.offset[2])
-                    if self.style.lower()[:8] == 'moncurve' else '',
-                    self.style, '\n\n{0}'.format('\n'.join(self.comments))
-                    if self.comments else ''))
+        return (
+            "{0} - {1}\n"
+            "{2}\n\n"
+            "Exponent.r : {3}\n"
+            "Exponent.g : {4}\n"
+            "Exponent.b : {5}\n"
+            "{6}"
+            "Style : {7}\n"
+            "{8}".format(
+                self.__class__.__name__,
+                self.name,
+                "-" * (len(self.__class__.__name__) + 3 + len(self.name)),
+                self.exponent[0],
+                self.exponent[1],
+                self.exponent[2],
+                "Offset.r : {}\nOffset.g : {}\nOffset.b : {}\n".format(
+                    self.offset[0], self.offset[1], self.offset[2]
+                )
+                if self.style.lower()[:8] == "moncurve"
+                else "",
+                self.style,
+                "\n\n{0}".format("\n".join(self.comments)) if self.comments else "",
+            )
+        )
 
 
 class Log(AbstractLUTSequenceOperator):
@@ -499,17 +519,20 @@ class Log(AbstractLUTSequenceOperator):
     ... assert np.array_equal(RGB, logc.apply(logc.reverse(RGB)))
     ... assert np.array_equal(RGB, logc.reverse(logc.apply(RGB)))
     """
-    def __init__(self,
-                 linSideSlope=1,
-                 linSideOffset=0,
-                 logSideSlope=1,
-                 logSideOffset=0,
-                 linSideBreak=None,
-                 linearSlope=None,
-                 base=10,
-                 style='linToLog',
-                 name='',
-                 comments=None):
+
+    def __init__(
+        self,
+        linSideSlope=1,
+        linSideOffset=0,
+        logSideSlope=1,
+        logSideOffset=0,
+        linSideBreak=None,
+        linearSlope=None,
+        base=10,
+        style="linToLog",
+        name="",
+        comments=None,
+    ):
         self._base = None
         self.base = base
         self.name = name
@@ -525,11 +548,11 @@ class Log(AbstractLUTSequenceOperator):
 
     @property
     def lin_to_log_styles(self):
-        return ['log2', 'log10', 'linToLog', 'cameraLinToLog']
+        return ["log2", "log10", "linToLog", "cameraLinToLog"]
 
     @property
     def log_to_lin_styles(self):
-        return ['antiLog2', 'antiLog10', 'logToLin', 'cameraLogToLin']
+        return ["antiLog2", "antiLog10", "logToLin", "cameraLogToLin"]
 
     @property
     def base(self):
@@ -542,14 +565,14 @@ class Log(AbstractLUTSequenceOperator):
     @property
     def style(self):
         style = self._style
-        if style.startswith('camera') and self.lin_side_break is None:
-            style = style.replace('cameraL', 'l')
+        if style.startswith("camera") and self.lin_side_break is None:
+            style = style.replace("cameraL", "l")
         return style
 
     @style.setter
     def style(self, value):
         if not value in self.log_styles:
-            raise ValueError('Invalid Log style: %s' % value)
+            raise ValueError("Invalid Log style: %s" % value)
 
         if value.endswith("2"):
             self.base = 2
@@ -620,44 +643,53 @@ class Log(AbstractLUTSequenceOperator):
         style = style or self.style
         return style.lower() in [s.lower() for s in self.log_to_lin_styles]
 
-    def _logarithmic_function_factory(self,
-                                      lin_side_slope=None,
-                                      lin_side_offset=None,
-                                      log_side_slope=None,
-                                      log_side_offset=None,
-                                      lin_side_break=None,
-                                      linear_slope=None,
-                                      base=None,
-                                      style='log10'):
+    def _logarithmic_function_factory(
+        self,
+        lin_side_slope=None,
+        lin_side_offset=None,
+        log_side_slope=None,
+        log_side_offset=None,
+        lin_side_break=None,
+        linear_slope=None,
+        base=None,
+        style="log10",
+    ):
         # TODO: promote to module level? Make static?
         def _is_decoding_style(s):
             s = style.lower()
-            return s.startswith('anti') or s.endswith('lin')
+            return s.startswith("anti") or s.endswith("lin")
 
         function_kwargs = {}
 
-        if style[-1] in ['2', '0']:
-            __function = partial(logarithmic_function_basic,
-                                 base=int(style[-1]),
-                                 style=style)
+        if style[-1] in ["2", "0"]:
+            __function = partial(
+                logarithmic_function_basic, base=int(style[-1]), style=style
+            )
 
-        elif style.startswith('anti') or any([
-                x is None for x in
-            [lin_side_slope, lin_side_offset, log_side_slope, log_side_offset]
-        ]):
-            style = 'logB'
-            if style.lower().startswith('anti'):
-                style = 'antiLogB'
+        elif style.startswith("anti") or any(
+            [
+                x is None
+                for x in [
+                    lin_side_slope,
+                    lin_side_offset,
+                    log_side_slope,
+                    log_side_offset,
+                ]
+            ]
+        ):
+            style = "logB"
+            if style.lower().startswith("anti"):
+                style = "antiLogB"
 
-            __function = partial(logarithmic_function_basic,
-                                 base=base,
-                                 style=style)
+            __function = partial(logarithmic_function_basic, base=base, style=style)
 
         else:
-            function_kwargs = dict(log_side_slope=log_side_slope,
-                                   log_side_offset=log_side_offset,
-                                   lin_side_slope=lin_side_slope,
-                                   lin_side_offset=lin_side_offset)
+            function_kwargs = dict(
+                log_side_slope=log_side_slope,
+                log_side_offset=log_side_offset,
+                lin_side_slope=lin_side_slope,
+                lin_side_offset=lin_side_offset,
+            )
 
             if lin_side_break is not None:
                 function_kwargs.update(lin_side_break=lin_side_break)
@@ -665,24 +697,22 @@ class Log(AbstractLUTSequenceOperator):
                 if linear_slope is not None:
                     function_kwargs.update(linear_slope=linear_slope)
 
-                style = 'cameraLogToLin' if _is_decoding_style(
-                    style) else 'cameraLinToLog'
-                __function = partial(logarithmic_function_camera,
-                                     base=base,
-                                     style=style)
+                style = (
+                    "cameraLogToLin" if _is_decoding_style(style) else "cameraLinToLog"
+                )
+                __function = partial(
+                    logarithmic_function_camera, base=base, style=style
+                )
 
             else:
-                style = 'logToLin' if _is_decoding_style(style) else 'linToLog'
-                __function = partial(logarithmic_function_quasilog,
-                                     base=base,
-                                     style=style)
+                style = "logToLin" if _is_decoding_style(style) else "linToLog"
+                __function = partial(
+                    logarithmic_function_quasilog, base=base, style=style
+                )
 
-            if any(
-                [as_float_array(v).size > 1
-                 for v in function_kwargs.values()]):
+            if any([as_float_array(v).size > 1 for v in function_kwargs.values()]):
                 function_kwargs = {
-                    k: v * np.ones(3)
-                    for k, v in function_kwargs.items()
+                    k: v * np.ones(3) for k, v in function_kwargs.items()
                 }
 
         return partial(__function, **function_kwargs)
@@ -693,9 +723,9 @@ class Log(AbstractLUTSequenceOperator):
         inverse_styles = {
             fwd: inv
             for fwd, inv in zip(
-                self.lin_to_log_styles +
-                self.log_to_lin_styles, self.log_to_lin_styles +
-                self.lin_to_log_styles)
+                self.lin_to_log_styles + self.log_to_lin_styles,
+                self.log_to_lin_styles + self.lin_to_log_styles,
+            )
         }
         style = inverse_styles[self.style] if inverse else self.style
         logarithmic_function = self._logarithmic_function_factory(
@@ -706,7 +736,8 @@ class Log(AbstractLUTSequenceOperator):
             log_side_slope=self.log_side_slope,
             log_side_offset=self.log_side_offset,
             lin_side_break=self.lin_side_break,
-            linear_slope=self.linear_slope)
+            linear_slope=self.linear_slope,
+        )
 
         return logarithmic_function(RGB_out)
 
@@ -717,86 +748,104 @@ class Log(AbstractLUTSequenceOperator):
         return self._apply_directed(RGB, inverse=True)
 
     def __str__(self):
-        direction = "Log to Linear" if self.style in self.log_to_lin_styles else "Linear to Log"
+        direction = (
+            "Log to Linear" if self.style in self.log_to_lin_styles else "Linear to Log"
+        )
         title = "{0}{1}".format(
-            "{0} - ".format(self.name) if self.name else '', direction)
-        basic_style = self.style[-1] in '20'
+            "{0} - ".format(self.name) if self.name else "", direction
+        )
+        basic_style = self.style[-1] in "20"
         return (
-            '{0} - {1}\n'
-            '{2}\n\n'
-            'style          : {3}\n'
-            'base           : {4}'
-            '{5}{6}{7}{8}{9}{10}{11}').format(
-                self.__class__.__name__, title,
-                '-' * (len(self.__class__.__name__) + 3 + len(title)),
-                self.style, self.base, '\nlogSideSlope   : {0}'.format(
-                    self.log_side_slope) if not basic_style else '',
-                '\nlogSideOffset  : {0}'.format(self.log_side_offset)
-                if not basic_style else '', '\nlinSideSlope   : {0}'.format(
-                    self.lin_side_slope) if not basic_style else '',
-                '\nlinSideOffset  : {0}'.format(self.lin_side_offset)
-                if not basic_style else '',
-                '\nlinearSlope    : {0}'.format(self.linear_slope)
-                if not basic_style and self.linear_slope is not None else '',
-                '\nlinSideBreak   : {0}'.format(self.lin_side_break)
-                if not basic_style and self.lin_side_break is not None else '',
-                '\n\n{0}'.format('\n'.join(self.comments))
-                if self.comments else '',)
+            "{0} - {1}\n"
+            "{2}\n\n"
+            "style          : {3}\n"
+            "base           : {4}"
+            "{5}{6}{7}{8}{9}{10}{11}"
+        ).format(
+            self.__class__.__name__,
+            title,
+            "-" * (len(self.__class__.__name__) + 3 + len(title)),
+            self.style,
+            self.base,
+            "\nlogSideSlope   : {0}".format(self.log_side_slope)
+            if not basic_style
+            else "",
+            "\nlogSideOffset  : {0}".format(self.log_side_offset)
+            if not basic_style
+            else "",
+            "\nlinSideSlope   : {0}".format(self.lin_side_slope)
+            if not basic_style
+            else "",
+            "\nlinSideOffset  : {0}".format(self.lin_side_offset)
+            if not basic_style
+            else "",
+            "\nlinearSlope    : {0}".format(self.linear_slope)
+            if not basic_style and self.linear_slope is not None
+            else "",
+            "\nlinSideBreak   : {0}".format(self.lin_side_break)
+            if not basic_style and self.lin_side_break is not None
+            else "",
+            "\n\n{0}".format("\n".join(self.comments)) if self.comments else "",
+        )
 
     def __repr__(self):
-        #TODO: show only the used parameters (see __str__ method)
-        return ("{0}("
-                "base={1}, "
-                "logSideSlope={2}, "
-                "logSideOffset={3}, "
-                "linSideSlope={4}, "
-                "linSideOffset={5}, "
-                "linearSlope={6}, "
-                "linSideBreak={7}, "
-                'style="{8}"{9})').format(
-                    self.__class__.__name__, self.base, self.log_side_slope,
-                    self.log_side_offset, self.lin_side_slope,
-                    self.lin_side_offset, self.linear_slope,
-                    self.lin_side_break, self.style,
-                    ', name="{0}"'.format(self.name) if self.name else "")
+        # TODO: show only the used parameters (see __str__ method)
+        return (
+            "{0}("
+            "base={1}, "
+            "logSideSlope={2}, "
+            "logSideOffset={3}, "
+            "linSideSlope={4}, "
+            "linSideOffset={5}, "
+            "linearSlope={6}, "
+            "linSideBreak={7}, "
+            'style="{8}"{9})'
+        ).format(
+            self.__class__.__name__,
+            self.base,
+            self.log_side_slope,
+            self.log_side_offset,
+            self.lin_side_slope,
+            self.lin_side_offset,
+            self.linear_slope,
+            self.lin_side_break,
+            self.style,
+            ', name="{0}"'.format(self.name) if self.name else "",
+        )
 
 
-def shape_cube_lg2(function,
-                   min_exposure=-6.5,
-                   max_exposure=6.5,
-                   middle_grey=0.18,
-                   shaper_size=2 ** 14 - 1,
-                   cube_size=33,
-                   name=None):
+def shape_cube_lg2(
+    function,
+    min_exposure=-6.5,
+    max_exposure=6.5,
+    middle_grey=0.18,
+    shaper_size=2 ** 14 - 1,
+    cube_size=33,
+    name=None,
+):
     # 1D shaper
     domain = middle_grey * 2 ** np.array([min_exposure, max_exposure])
 
     shaper_lut = LUT1D(domain=domain, size=shaper_size)
     shaper_lut.name = "{0} - Shaper".format(name) if name else "Shaper"
-    shaper_lut.table = log_encoding_Log2(shaper_lut.table,
-                                         middle_grey=middle_grey,
-                                         min_exposure=min_exposure,
-                                         max_exposure=max_exposure)
+    shaper_lut.table = log_encoding_Log2(
+        shaper_lut.table,
+        middle_grey=middle_grey,
+        min_exposure=min_exposure,
+        max_exposure=max_exposure,
+    )
 
     # 3D cube
     shaped_cube = LUT3D(size=cube_size, name=name)
-    shaped_cube.table = log_decoding_Log2(shaped_cube.table,
-                                          middle_grey=middle_grey,
-                                          min_exposure=min_exposure,
-                                          max_exposure=max_exposure)
+    shaped_cube.table = log_decoding_Log2(
+        shaped_cube.table,
+        middle_grey=middle_grey,
+        min_exposure=min_exposure,
+        max_exposure=max_exposure,
+    )
     shaped_cube.table = function(shaped_cube.table)
 
     # Concatenate 1D shaper + 3D lut
     lut1d3d = LUTSequence(shaper_lut, shaped_cube)
 
     return lut1d3d
-
-
-
-
-
-
-
-
-
-

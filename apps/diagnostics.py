@@ -8,7 +8,7 @@ from boltons.ecoutils import get_profile
 from helpers import st_stdout
 
 
-def diagnostics(local_data='.'):
+def diagnostics(local_data="."):
     st.header("Streamlit instance info")
     st.write(get_profile())
     st.header("Python ")
@@ -20,6 +20,7 @@ def diagnostics(local_data='.'):
     st.subheader("Locally-installed libraries")
     try:
         import PyOpenColorIO as ocio
+
         st.write(f"PyOpenColorIO: v{ocio.__version__}")
     except ImportError:
         pass

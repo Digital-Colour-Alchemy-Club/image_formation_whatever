@@ -1,21 +1,21 @@
-name = 'image_formation_whatever'
+name = "image_formation_whatever"
 
-version = '0.2.0'
+version = "0.2.0"
 
-description = 'Experiments with streamlit, OCIO, colour-science, and more.'
+description = "Experiments with streamlit, OCIO, colour-science, and more."
 
-authors = ['THE HERMETIC BROTHERHOOD OV SPECTRA']
+authors = ["THE HERMETIC BROTHERHOOD OV SPECTRA"]
 
 requires = [
-    'streamlit-0.73.0+<1',
-    'OpenColorIO-2.0.0',
-    'colour-0.3.16+',
-    'gdown',
-    'boltons',
-    'plumbum',
-    'matplotlib',
-    'fs',
-    'aenum',
+    "streamlit-0.73.0+<1",
+    "OpenColorIO-2.0.0",
+    "colour-0.3.16+",
+    "gdown",
+    "boltons",
+    "plumbum",
+    "matplotlib",
+    "fs",
+    "aenum",
 ]
 
 build_command = r"""
@@ -25,9 +25,9 @@ cp -a {root}/* $REZ_BUILD_INSTALL_PATH
 
 
 def commands():
-    approot = '{root}'
-    env.PATH.append('{approot}/bin')
-    env.PYTHONPATH.append('{approot}/python')
-    setenv('%s_ROOT' % this.name.upper(), '{approot}/')
-    setenv('%s_DATA' % this.name.upper(), '{approot}/data')
-    alias('ifw', 'streamlit run $IMAGE_FORMATION_WHATEVER_ROOT/app.py')
+    approot = "{root}"
+    env.PATH.append("{approot}/bin")
+    env.PYTHONPATH.append("{approot}/python")
+    setenv("%s_ROOT" % this.name.upper(), "{approot}/")
+    setenv("%s_DATA" % this.name.upper(), "{approot}/data")
+    alias("ifw", "streamlit run $IMAGE_FORMATION_WHATEVER_ROOT/app.py")

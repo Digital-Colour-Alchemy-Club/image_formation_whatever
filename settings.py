@@ -1,5 +1,6 @@
 from pathlib import Path
 from logging import getLogger
+
 __app__ = "Experimental Image Formation Toolset"
 __author__ = "THE HERMETIC BROTHERHOOD OV SPECTRA"
 __license__ = "GPL3"
@@ -20,26 +21,25 @@ EXTERNAL_DEPENDENCIES = {
     "Marcie ACES2065-1": {
         "filename": "DigitalLAD.2048x1556.exr",
         "url": "https://zozobra.s3.us-east-1.amazonaws.com/colour/"
-            "images/DigitalLAD.2048x1556.exr",
+        "images/DigitalLAD.2048x1556.exr",
         "size": 25518832,
     },
     "CLF Test Image": {
         "filename": "CLF_testImagePrototype_v006.exr",
         "url": "https://raw.githubusercontent.com/alexfry/CLFTestImage/"
-            "master/images/CLF_testImagePrototype_v006.exr",
+        "master/images/CLF_testImagePrototype_v006.exr",
         "size": 201549,
     },
     "Marcie 4K": {
         "filename": "marcie-4k.exr",
         "url": "https://zozobra.s3.us-east-1.amazonaws.com/colour/"
-            "images/marcie-4k.exr",
+        "images/marcie-4k.exr",
         "size": 63015668,
     },
     "OCIO v2.0.0beta2": {
         "filename": "ocio_streamlit_v2.0.0beta2.tar",
         "url": "https://zozobra.s3.us-east-1.amazonaws.com/colour/"
-            "data/ocio_streamlit_v2.0.0beta2.tar",
+        "data/ocio_streamlit_v2.0.0beta2.tar",
         "size": 28119040,
-    }
+    },
 }
-

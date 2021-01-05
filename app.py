@@ -8,13 +8,11 @@ __author__ = "THE HERMETIC BROTHERHOOD OV SPECTRA"
 __license__ = "GPL3"
 __version__ = "0.1.6"
 
-st.set_page_config(
-    page_title=__app__,
-    layout="wide")
-
+st.set_page_config(page_title=__app__, layout="wide")
 
 
 from bootstrap import run_bootstrap
+
 run_bootstrap()
 
 from helpers import st_stdout
@@ -33,12 +31,12 @@ def ocio_skeleton_config():
     key = st.selectbox(
         label="Test Image",
         options=[
-            'Marcie 4K',
-            'CLF Test Image',
-        ]
+            "Marcie 4K",
+            "CLF Test Image",
+        ],
     )
 
-    #@st.cache
+    # @st.cache
     def get_test_image(proxy=True):
         path = get_dependency(key)
         im = read_image(path)
@@ -53,21 +51,21 @@ def ocio_skeleton_config():
     def create_ocio_config(config=None):
         domain = np.array([-10, 15])
         logarithmic_shaper = ocio.NamedTransform(
-            name='Logarithmic Shaper',
+            name="Logarithmic Shaper",
             forwardTransform=ocio.AllocationTransform(
-                vars=np.log2(0.18 * np.power(2., domain))
-            )
+                vars=np.log2(0.18 * np.power(2.0, domain))
+            ),
         )
-        image_formation_transform = (
-            ocio.ViewTransform(
-                name='Image Formation Transform',
-                fromReference=ocio.GroupTransform([
+        image_formation_transform = ocio.ViewTransform(
+            name="Image Formation Transform",
+            fromReference=ocio.GroupTransform(
+                [
                     ocio.FileTransform(
                         src="AestheticTransferFunction.csp",
                         interpolation=ocio.INTERP_TETRAHEDRAL,
                     ),
-                ])
-            )
+                ]
+            ),
         )
 
         named_transforms = [
@@ -94,31 +92,21 @@ def ocio_skeleton_config():
     cfg = create_ocio_config()
 
     with st.sidebar:
-        source = st.selectbox(
-            label='Image Encoding',
-            options=cfg.getColorSpaceNames()
-        )
+        source = st.selectbox(label="Image Encoding", options=cfg.getColorSpaceNames())
         display = st.selectbox(
-            label='Display',
+            label="Display",
             options=cfg.getActiveDisplays() or cfg.getDisplays(),
         )
-        view = st.selectbox(
-            label='View',
-            options=cfg.getViews(display)
-        )
+        view = st.selectbox(label="View", options=cfg.getViews(display))
         exposure = st.slider(
-            label='Exposure Adjustment',
+            label="Exposure Adjustment",
             min_value=-10.0,
             max_value=+10.0,
             value=0.0,
             step=0.25,
         )
         contrast = st.slider(
-            label="Contrast",
-            min_value=0.01,
-            max_value=3.00,
-            value=1.00,
-            step=0.1
+            label="Contrast", min_value=0.01, max_value=3.00, value=1.00, step=0.1
         )
         gamma = st.slider(
             label="Gamma",
@@ -128,13 +116,13 @@ def ocio_skeleton_config():
             step=0.1,
         )
         style = st.selectbox(
-            label='Exposure/Contrast Style',
+            label="Exposure/Contrast Style",
             options=[
                 ocio.EXPOSURE_CONTRAST_LINEAR,
                 ocio.EXPOSURE_CONTRAST_LOGARITHMIC,
                 ocio.EXPOSURE_CONTRAST_VIDEO,
             ],
-            format_func=ocio.ExposureContrastStyleToString
+            format_func=ocio.ExposureContrastStyleToString,
         )
 
     image_placeholder = st.empty()
@@ -145,21 +133,21 @@ def ocio_skeleton_config():
             min_value=0.01,
             max_value=1.0,
             value=0.18,
-            step=0.001
+            step=0.001,
         ),
         middle_grey_out=st.number_input(
             label="Middle Grey Output Display Value, Radiometric",
             min_value=0.01,
             max_value=1.0,
             value=0.18,
-            step=0.001
+            step=0.001,
         ),
         ev_above_middle_grey=st.slider(
             label="Maximum EV Above Middle Grey",
             min_value=1.0,
             max_value=15.0,
             value=4.0,
-            step=0.25
+            step=0.25,
         ),
         # exposure = st.slider(
         #     label="Exposure Adjustment",
@@ -169,24 +157,20 @@ def ocio_skeleton_config():
         #     step=0.25
         # ),
         contrast=st.slider(
-            label="Contrast",
-            min_value=0.01,
-            max_value=3.00,
-            value=1.75,
-            step=0.01
+            label="Contrast", min_value=0.01, max_value=3.00, value=1.75, step=0.01
         ),
         shoulder_contrast=st.slider(
             label="Shoulder Contrast",
             min_value=0.01,
             max_value=1.00,
             value=1.0,
-            step=0.01
+            step=0.01,
         ),
         gamut_clip=st.checkbox(
             "Gamut Clip to Maximum",
             value=True,
         ),
-        gamut_warning=st.checkbox("Exceeds Gamut Indicator")
+        gamut_warning=st.checkbox("Exceeds Gamut Indicator"),
     )
 
     image = get_test_image()
@@ -197,11 +181,19 @@ def ocio_skeleton_config():
     clf = aesthetic_transfer_function.generate_clf()
     range_shaper = clf[0]
     # todo -- implement clf.py...
-    #colour.write_LUT(clf, 'AestheticTransferFunction.clf')
+    # colour.write_LUT(clf, 'AestheticTransferFunction.clf')
 
-    image = ocu.ocio_viewer(image, source=source, display=display, view=view,
-                            exposure=exposure, contrast=contrast, gamma=gamma, style=style,
-                            config=cfg)
+    image = ocu.ocio_viewer(
+        image,
+        source=source,
+        display=display,
+        view=view,
+        exposure=exposure,
+        contrast=contrast,
+        gamma=gamma,
+        style=style,
+        config=cfg,
+    )
 
     image_placeholder.image(image, clamp=[0, 1], use_column_width=True)
 
@@ -210,20 +202,16 @@ def ocio_skeleton_config():
 
 
 demo_pages = {
-    "Experimental Image Formation":
-        image_formation.application_experimental_image_formation,
-    "Diagnostics":
-        partial(diagnostics, LOCAL_DATA),
-    "Baby bones":
-        ocio_skeleton_config
+    "Experimental Image Formation": image_formation.application_experimental_image_formation,
+    "Diagnostics": partial(diagnostics, LOCAL_DATA),
+    "Baby bones": ocio_skeleton_config,
 }
 
 # Draw sidebar
 pages = list(demo_pages.keys())
 
 applications = st.sidebar.selectbox(
-    "Applications Version {}".format(__version__),
-    pages
+    "Applications Version {}".format(__version__), pages
 )
 
 

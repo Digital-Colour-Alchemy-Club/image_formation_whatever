@@ -92,7 +92,8 @@ class RemoteData:
                 progress_bar = st.progress(0)
                 with open(path, "wb") as output_file:
                     with urllib.request.urlopen(
-                            self.url, cafile=certifi.where()) as response:
+                        self.url, cafile=certifi.where()
+                    ) as response:
                         length = int(response.info()["Content-Length"])
                         counter = 0.0
                         MEGABYTES = 2.0 ** 20.0
@@ -105,12 +106,8 @@ class RemoteData:
 
                             # We perform animation by overwriting the elements.
                             status.warning(
-                                "Downloading %s... (%6.2f/%6.2f MB)" %
-                                (
-                                    path,
-                                    counter / MEGABYTES,
-                                    length / MEGABYTES
-                                )
+                                "Downloading %s... (%6.2f/%6.2f MB)"
+                                % (path, counter / MEGABYTES, length / MEGABYTES)
                             )
                             progress_bar.progress(min(counter / length, 1.0))
 
@@ -124,16 +121,21 @@ class RemoteData:
         return path
 
 
-def st_file_downloader(bin_file, file_label='File'):
-    def get_binary_file_downloader_html(bin_file, file_label='File'):
+def st_file_downloader(bin_file, file_label="File"):
+    def get_binary_file_downloader_html(bin_file, file_label="File"):
         # https://discuss.streamlit.io/t/how-to-download-file-in-streamlit/1806/27
-        with open(bin_file, 'rb') as f:
+        with open(bin_file, "rb") as f:
             data = f.read()
         bin_str = base64.b64encode(data).decode()
-        href = f'<a href="data:application/octet-stream;base64,{bin_str}"' \
-               f' download="{os.path.basename(bin_file)}">Download {file_label}</a>'
+        href = (
+            f'<a href="data:application/octet-stream;base64,{bin_str}"'
+            f' download="{os.path.basename(bin_file)}">Download {file_label}</a>'
+        )
         return href
-    st.markdown(get_binary_file_downloader_html(bin_file, file_label), unsafe_allow_html=True)
+
+    st.markdown(
+        get_binary_file_downloader_html(bin_file, file_label), unsafe_allow_html=True
+    )
 
 
 def get_dependency(key, local_dir=LOCAL_DATA):
