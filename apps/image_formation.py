@@ -1,4 +1,5 @@
 import numpy as np
+import matplotlib
 import colour
 import streamlit as st
 from colour.io.luts import AbstractLUTSequenceOperator
@@ -155,12 +156,52 @@ class generic_aesthetic_transfer_function(AbstractLUTSequenceOperator):
         return output_RGBs
 
 
+def apply_inverse_EOTF(RGB, EOTF=2.2):
+    return np.ma.power(RGB, (1.0 / EOTF)).filled(fill_value=0.0)
+
+
+def video_buffer(x, exposure_adjustment=0.0):
+    return (2.0 ** exposure_adjustment) * x
+
+
+# @st.cache(suppress_st_warning=True)
+img_path = helpers.get_dependency("Marcie 4K")
+default_image = colour.read_image(img_path)[..., 0:3]
+
+image_shape = default_image.shape
+dim_x_small, dim_y_small = image_shape[0:2]
+dim_x_small = int(dim_x_small / 3.0)
+dim_y_small = int(dim_y_small / 3.0)
+
+
+# default_image_small = np.interp(
+
+# )
+
+
 def application_experimental_image_formation():
     LUT = generic_aesthetic_transfer_function()
 
-    # col1, col2 = st.beta_columns([1, 2])
     with st.sidebar:
-        upload_image = st.file_uploader(label="Input Image", type=[".exr"])
+        exposure_adjustment = st.slider(
+            label="Exposure Adjustment",
+            min_value=-10.0,
+            max_value=+10.0,
+            value=0.0,
+            step=0.25,
+        )
+        contrast = st.slider(
+            label="Contrast",
+            min_value=0.01,
+            max_value=3.00,
+            value=1.75,
+            step=0.01
+        )
+
+    region_1_1, region_1_2 = st.beta_columns(2)
+    image_region_1_1, image_region_1_2 = st.beta_columns(2)
+
+    with region_1_1:
         EOTF = st.number_input(
             label="Display Hardware EOTF",
             min_value=1.0,
@@ -189,16 +230,6 @@ def application_experimental_image_formation():
             value=4.0,
             step=0.25,
         )
-        exposure = st.slider(
-            label="Exposure Adjustment",
-            min_value=-10.0,
-            max_value=+10.0,
-            value=0.0,
-            step=0.25,
-        )
-        contrast = st.slider(
-            label="Contrast", min_value=0.01, max_value=3.00, value=1.75, step=0.01
-        )
         shoulder_contrast = st.slider(
             label="Shoulder Contrast",
             min_value=0.01,
@@ -209,18 +240,13 @@ def application_experimental_image_formation():
         gamut_clipping = st.checkbox("Gamut Clip to Maximum", value=True)
         gamut_warning = st.checkbox("Exceeds Gamut Indicator")
 
-    def apply_inverse_EOTF(RGB):
-        return np.ma.power(RGB, (1.0 / EOTF)).filled(fill_value=0.0)
+    with region_1_2:
+        upload_image = st.file_uploader(label="Input Image", type=[".exr"])
+        if upload_image is not None:
+            img = colour.read_image(upload_image.read())
+        else:
+            img = default_image
 
-    # @st.cache
-    def video_buffer(x):
-        return (2.0 ** exposure) * x
-
-    @st.cache(suppress_st_warning=True)
-    def get_marcie():
-        img_path = helpers.get_dependency("Marcie 4K")
-        img = colour.read_image(img_path)[..., 0:3]
-        return img
 
     # with col2:
     LUT.set_transfer_details(
@@ -230,27 +256,36 @@ def application_experimental_image_formation():
         middle_grey_out=middle_grey_output,
         ev_above_middle_grey=maximum_ev,
     )
-    st.line_chart(data=LUT._LUT.table)
 
-    if upload_image is not None:
-        img = colour.read_image(upload_image.read())
-    else:
-        img = get_marcie()
+    with region_1_2:
+        st.line_chart(data=LUT._LUT.table)
 
-    st.image(
-        apply_inverse_EOTF(
-            LUT.apply_maxRGB(video_buffer(img), gamut_clipping, gamut_warning)
-        ),
-        clamp=[0.0, 1.0],
-        use_column_width=True,
-        caption=LUT._LUT.name,
-    )
+    with image_region_1_1:
+        st.image(
+            apply_inverse_EOTF(
+                LUT.apply_maxRGB(
+                    video_buffer(img, exposure_adjustment),
+                    gamut_clipping,
+                    gamut_warning
+                ),
+                EOTF
+            ),
+            clamp=[0.0, 1.0],
+            use_column_width=True,
+            caption=LUT._LUT.name,
+        )
 
-    st.image(
-        apply_inverse_EOTF(
-            LUT.apply_per_channel(video_buffer(img), gamut_clipping, gamut_warning)
-        ),
-        clamp=[0.0, 1.0],
-        use_column_width=True,
-        caption="Generic Per Channel",
-    )
+    with image_region_1_2:
+        st.image(
+            apply_inverse_EOTF(
+                LUT.apply_per_channel(
+                    video_buffer(img, exposure_adjustment),
+                    gamut_clipping,
+                    gamut_warning
+                ),
+                EOTF
+            ),
+            clamp=[0.0, 1.0],
+            use_column_width=True,
+            caption="Generic Per Channel",
+        )
