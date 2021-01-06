@@ -241,20 +241,20 @@ def application_experimental_image_formation():
 
     with region_1_3:
         image_scale = st.slider(
-            label="Downsize Image Scale By",
+            label="Divide Image Resolution By",
             min_value=1,
             max_value=10,
             value=3,
-            step=1,
+            step=2,
         )
         plots_scale = st.slider(
-            label="Scopes and Plots Scale By",
+            label="Divide Plots Resolution By",
             min_value=1,
             max_value=30,
             value=20,
-            step=1,
+            step=2,
         )
-        show_scopes = st.checkbox("Show Scopes and Plots", value=True)
+        show_scopes = st.checkbox("Show Scopes and Plots", value=False)
         gamut_clipping = st.checkbox("Gamut Clip to Maximum", value=True)
         gamut_warning = st.checkbox("Exceeds Radiometric Gamut Indicator")
 
