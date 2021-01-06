@@ -572,7 +572,7 @@ def baby_config():
 
     all_colorspaces = [data, linear, sRGB]
 
-    cfg = ocio.Config.CreateRaw()
+    cfg = ocio.Config()
     _ = [cfg.addColorSpace(cs) for cs in all_colorspaces]
     cfg.addColorSpace(linear)
     cfg.addColorSpace(sRGB)
