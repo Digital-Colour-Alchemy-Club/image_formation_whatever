@@ -657,13 +657,13 @@ def add_aesthetic_transfer_function_to_config(atf, config):
     lin_to_normalized_log_transform = (
         ocio.AllocationTransform(
             vars=np.log2(middle_grey * np.power(2.0, domain)),
-            allocationVars=ocio.ALLOCATION_LG2,
+            allocation=ocio.ALLOCATION_LG2,
         ),
     )
     normalized_log_to_lin_transform = (
         ocio.AllocationTransform(
             vars=np.log2(middle_grey * np.power(2.0, domain)),
-            allocationVars=ocio.ALLOCATION_LG2,
+            allocation=ocio.ALLOCATION_LG2,
             direction=ocio.TRANSFORM_DIR_INVERSE,
         ),
     )
