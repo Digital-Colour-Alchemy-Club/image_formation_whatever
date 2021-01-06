@@ -169,6 +169,9 @@ img_path = helpers.get_dependency("Marcie 4K")
 default_image = colour.read_image(img_path)[..., 0:3]
 
 
+matplotlib.pyplot.style.use({"figure.figsize": (4, 4), "font.size": 4})
+
+
 def application_experimental_image_formation():
     LUT = generic_aesthetic_transfer_function()
 
@@ -184,7 +187,8 @@ def application_experimental_image_formation():
             label="Contrast", min_value=0.01, max_value=3.00, value=1.75, step=0.01
         )
 
-    region_1_1, region_1_2 = st.beta_columns(2)
+    region_1_1, region_1_2, region_1_3 = st.beta_columns((2, 5, 2))
+    scopes_1, scopes_2, scopes_3, scopes_4 = st.beta_columns((1, 1, 1, 1))
     image_region_1_1, image_region_1_2 = st.beta_columns(2)
 
     with region_1_1:
@@ -223,25 +227,6 @@ def application_experimental_image_formation():
             value=1.0,
             step=0.01,
         )
-        gamut_clipping = st.checkbox("Gamut Clip to Maximum", value=True)
-        gamut_warning = st.checkbox("Exceeds Gamut Indicator")
-
-    with region_1_2:
-        upload_image = st.file_uploader(label="Input Image", type=[".exr"])
-        image_scale = st.slider(
-            label="Downsize Image",
-            min_value=1,
-            max_value=10,
-            value=3,
-            step=1,
-        )
-        if upload_image is not None:
-            original_image = colour.read_image(upload_image.read())
-            reduced_image = original_image[::image_scale, ::image_scale, ...]
-        else:
-            reduced_image = default_image[::image_scale, ::image_scale, ...]
-
-        img = reduced_image
 
     LUT.set_transfer_details(
         contrast=contrast,
@@ -250,9 +235,92 @@ def application_experimental_image_formation():
         middle_grey_out=middle_grey_output,
         ev_above_middle_grey=maximum_ev,
     )
-
     with region_1_2:
         st.line_chart(data=LUT._LUT.table)
+        upload_image = st.file_uploader(label="Input Image", type=[".exr"])
+
+    with region_1_3:
+        image_scale = st.slider(
+            label="Downsize Image Scale By",
+            min_value=1,
+            max_value=10,
+            value=3,
+            step=1,
+        )
+        plots_scale = st.slider(
+            label="Scopes and Plots Scale By",
+            min_value=1,
+            max_value=30,
+            value=20,
+            step=1,
+        )
+        show_scopes = st.checkbox("Show Scopes and Plots", value=True)
+        gamut_clipping = st.checkbox("Gamut Clip to Maximum", value=True)
+        gamut_warning = st.checkbox("Exceeds Radiometric Gamut Indicator")
+
+    if upload_image is not None:
+        original_image = colour.read_image(upload_image.read())
+        reduced_image = original_image[::image_scale, ::image_scale, ...]
+        if show_scopes is True:
+            scopes_image = original_image[::plots_scale, ::plots_scale, ...]
+    else:
+        reduced_image = default_image[::image_scale, ::image_scale, ...]
+        if show_scopes is True:
+            scopes_image = default_image[::plots_scale, ::plots_scale, ...]
+    img = reduced_image
+
+    if show_scopes is True:
+        scopes_maxRGB_result = apply_inverse_EOTF(
+            LUT.apply_maxRGB(
+                video_buffer(scopes_image, exposure_adjustment),
+                gamut_clipping,
+                gamut_warning,
+            ),
+            EOTF,
+        )
+        scopes_per_result = apply_inverse_EOTF(
+            LUT.apply_per_channel(
+                video_buffer(scopes_image, exposure_adjustment),
+                gamut_clipping,
+                gamut_warning,
+            ),
+            EOTF,
+        )
+
+        (
+            fig_maxRGB_1976,
+            ax_maxRGB_1931,
+        ) = colour.plotting.plot_RGB_chromaticities_in_chromaticity_diagram_CIE1976UCS(
+            RGB=scopes_maxRGB_result, colourspace="sRGB"
+        )
+        (
+            fig_maxRGB_1931,
+            ax_maxRGB_1931,
+        ) = colour.plotting.plot_RGB_chromaticities_in_chromaticity_diagram_CIE1931(
+            RGB=scopes_maxRGB_result, colourspace="sRGB"
+        )
+        (
+            fig_per_1976,
+            ax_per_1931,
+        ) = colour.plotting.plot_RGB_chromaticities_in_chromaticity_diagram_CIE1976UCS(
+            RGB=scopes_per_result, colourspace="sRGB"
+        )
+        (
+            fig_per_1931,
+            ax_per_1931,
+        ) = colour.plotting.plot_RGB_chromaticities_in_chromaticity_diagram_CIE1931(
+            RGB=scopes_per_result, colourspace="sRGB"
+        )
+
+        with scopes_1:
+            st.pyplot(fig=fig_maxRGB_1976)
+        with scopes_2:
+            st.pyplot(fig=fig_maxRGB_1931)
+
+        with scopes_3:
+            st.pyplot(fig=fig_per_1976)
+        with scopes_4:
+            st.pyplot(fig=fig_per_1931)
 
     with image_region_1_1:
         st.image(
