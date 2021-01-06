@@ -668,10 +668,6 @@ def add_aesthetic_transfer_function_to_config(atf, config):
         ),
     )
 
-    logarithmic_shaper = ocio.NamedTransform(
-        name="Logarithmic Shaper",
-        forwardTransform=lin_to_normalized_log_transform,
-    )
 
     image_formation_transform = ocio.ViewTransform(
         name="Image Formation Transform",
@@ -686,18 +682,11 @@ def add_aesthetic_transfer_function_to_config(atf, config):
         ),
     )
 
-    named_transforms = [
-        logarithmic_shaper,
-    ]
-
     view_transforms = [
         image_formation_transform,
     ]
 
     for vt in view_transforms:
         config.addViewTransform(vt)
-
-    for nt in named_transforms:
-        config.addNamedTransform(nt)
 
     return config
