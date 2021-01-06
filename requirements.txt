@@ -10,3 +10,4 @@ options
 fs
 black
 pre-commit
+timber
