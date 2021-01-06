@@ -1,5 +1,7 @@
+import PyOpenColorIO
 import colour
 import PyOpenColorIO as ocio
+import numpy
 import numpy as np
 
 from aenum import Enum
@@ -570,13 +572,14 @@ def baby_config():
 
     all_colorspaces = [data, linear, sRGB]
 
-    cfg = ocio.Config()
+    cfg = ocio.Config.CreateRaw()
     _ = [cfg.addColorSpace(cs) for cs in all_colorspaces]
     cfg.addColorSpace(linear)
     cfg.addColorSpace(sRGB)
 
     # cfg.setRole('aces_interchange', aces.getName())
     # cfg.setRole('cie_xyz_d65_interchange', xyzd65.getName())
+
     cfg.setRole(ocio.ROLE_DATA, data.getName())
     cfg.setRole(ocio.ROLE_DEFAULT, linear.getName())
     cfg.setRole(ocio.ROLE_REFERENCE, linear.getName())
@@ -643,3 +646,58 @@ def ocio_viewer(
     RGB_out = apply_ocio_processor(proc, RGB_out, use_gpu=use_gpu)
 
     return RGB_out
+
+
+def add_aesthetic_transfer_function_to_config(atf, config):
+    min_exposure = -6.5
+    max_exposure = atf.ev_above_middle_grey
+    middle_grey = atf.middle_grey_in
+
+    domain = np.array([min_exposure, max_exposure])
+    lin_to_normalized_log_transform = (
+        ocio.AllocationTransform(
+            vars=np.log2(middle_grey * np.power(2.0, domain)),
+            allocationVars=ocio.ALLOCATION_LG2,
+        ),
+    )
+    normalized_log_to_lin_transform = (
+        ocio.AllocationTransform(
+            vars=np.log2(middle_grey * np.power(2.0, domain)),
+            allocationVars=ocio.ALLOCATION_LG2,
+            direction=ocio.TRANSFORM_DIR_INVERSE,
+        ),
+    )
+
+    logarithmic_shaper = ocio.NamedTransform(
+        name="Logarithmic Shaper",
+        forwardTransform=lin_to_normalized_log_transform,
+    )
+
+    image_formation_transform = ocio.ViewTransform(
+        name="Image Formation Transform",
+        fromReference=ocio.GroupTransform(
+            [
+                lin_to_normalized_log_transform,
+                ocio.FileTransform(
+                    src=atf.get_filename(extension="clf"),
+                    interpolation=ocio.INTERP_TETRAHEDRAL,
+                ),
+            ]
+        ),
+    )
+
+    named_transforms = [
+        logarithmic_shaper,
+    ]
+
+    view_transforms = [
+        image_formation_transform,
+    ]
+
+    for vt in view_transforms:
+        config.addViewTransform(vt)
+
+    for nt in named_transforms:
+        config.addNamedTransform(nt)
+
+    return config

@@ -2,7 +2,7 @@ from functools import partial
 from typing import List, Optional
 
 import attr
-from boltons.strutils import camel2under, under2camel
+from boltons.strutils import camel2under, under2camel, slugify
 from colour.io import AbstractLUTSequenceOperator, LUT3D, LUT1D, LUTSequence
 from colour.models.rgb.transfer_functions.log import *
 from colour.models.rgb.transfer_functions.exponent import *
@@ -82,6 +82,12 @@ class AestheticTransferFunction(AbstractLUTSequenceOperator):
             RGB_out[gamut_clipped_above[0], gamut_clipped_above[1], :] = warning
 
         return RGB_out
+
+    def get_filename(self, extension=None):
+        basename = under2camel(slugify(self.name))
+        if extension:
+            return f"{basename}.{extension}"
+        return basename
 
     def generate_lut1d3d(self, size=33, shaper_size=2 ** 14, min_exposure=-6.5):
         cube = LUT3D(size=size, name=self.name, comments=self.comments)
