@@ -654,12 +654,14 @@ def add_aesthetic_transfer_function_to_config(atf, config):
     middle_grey = atf.middle_grey_in
 
     domain = np.array([min_exposure, max_exposure])
+
     lin_to_normalized_log_transform = (
         ocio.AllocationTransform(
             vars=np.log2(middle_grey * np.power(2.0, domain)),
             allocation=ocio.ALLOCATION_LG2,
         ),
     )
+
     normalized_log_to_lin_transform = (
         ocio.AllocationTransform(
             vars=np.log2(middle_grey * np.power(2.0, domain)),
@@ -668,12 +670,14 @@ def add_aesthetic_transfer_function_to_config(atf, config):
         ),
     )
 
-
     image_formation_transform = ocio.ViewTransform(
         name="Image Formation Transform",
         fromReference=ocio.GroupTransform(
             [
-                lin_to_normalized_log_transform,
+                ocio.AllocationTransform(
+                    vars=np.log2(middle_grey * np.power(2.0, domain)),
+                    allocation=ocio.ALLOCATION_LG2,
+                ),
                 ocio.FileTransform(
                     src=atf.get_filename(extension="clf"),
                     interpolation=ocio.INTERP_TETRAHEDRAL,
