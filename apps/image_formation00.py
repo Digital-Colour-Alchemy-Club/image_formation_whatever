@@ -218,7 +218,7 @@ def application_experimental_image_formation_00():
             label="Maximum EV Above Middle Grey",
             min_value=1.0,
             max_value=15.0,
-            value=4.0,
+            value=3.25,
             step=0.25,
         )
         shoulder_contrast = st.slider(
@@ -248,17 +248,17 @@ def application_experimental_image_formation_00():
     with region_1_3:
         image_scale = st.slider(
             label="Divide Image Resolution By",
-            min_value=1,
+            min_value=2,
             max_value=10,
             value=3,
-            step=2,
+            step=1,
         )
         plots_scale = st.slider(
             label="Divide Plots Resolution By",
-            min_value=1,
+            min_value=2,
             max_value=30,
             value=20,
-            step=2,
+            step=1,
         )
         show_scopes = st.checkbox("Show Scopes and Plots", value=False)
         gamut_clipping = st.checkbox(
@@ -267,14 +267,14 @@ def application_experimental_image_formation_00():
         gamut_warning = st.checkbox("Exceeds Radiometric Gamut Indicator")
 
     if upload_image is None:
-        # default_image_path = helpers.get_dependency(default_image_path)
-        # default_image = colour.io.read_image_Imageio(default_image_path)
+        default_image_path = helpers.get_dependency(default_image_path)
+        default_image = colour.io.read_image_Imageio(default_image_path)[..., 0:3]
         reduced_image = default_image[::image_scale, ::image_scale, ...]
         if show_scopes is True:
             scopes_image = default_image[::plots_scale, ::plots_scale, ...]
         original_image = default_image
     else:
-        # original_image = colour.io.read_image_Imageio(upload_image.read())
+        original_image = colour.io.read_image_Imageio(upload_image.read())[..., 0:3]
         reduced_image = original_image[::image_scale, ::image_scale, ...]
         if show_scopes is True:
             scopes_image = original_image[::plots_scale, ::plots_scale, ...]
