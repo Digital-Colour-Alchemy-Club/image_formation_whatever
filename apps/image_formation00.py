@@ -363,7 +363,7 @@ def application_experimental_image_formation_00():
             ),
             clamp=[0.0, 1.0],
             use_column_width=True,
-            caption=LUT._LUT.name,
+            caption="max(RGB) render of " + LUT._LUT.name,
         )
 
     with image_region_1_2:
