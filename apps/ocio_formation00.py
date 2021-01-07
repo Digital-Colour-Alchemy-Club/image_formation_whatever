@@ -66,8 +66,11 @@ def application_ocio_formation_00():
 
         return cfg
 
-    st.cache(get_test_image)
-    st.cache(ocu.ocio_viewer, max_entries=10)
+    # Warning: Uncommenting the following lines will cause some serious
+    # threading issues or some such. In this instance, it was with bound
+    # functions.
+    # st.cache(get_test_image)
+    # st.cache(ocu.ocio_viewer, max_entries=10)
 
     cfg = create_ocio_config()
 

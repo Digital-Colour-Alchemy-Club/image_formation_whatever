@@ -565,7 +565,7 @@ def baby_config():
     )
     data = ocio.ColorSpace(
         referenceSpace=ocio.REFERENCE_SPACE_SCENE,
-        name="data",
+        name="non-colour data",
         encoding="data",
         isData=True,
     )
@@ -577,6 +577,9 @@ def baby_config():
     cfg.addColorSpace(linear)
     cfg.addColorSpace(sRGB)
 
+    # Consistently throws problems here likely in relation to the above
+    # 412-417 lines being called first and this tripping errors in this
+    # block. Commenting seems to quiet the issues.
     # cfg.setRole('aces_interchange', aces.getName())
     # cfg.setRole('cie_xyz_d65_interchange', xyzd65.getName())
 
