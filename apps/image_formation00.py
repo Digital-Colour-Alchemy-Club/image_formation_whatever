@@ -237,7 +237,7 @@ def application_experimental_image_formation_00():
         ev_above_middle_grey=maximum_ev,
     )
     with region_1_2:
-        st.line_chart(data=LUT._LUT.table)
+        st.line_chart(data=LUT._LUT.table, height=200)
         upload_image = st.file_uploader(label="Input Image", type=[".exr", ".hdr"])
 
         default_image_path = st.selectbox(
