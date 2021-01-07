@@ -1,0 +1,35 @@
+
+[flake8]
+max-line-length = 88
+extend-ignore = ['E203']
+
+[tool.vendy]
+target = 'image_formation_toolkit'
+packages = [
+    'aenum==2.2.3',
+    'munch==2.5',
+    'addict==2.2.1',
+    'colour-science==0.3.16',
+]
+
+[tool.black]
+line-length = 88
+target-version = ['py37']
+include = '\.pyi?$'
+exclude = '''
+
+(
+  /(
+      \.eggs
+    | \.git
+    | \.mypy_cache
+    | \.tox
+    | \.venv
+    | _build
+    | build
+    | data
+    | dist
+  )/
+  | package.py
+)
+'''
