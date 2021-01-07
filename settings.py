@@ -51,6 +51,12 @@ EXTERNAL_DEPENDENCIES = {
         "images/marcie-4k.exr",
         "size": 63015668,
     },
+    "Synthetic Testing Chart": {
+        "filename": "syntheticChart_rec709.01.exr",
+        "url": "https://raw.githubusercontent.com/sobotka/Testing_Imagery/"
+        "master/syntheticChart_rec709.01.exr",
+        "size": 2968371,
+    },
     "OCIO v2.0.0beta2": {
         "filename": "ocio_streamlit_v2.0.0beta2.tar",
         "url": "https://zozobra.s3.us-east-1.amazonaws.com/colour/"
