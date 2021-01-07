@@ -164,7 +164,8 @@ def video_buffer(x, exposure_adjustment=0.0):
     return (2.0 ** exposure_adjustment) * x
 
 
-# @st.cache(suppress_st_warning=True)
+# See if this resolves the Cache Crashy.
+# @#st.cache(suppress_st_warning=True)
 img_path = helpers.get_dependency("Marcie 4K")
 default_image = colour.read_image(img_path)[..., 0:3]
 
