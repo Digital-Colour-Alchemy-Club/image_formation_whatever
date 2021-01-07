@@ -263,7 +263,7 @@ def application_experimental_image_formation_00():
             value=10,
             step=1,
         )
-        show_scopes = st.checkbox("Show Scopes and Plots", value=True)
+        show_scopes = st.checkbox("Show Scopes and Plots", value=False)
 
     with gamut_col_1_1:
         gamut_clip_1 = st.checkbox(
