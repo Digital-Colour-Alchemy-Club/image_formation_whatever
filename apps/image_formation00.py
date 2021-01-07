@@ -190,6 +190,9 @@ def application_experimental_image_formation_00():
 
     region_1_1, region_1_2, region_1_3 = st.beta_columns((2, 5, 2))
     scopes_1, scopes_2, scopes_3, scopes_4 = st.beta_columns((1, 1, 1, 1))
+    gamut_col_1_1, gamut_col_1_2, gamut_col_1_3, gamut_col_1_4 = st.beta_columns(
+        (1, 1, 1, 1)
+    )
     image_region_1_1, image_region_1_2 = st.beta_columns(2)
 
     with region_1_1:
@@ -261,10 +264,20 @@ def application_experimental_image_formation_00():
             step=1,
         )
         show_scopes = st.checkbox("Show Scopes and Plots", value=False)
-        gamut_clipping = st.checkbox(
-            "Gamut Clip to Curve Radiometric Maximum", value=True
+
+    with gamut_col_1_1:
+        gamut_clip_1 = st.checkbox(
+            "Formation A: Gamut Clip to Curve Radiometric Maximum", value=True
         )
-        gamut_warning = st.checkbox("Exceeds Radiometric Gamut Indicator")
+    with gamut_col_1_2:
+        gamut_warn_1 = st.checkbox("Formation A: Exceeds Radiometric Gamut Indicator")
+
+    with gamut_col_1_3:
+        gamut_clip_2 = st.checkbox(
+            "Formation B: Gamut Clip to Curve Radiometric Maximum", value=False
+        )
+    with gamut_col_1_4:
+        gamut_warn_2 = st.checkbox("Formation B: Exceeds Radiometric Gamut Indicator")
 
     if upload_image is None:
         default_image_path = helpers.get_dependency(default_image_path)
@@ -285,16 +298,16 @@ def application_experimental_image_formation_00():
         scopes_maxRGB_result = apply_inverse_EOTF(
             LUT.apply_maxRGB(
                 video_buffer(scopes_image, exposure_adjustment),
-                gamut_clipping,
-                gamut_warning,
+                gamut_clip_1,
+                gamut_warn_1,
             ),
             EOTF,
         )
         scopes_per_result = apply_inverse_EOTF(
             LUT.apply_per_channel(
                 video_buffer(scopes_image, exposure_adjustment),
-                gamut_clipping,
-                gamut_warning,
+                gamut_clip_2,
+                gamut_warn_2,
             ),
             EOTF,
         )
@@ -339,8 +352,8 @@ def application_experimental_image_formation_00():
             apply_inverse_EOTF(
                 LUT.apply_maxRGB(
                     video_buffer(img, exposure_adjustment),
-                    gamut_clipping,
-                    gamut_warning,
+                    gamut_clip_1,
+                    gamut_warn_1,
                 ),
                 EOTF,
             ),
@@ -354,8 +367,8 @@ def application_experimental_image_formation_00():
             apply_inverse_EOTF(
                 LUT.apply_per_channel(
                     video_buffer(img, exposure_adjustment),
-                    gamut_clipping,
-                    gamut_warning,
+                    gamut_clip_2,
+                    gamut_warn_2,
                 ),
                 EOTF,
             ),
