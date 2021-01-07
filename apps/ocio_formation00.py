@@ -1,10 +1,12 @@
-def application_ocio_formation_00():
-    import PyOpenColorIO as ocio
-    import ocioutils as ocu
-    from helpers import get_dependency
-    from operators import AestheticTransferFunction
-    from colour import read_image
+import PyOpenColorIO as ocio
+import ocioutils as ocu
+from helpers import get_dependency
+from operators import AestheticTransferFunction
+from colour import read_image
+import streamlit as st
 
+
+def application_ocio_formation_00():
     key = st.selectbox(
         label="Test Image",
         options=[
