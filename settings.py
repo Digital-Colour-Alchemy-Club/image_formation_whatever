@@ -1,15 +1,30 @@
 from pathlib import Path
-from logging import getLogger
+import logging
+import timber
+import yaml
+from munch import Munch
 
 __app__ = "Experimental Image Formation Toolset"
 __author__ = "THE HERMETIC BROTHERHOOD OV SPECTRA"
 __license__ = "GPL3"
-__version__ = "0.1.6"
+__version__ = "0.1.7"
 
-logger = getLogger(__app__)
+__all__ = ["logger", "config", "LOCAL_DATA", "OCIO_VERSION", "EXTERNAL_DEPENDENCIES"]
+
+
+config = Munch.fromDict(yaml.safe_load(open("config.yaml")))
+
+logger = logging.getLogger(__app__)
+logger.setLevel(logging._nameToLevel[config.logging.level])
+timber_handler = timber.TimberHandler(
+    config.services.timber.key,
+    source_id=config.services.timber.source_id,
+)
+logger.addHandler(timber_handler)
+
 
 LOCAL_DATA = Path.cwd() / "data"
-OCIO_VERSION = "2.0.0beta2"
+OCIO_VERSION = config.libs.OpenColorIO.version
 
 EXTERNAL_DEPENDENCIES = {
     # "ACES-1.2 Config": dict(

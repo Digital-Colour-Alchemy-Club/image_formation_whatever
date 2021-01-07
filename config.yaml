@@ -1,0 +1,9 @@
+services:
+  timber:
+    source_id: "45488"
+    key: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJodHRwczovL2FwaS50aW1iZXIuaW8vIiwiZXhwIjpudWxsLCJpYXQiOjE2MDk5NTM1MTksImlzcyI6Imh0dHBzOi8vYXBpLnRpbWJlci5pby9hcGlfa2V5cyIsInByb3ZpZGVyX2NsYWltcyI6eyJhcGlfa2V5X2lkIjoxMTUyMywidXNlcl9pZCI6ImFwaV9rZXl8MTE1MjMifSwic3ViIjoiYXBpX2tleXwxMTUyMyJ9.DhvV23k9gtHf-e-fwxUqhkPJ_0A90tjV9imWfeIJKIY"
+logging:
+  level: 'DEBUG'
+libs:
+  OpenColorIO:
+    version: "2.0.0b2"
