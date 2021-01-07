@@ -260,7 +260,7 @@ def application_experimental_image_formation_00():
             label="Divide Plots Resolution By",
             min_value=2,
             max_value=30,
-            value=20,
+            value=10,
             step=1,
         )
         show_scopes = st.checkbox("Show Scopes and Plots", value=False)
@@ -314,25 +314,25 @@ def application_experimental_image_formation_00():
             fig_maxRGB_1976,
             ax_maxRGB_1931,
         ) = colour.plotting.plot_RGB_chromaticities_in_chromaticity_diagram_CIE1976UCS(
-            RGB=scopes_maxRGB_result, colourspace="sRGB"
+            RGB=scopes_maxRGB_result, colourspace="sRGB", show_diagram_colours=False
         )
         (
             fig_maxRGB_1931,
             ax_maxRGB_1931,
         ) = colour.plotting.plot_RGB_chromaticities_in_chromaticity_diagram_CIE1931(
-            RGB=scopes_maxRGB_result, colourspace="sRGB"
+            RGB=scopes_maxRGB_result, colourspace="sRGB", show_diagram_colours=False
         )
         (
             fig_per_1976,
             ax_per_1931,
         ) = colour.plotting.plot_RGB_chromaticities_in_chromaticity_diagram_CIE1976UCS(
-            RGB=scopes_per_result, colourspace="sRGB"
+            RGB=scopes_per_result, colourspace="sRGB", show_diagram_colours=False
         )
         (
             fig_per_1931,
             ax_per_1931,
         ) = colour.plotting.plot_RGB_chromaticities_in_chromaticity_diagram_CIE1931(
-            RGB=scopes_per_result, colourspace="sRGB"
+            RGB=scopes_per_result, colourspace="sRGB", show_diagram_colours=False
         )
 
         with scopes_1:
