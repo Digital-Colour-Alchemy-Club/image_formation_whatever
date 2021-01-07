@@ -4,6 +4,7 @@ from helpers import get_dependency
 from operators import AestheticTransferFunction
 from colour import read_image
 import streamlit as st
+import numpy as np
 
 
 def application_ocio_formation_00():
