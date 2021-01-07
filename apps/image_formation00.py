@@ -238,7 +238,11 @@ def application_experimental_image_formation_00():
     )
     with region_1_2:
         st.line_chart(data=LUT._LUT.table)
-        upload_image = st.file_uploader(label="Input Image", type=[".exr"])
+        upload_image = st.file_uploader(label="Input Image", type=[".exr", ".hdr"])
+
+        default_image_path = st.selectbox(
+            label="Test Image", options=["Marcie 4K", "CLF Test Image"]
+        )
 
     with region_1_3:
         image_scale = st.slider(
@@ -265,6 +269,8 @@ def application_experimental_image_formation_00():
         if show_scopes is True:
             scopes_image = original_image[::plots_scale, ::plots_scale, ...]
     else:
+        default_image_path = helpers.get_dependency(default_image_path)
+        default_image = colour.io.read_image_Imageio(default_image_path)
         reduced_image = default_image[::image_scale, ::image_scale, ...]
         if show_scopes is True:
             scopes_image = default_image[::plots_scale, ::plots_scale, ...]
