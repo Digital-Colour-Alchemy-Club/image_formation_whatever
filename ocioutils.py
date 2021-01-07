@@ -565,7 +565,7 @@ def baby_config():
     )
     data = ocio.ColorSpace(
         referenceSpace=ocio.REFERENCE_SPACE_SCENE,
-        name="non-colour data",
+        name="non-color data",
         encoding="data",
         isData=True,
     )
