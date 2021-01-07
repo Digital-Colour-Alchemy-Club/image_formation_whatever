@@ -1,0 +1,23 @@
+{
+    "name": "image_formation_toolkit.devcontainer",
+    "dockerFile": "Dockerfile",
+    "context": "..",
+    "settings": {
+        "terminal.integrated.shell.linux": "/bin/bash",
+        "python.pythonPath": "/usr/bin/python3",
+    },
+    "forwardPorts": [
+        8501
+    ],
+    "runArgs": [
+        "--net", "host",
+        "-e", "DISPLAY=${env:DISPLAY}",
+        "-v", "/tmp/.X11-unix:/tmp/.X11-unix",
+    ],
+    //"postCreateCommand": "ansible-playbook -vvv --connection=local --inventory 127.0.0.1, /workspaces/colour.devcontainer/colour-science-ansible/ansible/site.yml",
+    "extensions": [
+        "ms-python.python"
+    ],
+
+
+}
