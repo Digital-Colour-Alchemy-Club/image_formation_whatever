@@ -172,7 +172,7 @@ default_image = colour.read_image(img_path)[..., 0:3]
 matplotlib.pyplot.style.use({"figure.figsize": (4, 4), "font.size": 4})
 
 
-def application_experimental_image_formation():
+def application_experimental_image_formation_00():
     LUT = generic_aesthetic_transfer_function()
 
     with st.sidebar:
@@ -259,7 +259,7 @@ def application_experimental_image_formation():
         gamut_warning = st.checkbox("Exceeds Radiometric Gamut Indicator")
 
     if upload_image is not None:
-        original_image = colour.read_image(upload_image.read())
+        original_image = colour.io.read_image_Imageio(upload_image.read())
         reduced_image = original_image[::image_scale, ::image_scale, ...]
         if show_scopes is True:
             scopes_image = original_image[::plots_scale, ::plots_scale, ...]
