@@ -283,16 +283,16 @@ def application_experimental_image_formation_00():
         default_image_path = helpers.get_dependency(default_image_path)
         default_image = colour.io.read_image_Imageio(default_image_path)[..., 0:3]
         reduced_image = default_image[::image_scale, ::image_scale, ...]
-        scopes_image = reduced_image[::plots_scale, ::plots_scale, ...]
         original_image = default_image
     else:
         original_image = colour.io.read_image_Imageio(upload_image.read())[..., 0:3]
         reduced_image = original_image[::image_scale, ::image_scale, ...]
-        scopes_image = reduced_image[::plots_scale, ::plots_scale, ...]
 
     img = reduced_image
 
     if show_scopes is True:
+        scopes_image = reduced_image[::plots_scale, ::plots_scale, ...]
+
         scopes_maxRGB_result = apply_inverse_EOTF(
             LUT.apply_maxRGB(
                 video_buffer(scopes_image, exposure_adjustment),
