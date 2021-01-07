@@ -260,10 +260,10 @@ def application_experimental_image_formation_00():
             label="Divide Plots Resolution By",
             min_value=2,
             max_value=30,
-            value=20,
+            value=10,
             step=1,
         )
-        show_scopes = st.checkbox("Show Scopes and Plots", value=False)
+        show_scopes = st.checkbox("Show Scopes and Plots", value=True)
 
     with gamut_col_1_1:
         gamut_clip_1 = st.checkbox(
@@ -284,13 +284,13 @@ def application_experimental_image_formation_00():
         default_image = colour.io.read_image_Imageio(default_image_path)[..., 0:3]
         reduced_image = default_image[::image_scale, ::image_scale, ...]
         if show_scopes is True:
-            scopes_image = default_image[::plots_scale, ::plots_scale, ...]
+            scopes_image = reduced_image[::plots_scale, ::plots_scale, ...]
         original_image = default_image
     else:
         original_image = colour.io.read_image_Imageio(upload_image.read())[..., 0:3]
         reduced_image = original_image[::image_scale, ::image_scale, ...]
         if show_scopes is True:
-            scopes_image = original_image[::plots_scale, ::plots_scale, ...]
+            scopes_image = reduced_image[::plots_scale, ::plots_scale, ...]
 
     img = reduced_image
 
@@ -316,25 +316,25 @@ def application_experimental_image_formation_00():
             fig_maxRGB_1976,
             ax_maxRGB_1931,
         ) = colour.plotting.plot_RGB_chromaticities_in_chromaticity_diagram_CIE1976UCS(
-            RGB=scopes_maxRGB_result, colourspace="sRGB"
+            RGB=scopes_maxRGB_result, colourspace="sRGB", show_diagram_colours=False
         )
         (
             fig_maxRGB_1931,
             ax_maxRGB_1931,
         ) = colour.plotting.plot_RGB_chromaticities_in_chromaticity_diagram_CIE1931(
-            RGB=scopes_maxRGB_result, colourspace="sRGB"
+            RGB=scopes_maxRGB_result, colourspace="sRGB", show_diagram_colours=False
         )
         (
             fig_per_1976,
             ax_per_1931,
         ) = colour.plotting.plot_RGB_chromaticities_in_chromaticity_diagram_CIE1976UCS(
-            RGB=scopes_per_result, colourspace="sRGB"
+            RGB=scopes_per_result, colourspace="sRGB", show_diagram_colours=False
         )
         (
             fig_per_1931,
             ax_per_1931,
         ) = colour.plotting.plot_RGB_chromaticities_in_chromaticity_diagram_CIE1931(
-            RGB=scopes_per_result, colourspace="sRGB"
+            RGB=scopes_per_result, colourspace="sRGB", show_diagram_colours=False
         )
 
         with scopes_1:
