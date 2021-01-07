@@ -1,6 +1,6 @@
 name = "image_formation_whatever"
 
-version = "0.2.1.0"
+version = "0.2.1.3"
 
 description = "Experiments with streamlit, OCIO, colour-science, and more."
 
@@ -17,8 +17,15 @@ requires = [
     "fs",
     "aenum",
     "pre_commit",
+    "timber",
+    "options",
+    "addict",
+    "munch",
     "rich",
     "vendy",
+    "environs",
+    "addict",
+    "fire",
 ]
 
 build_command = r"""
