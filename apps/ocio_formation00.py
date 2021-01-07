@@ -19,7 +19,7 @@ def application_ocio_formation_00():
     # @st.cache
     def get_test_image(proxy=True):
         path = get_dependency(key)
-        im = read_image(path)
+        im = read_image(path)[..., 0:3]
         # if proxy:
         #     proxy_res = (1920, 1080)
         #     return (
