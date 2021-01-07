@@ -245,7 +245,12 @@ def application_experimental_image_formation_00():
 
         default_image_path = st.selectbox(
             label="Test Image",
-            options=["Marcie 4K", "Synthetic Testing Chart", "CLF Test Image"],
+            options=[
+                "Marcie 4K",
+                "CC24 Chart Photo",
+                "Synthetic Testing Chart",
+                "CLF Test Image",
+            ],
         )
 
     with region_1_3:
