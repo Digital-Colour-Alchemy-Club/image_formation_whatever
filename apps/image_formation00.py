@@ -260,7 +260,7 @@ def application_experimental_image_formation_00():
             label="Divide Plots Resolution By",
             min_value=2,
             max_value=30,
-            value=10,
+            value=20,
             step=1,
         )
         show_scopes = st.checkbox("Show Scopes and Plots", value=False)
@@ -290,60 +290,60 @@ def application_experimental_image_formation_00():
 
     img = reduced_image
 
-    # if show_scopes is True:
-    #     scopes_image = reduced_image[::plots_scale, ::plots_scale, ...]
+    if show_scopes is True:
+        scopes_image = img[::plots_scale, ::plots_scale, ...]
 
-    #     scopes_maxRGB_result = apply_inverse_EOTF(
-    #         LUT.apply_maxRGB(
-    #             video_buffer(scopes_image, exposure_adjustment),
-    #             gamut_clip_1,
-    #             gamut_warn_1,
-    #         ),
-    #         EOTF,
-    #     )
-    #     scopes_per_result = apply_inverse_EOTF(
-    #         LUT.apply_per_channel(
-    #             video_buffer(scopes_image, exposure_adjustment),
-    #             gamut_clip_2,
-    #             gamut_warn_2,
-    #         ),
-    #         EOTF,
-    #     )
+        scopes_maxRGB_result = apply_inverse_EOTF(
+            LUT.apply_maxRGB(
+                video_buffer(scopes_image, exposure_adjustment),
+                gamut_clip_1,
+                gamut_warn_1,
+            ),
+            EOTF,
+        )
+        scopes_per_result = apply_inverse_EOTF(
+            LUT.apply_per_channel(
+                video_buffer(scopes_image, exposure_adjustment),
+                gamut_clip_2,
+                gamut_warn_2,
+            ),
+            EOTF,
+        )
 
-    #     (
-    #         fig_maxRGB_1976,
-    #         ax_maxRGB_1931,
-    #     ) = colour.plotting.plot_RGB_chromaticities_in_chromaticity_diagram_CIE1976UCS(
-    #         RGB=scopes_maxRGB_result, colourspace="sRGB", show_diagram_colours=False
-    #     )
-    #     (
-    #         fig_maxRGB_1931,
-    #         ax_maxRGB_1931,
-    #     ) = colour.plotting.plot_RGB_chromaticities_in_chromaticity_diagram_CIE1931(
-    #         RGB=scopes_maxRGB_result, colourspace="sRGB", show_diagram_colours=False
-    #     )
-    #     (
-    #         fig_per_1976,
-    #         ax_per_1931,
-    #     ) = colour.plotting.plot_RGB_chromaticities_in_chromaticity_diagram_CIE1976UCS(
-    #         RGB=scopes_per_result, colourspace="sRGB", show_diagram_colours=False
-    #     )
-    #     (
-    #         fig_per_1931,
-    #         ax_per_1931,
-    #     ) = colour.plotting.plot_RGB_chromaticities_in_chromaticity_diagram_CIE1931(
-    #         RGB=scopes_per_result, colourspace="sRGB", show_diagram_colours=False
-    #     )
+        (
+            fig_maxRGB_1976,
+            ax_maxRGB_1931,
+        ) = colour.plotting.plot_RGB_chromaticities_in_chromaticity_diagram_CIE1976UCS(
+            RGB=scopes_maxRGB_result, colourspace="sRGB"
+        )
+        (
+            fig_maxRGB_1931,
+            ax_maxRGB_1931,
+        ) = colour.plotting.plot_RGB_chromaticities_in_chromaticity_diagram_CIE1931(
+            RGB=scopes_maxRGB_result, colourspace="sRGB"
+        )
+        (
+            fig_per_1976,
+            ax_per_1931,
+        ) = colour.plotting.plot_RGB_chromaticities_in_chromaticity_diagram_CIE1976UCS(
+            RGB=scopes_per_result, colourspace="sRGB"
+        )
+        (
+            fig_per_1931,
+            ax_per_1931,
+        ) = colour.plotting.plot_RGB_chromaticities_in_chromaticity_diagram_CIE1931(
+            RGB=scopes_per_result, colourspace="sRGB"
+        )
 
-    #     with scopes_1:
-    #         st.pyplot(fig=fig_maxRGB_1976)
-    #     with scopes_2:
-    #         st.pyplot(fig=fig_maxRGB_1931)
+        with scopes_1:
+            st.pyplot(fig=fig_maxRGB_1976)
+        with scopes_2:
+            st.pyplot(fig=fig_maxRGB_1931)
 
-    #     with scopes_3:
-    #         st.pyplot(fig=fig_per_1976)
-    #     with scopes_4:
-    #         st.pyplot(fig=fig_per_1931)
+        with scopes_3:
+            st.pyplot(fig=fig_per_1976)
+        with scopes_4:
+            st.pyplot(fig=fig_per_1931)
 
     with image_region_1_1:
         st.image(
