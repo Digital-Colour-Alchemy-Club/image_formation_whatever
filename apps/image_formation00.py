@@ -261,7 +261,9 @@ def application_experimental_image_formation_00():
             step=2,
         )
         show_scopes = st.checkbox("Show Scopes and Plots", value=False)
-        gamut_clipping = st.checkbox("Gamut Clip to Maximum", value=True)
+        gamut_clipping = st.checkbox(
+            "Gamut Clip to Curve Radiometric Maximum", value=True
+        )
         gamut_warning = st.checkbox("Exceeds Radiometric Gamut Indicator")
 
     if upload_image is not None:
