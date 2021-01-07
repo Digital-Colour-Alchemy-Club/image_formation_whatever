@@ -166,8 +166,8 @@ def video_buffer(x, exposure_adjustment=0.0):
 
 # See if this resolves the Cache Crashy.
 # @#st.cache(suppress_st_warning=True)
-img_path = helpers.get_dependency("Marcie 4K")
-default_image = colour.read_image(img_path)[..., 0:3]
+# img_path = helpers.get_dependency("Marcie 4K")
+# default_image = colour.read_image(img_path)[..., 0:3]
 
 
 matplotlib.pyplot.style.use({"figure.figsize": (4, 4), "font.size": 4})
@@ -248,6 +248,7 @@ def application_experimental_image_formation_00():
             options=[
                 "Marcie 4K",
                 "CC24 Chart Photo",
+                "CC24 Chart Photo, Cropped",
                 "Synthetic Testing Chart",
                 "CLF Test Image",
             ],

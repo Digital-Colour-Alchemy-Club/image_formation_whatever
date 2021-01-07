@@ -63,6 +63,12 @@ EXTERNAL_DEPENDENCIES = {
         "master/CC24_d65adapted_bt709.exr",
         "size": 8927374,
     },
+    "CC24 Chart Photo, Cropped": {
+        "filename": "syntheticChart_rec709.01.exr",
+        "url": "https://raw.githubusercontent.com/sobotka/Testing_Imagery/"
+        "master/CC24_d65adapted_bt709_cropped.exr",
+        "size": 6278551,
+    },
     "OCIO v2.0.0beta2": {
         "filename": "ocio_streamlit_v2.0.0beta2.tar",
         "url": "https://zozobra.s3.us-east-1.amazonaws.com/colour/"
