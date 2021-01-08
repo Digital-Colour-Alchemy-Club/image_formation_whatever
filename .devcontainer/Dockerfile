@@ -12,7 +12,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 # with bind mounts. Update USER_UID / USER_GID if yours is not 1000. See
 # https://aka.ms/vscode-remote/containers/non-root-user for details.
 ARG USERNAME=appuser
-ARG USER_UID=1000
+ARG USER_UID=501  
 ARG USER_GID=$USER_UID
 
 # Configure apt and install packages
@@ -78,8 +78,6 @@ RUN mkdir -p /tmp/build_workspace/build \
 
 RUN mkdir /workspace
 WORKDIR /workspace
-
-RUN if [ -f "requirements.txt" ]; then pip3 install -r requirements.txt && rm requirements.txt*; fi
 
 # app root directory
 ENV IMAGE_FORMATION_TOOLKIT__ROOT_DIRECTORY=/workspaces/image_formation_toolkit
