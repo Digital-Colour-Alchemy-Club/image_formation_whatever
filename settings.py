@@ -57,6 +57,12 @@ EXTERNAL_DEPENDENCIES = {
         "master/syntheticChart_rec709.01.exr",
         "size": 2968371,
     },
+    "CC24 Chart, Synthetic": {
+        "filename": "syntheticChart_rec709.01.exr",
+        "url": "https://raw.githubusercontent.com/sobotka/Testing_Imagery/"
+        "master/CC24_BT-709_linear_1931.exr",
+        "size": 12979565,
+    },
     "CC24 Chart Photo": {
         "filename": "syntheticChart_rec709.01.exr",
         "url": "https://raw.githubusercontent.com/sobotka/Testing_Imagery/"

@@ -258,6 +258,7 @@ def application_experimental_image_formation_00():
             label="Test Image",
             options=[
                 "Marcie 4K",
+                "CC24 Chart, Synthetic",
                 "CC24 Chart Photo",
                 "CC24 Chart Photo, Cropped",
                 "Synthetic Testing Chart",
