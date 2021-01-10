@@ -202,7 +202,8 @@ def application_experimental_image_formation_00():
         (1, 1, 1, 1)
     )
     image_region_1_1, image_region_1_2 = st.beta_columns(2)
-    with st.beta_expander("In Progress Incomplete CDL..."):
+    with st.beta_expander(label="In Progress Incomplete CDL..."):
+        chain_CDLs = st.checkbox("Use Single CDL Control", value=True)
         CDL_A, CDL_B = st.beta_columns(2)
 
     with region_1_1:
@@ -309,7 +310,7 @@ def application_experimental_image_formation_00():
     default_offset_A = default_offset_B = 0.0
 
     with CDL_A:
-        slope_A = st.slider(
+        slope_B = slope_A = st.slider(
             label="A: Slope",
             min_value=0.01,
             max_value=10.0,
@@ -317,7 +318,7 @@ def application_experimental_image_formation_00():
             step=0.01,
         )
 
-        offset_A = st.number_input(
+        offset_B = offset_A = st.number_input(
             label="A: Offset",
             min_value=-5.0,
             max_value=5.0,
@@ -326,7 +327,7 @@ def application_experimental_image_formation_00():
             format="%.4f",
         )
 
-        power_A = st.slider(
+        power_B = power_A = st.slider(
             label="A: Power",
             min_value=0.01,
             max_value=5.0,
@@ -334,7 +335,7 @@ def application_experimental_image_formation_00():
             step=0.01,
         )
 
-        pivot_A = st.slider(
+        pivot_B = pivot_A = st.slider(
             label="A: Pivot",
             min_value=0.01,
             max_value=5.0,
@@ -342,39 +343,40 @@ def application_experimental_image_formation_00():
             step=0.01,
         )
 
-    with CDL_B:
-        slope_B = st.slider(
-            label="B: Slope",
-            min_value=0.01,
-            max_value=10.0,
-            value=default_slope_B,
-            step=0.01,
-        )
+    if chain_CDLs is False:
+        with CDL_B:
+            slope_B = st.slider(
+                label="B: Slope",
+                min_value=0.01,
+                max_value=10.0,
+                value=default_slope_B,
+                step=0.01,
+            )
 
-        offset_B = st.number_input(
-            label="B: Offset",
-            min_value=-5.0,
-            max_value=5.0,
-            value=default_offset_B,
-            step=0.0001,
-            format="%.4f",
-        )
+            offset_B = st.number_input(
+                label="B: Offset",
+                min_value=-5.0,
+                max_value=5.0,
+                value=default_offset_B,
+                step=0.0001,
+                format="%.4f",
+            )
 
-        power_B = st.slider(
-            label="B: Power",
-            min_value=0.01,
-            max_value=5.0,
-            value=default_power_B,
-            step=0.01,
-        )
+            power_B = st.slider(
+                label="B: Power",
+                min_value=0.01,
+                max_value=5.0,
+                value=default_power_B,
+                step=0.01,
+            )
 
-        pivot_B = st.slider(
-            label="B: Pivot",
-            min_value=0.01,
-            max_value=5.0,
-            value=default_pivot_B,
-            step=0.01,
-        )
+            pivot_B = st.slider(
+                label="B: Pivot",
+                min_value=0.01,
+                max_value=5.0,
+                value=default_pivot_B,
+                step=0.01,
+            )
 
     img = reduced_image
     img_max_RGB = apply_CDL(
