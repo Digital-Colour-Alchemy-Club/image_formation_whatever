@@ -202,7 +202,8 @@ def application_experimental_image_formation_00():
         (1, 1, 1, 1)
     )
     image_region_1_1, image_region_1_2 = st.beta_columns(2)
-    CDL_A, CDL_B = st.beta_columns(2)
+    with st.beta_expander("In Progress Incomplete CDL..."):
+        CDL_A, CDL_B = st.beta_columns(2)
 
     with region_1_1:
         EOTF = st.number_input(
