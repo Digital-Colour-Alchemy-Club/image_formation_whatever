@@ -164,6 +164,14 @@ def video_buffer(x, exposure_adjustment=0.0):
     return (2.0 ** exposure_adjustment) * x
 
 
+def apply_CDL(in_RGB, slope, offset, power, pivot):
+    slope = np.asarray(slope)
+    offset = np.asarray(offset)
+    power = np.asarray(power)
+
+    return (((slope * (in_RGB / pivot)) + offset) ** power) * pivot
+
+
 # See if this resolves the Cache Crashy.
 # @#st.cache(suppress_st_warning=True)
 # img_path = helpers.get_dependency("Marcie 4K")
@@ -194,6 +202,7 @@ def application_experimental_image_formation_00():
         (1, 1, 1, 1)
     )
     image_region_1_1, image_region_1_2 = st.beta_columns(2)
+    CDL_A, CDL_B = st.beta_columns(2)
 
     with region_1_1:
         EOTF = st.number_input(
@@ -294,51 +303,132 @@ def application_experimental_image_formation_00():
         original_image = colour.io.read_image_Imageio(upload_image.read())[..., 0:3]
         reduced_image = original_image[::image_scale, ::image_scale, ...]
 
+    default_slope_A = default_power_A = default_slope_B = default_power_B = 1.0
+    default_pivot_A = default_pivot_B = 0.18
+    default_offset_A = default_offset_B = 0.0
+
+    with CDL_A:
+        slope_A = st.slider(
+            label="A: Slope",
+            min_value=0.01,
+            max_value=10.0,
+            value=default_slope_A,
+            step=0.01,
+        )
+
+        offset_A = st.number_input(
+            label="A: Offset",
+            min_value=-5.0,
+            max_value=5.0,
+            value=default_offset_A,
+            step=0.0001,
+            format="%.4f",
+        )
+
+        power_A = st.slider(
+            label="A: Power",
+            min_value=0.01,
+            max_value=5.0,
+            value=default_power_A,
+            step=0.01,
+        )
+
+        pivot_A = st.slider(
+            label="A: Pivot",
+            min_value=0.01,
+            max_value=5.0,
+            value=default_pivot_A,
+            step=0.01,
+        )
+
+    with CDL_B:
+        slope_B = st.slider(
+            label="B: Slope",
+            min_value=0.01,
+            max_value=10.0,
+            value=default_slope_B,
+            step=0.01,
+        )
+
+        offset_B = st.number_input(
+            label="B: Offset",
+            min_value=-5.0,
+            max_value=5.0,
+            value=default_offset_B,
+            step=0.0001,
+            format="%.4f",
+        )
+
+        power_B = st.slider(
+            label="B: Power",
+            min_value=0.01,
+            max_value=5.0,
+            value=default_power_B,
+            step=0.01,
+        )
+
+        pivot_B = st.slider(
+            label="B: Pivot",
+            min_value=0.01,
+            max_value=5.0,
+            value=default_pivot_B,
+            step=0.01,
+        )
+
     img = reduced_image
+    img_max_RGB = apply_CDL(
+        LUT.apply_maxRGB(
+            video_buffer(img, exposure_adjustment),
+            gamut_clip_1,
+            gamut_warn_1,
+        ),
+        slope_A,
+        offset_A,
+        power_A,
+        pivot_A,
+    )
+    img_max_RGB_final = apply_inverse_EOTF(img_max_RGB, EOTF)
+
+    img_per_channel = apply_CDL(
+        LUT.apply_per_channel(
+            video_buffer(img, exposure_adjustment),
+            gamut_clip_2,
+            gamut_warn_2,
+        ),
+        slope_B,
+        offset_B,
+        power_B,
+        pivot_B,
+    )
+    img_per_channel_final = apply_inverse_EOTF(img_per_channel, EOTF)
 
     if show_scopes is True:
-        scopes_image = img[::plots_scale, ::plots_scale, ...]
-
-        scopes_maxRGB_result = apply_inverse_EOTF(
-            LUT.apply_maxRGB(
-                video_buffer(scopes_image, exposure_adjustment),
-                gamut_clip_1,
-                gamut_warn_1,
-            ),
-            EOTF,
-        )
-        scopes_per_result = apply_inverse_EOTF(
-            LUT.apply_per_channel(
-                video_buffer(scopes_image, exposure_adjustment),
-                gamut_clip_2,
-                gamut_warn_2,
-            ),
-            EOTF,
-        )
+        scopes_image_max_RGB = img_max_RGB[::plots_scale, ::plots_scale, ...]
+        scopes_image_per_channel = img_per_channel[::plots_scale, ::plots_scale, ...]
 
         (
             fig_maxRGB_1976,
             ax_maxRGB_1931,
         ) = colour.plotting.plot_RGB_chromaticities_in_chromaticity_diagram_CIE1976UCS(
-            RGB=scopes_maxRGB_result, colourspace="sRGB", show_diagram_colours=False
+            RGB=scopes_image_max_RGB, colourspace="sRGB", show_diagram_colours=False
         )
         (
             fig_maxRGB_1931,
             ax_maxRGB_1931,
         ) = colour.plotting.plot_RGB_chromaticities_in_chromaticity_diagram_CIE1931(
-            RGB=scopes_maxRGB_result, colourspace="sRGB", show_diagram_colours=False
+            RGB=scopes_image_max_RGB, colourspace="sRGB", show_diagram_colours=False
         )
         (
             fig_per_1976,
-            ax_per_1931,
+            ax_per_1976,
         ) = colour.plotting.plot_RGB_chromaticities_in_chromaticity_diagram_CIE1976UCS(
-            RGB=scopes_per_result, colourspace="sRGB", show_diagram_colours=False
+            RGB=scopes_image_per_channel, colourspace="sRGB", show_diagram_colours=False
         )
         (
             fig_per_1931,
             ax_per_1931,
         ) = colour.plotting.plot_RGB_chromaticities_in_chromaticity_diagram_CIE1931(
-            RGB=scopes_per_result, colourspace="sRGB", show_diagram_colours=False
+            RGB=scopes_image_per_channel, colourspace="sRGB", show_diagram_colours=False
         )
 
         with scopes_1:
@@ -353,14 +443,7 @@ def application_experimental_image_formation_00():
 
     with image_region_1_1:
         st.image(
-            apply_inverse_EOTF(
-                LUT.apply_maxRGB(
-                    video_buffer(img, exposure_adjustment),
-                    gamut_clip_1,
-                    gamut_warn_1,
-                ),
-                EOTF,
-            ),
+            img_max_RGB_final,
             clamp=[0.0, 1.0],
             use_column_width=True,
             caption="Maximum RGB Channel Lookup",
@@ -368,14 +451,7 @@ def application_experimental_image_formation_00():
 
     with image_region_1_2:
         st.image(
-            apply_inverse_EOTF(
-                LUT.apply_per_channel(
-                    video_buffer(img, exposure_adjustment),
-                    gamut_clip_2,
-                    gamut_warn_2,
-                ),
-                EOTF,
-            ),
+            img_per_channel_final,
             clamp=[0.0, 1.0],
             use_column_width=True,
             caption="Per RGB Channel Lookup",
