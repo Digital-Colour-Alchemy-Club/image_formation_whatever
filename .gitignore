@@ -139,3 +139,5 @@ dmypy.json
 
 # Other stuff
 tmp/
+
+ocio_streamlit.tar
