@@ -53,12 +53,13 @@ RUN apt-get update \
 
 # Install OpenColorIO
 RUN mkdir -p /tmp/build_workspace/build \
-    && cd /tmp/build_workspace \
+    && cd /tmp/build_workspace\
     && git clone --branch master https://github.com/AcademySoftwareFoundation/OpenColorIO.git \
-    && cd build \
-    &&  LDFLAGS="-Wl,-rpath,/usr/local/lib" \
-        CXXFLAGS="-Wno-deprecated-declarations -fPIC" \
-        cmake -G Ninja ../OpenColorIO \
+    && cd /tmp/build_workspace/build && \
+    LDFLAGS="-Wl,-rpath,/usr/local/lib" \
+    CXXFLAGS="-Wno-deprecated-declarations -fPIC" \
+        cmake /tmp/build_workspace/OpenColorIO \
+            #-G Ninja \
             -DCMAKE_INSTALL_PREFIX=/usr/local \
             -DCMAKE_BUILD_TYPE=Release \
             -DOCIO_BUILD_TESTS=OFF \
@@ -71,13 +72,19 @@ RUN mkdir -p /tmp/build_workspace/build \
             -DOCIO_BUILD_PYTHON=ON \
             -DOCIO_BUILD_JAVA=OFF \
             -DBUILD_SHARED_LIBS=OFF \
-    && ninja install \
+    && cd /tmp/build_workspace/build \
+    #&& ninja install
+    && make install \
     && cd /tmp/build_workspace \
     && rm -rf OpenColorIO \
-    && rm -rf build
+    && rm -rf build \
+    && mkdir -p /workspace \
+    && cd /workspace \
+    && rm -rf /tmp/build_workspace
 
-RUN mkdir /workspace
 WORKDIR /workspace
+
+ENV PYTHONUSERBASE=/usr/local
 
 # app root directory
 ENV IMAGE_FORMATION_TOOLKIT__ROOT_DIRECTORY=/workspaces/image_formation_toolkit
