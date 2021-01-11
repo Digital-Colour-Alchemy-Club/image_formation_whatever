@@ -69,9 +69,9 @@ class AestheticTransferFunction(AbstractLUTSequenceOperator):
         if self.per_channel_lookup:
             RGB_out = self._apply(RGB_out)
         else:
-            RGB_max = np.amax(RGB_out, axis=-1, keepdims=True)
+            RGB_max = np.amax(RGB_out, axis=2, keepdims=True)
             ratios = np.ma.divide(RGB_out, RGB_max).filled(fill_value=0.0)
-            RGB_out = self._apply(RGB_out) * ratios
+            RGB_out = self._apply(RGB_max) * ratios
 
         if self.gamut_clip:
             max_val = self._apply(self.radiometric_maximum)
@@ -90,30 +90,35 @@ class AestheticTransferFunction(AbstractLUTSequenceOperator):
         return basename
 
     def generate_lut1d3d(self, size=33, shaper_size=2 ** 14, min_exposure=-6.5):
-        cube = LUT3D(size=size, name=self.name, comments=self.comments)
+        shaper_to_lin = partial(
+            log_decoding_Log2,
+            middle_grey=self.middle_grey_in,
+            min_exposure=min_exposure,
+            max_exposure=self.ev_above_middle_grey,
+        )
+        lin_to_shaper = partial(
+            log_encoding_Log2,
+            middle_grey=self.middle_grey_in,
+            min_exposure=min_exposure,
+            max_exposure=self.ev_above_middle_grey,
+        )
         shaper = LUT1D(
             size=shaper_size,
             name=f"{self.name} -- Shaper",
-            domain=[0.0, self.radiometric_maximum],
+            domain=shaper_to_lin([0.0, 1.0]),
             comments=[
                 f"{'Min Exposure:':<20}{min_exposure}",
                 f"{'Max Exposure:':<20}{self.ev_above_middle_grey}",
                 f"{'Middle Grey:':<20}{self.middle_grey_in}",
             ],
         )
-        shaper.table = log_encoding_Log2(
-            shaper.table,
-            middle_grey=self.middle_grey_in,
-            min_exposure=min_exposure,
-            max_exposure=self.ev_above_middle_grey,
+        shaper.table = lin_to_shaper(shaper.table)
+        cube = LUT3D(
+            size=size,
+            name=self.name,
+            comments=self.comments,
         )
-        cube.table = log_decoding_Log2(
-            cube.table,
-            middle_grey=self.middle_grey_in,
-            min_exposure=min_exposure,
-            max_exposure=self.ev_above_middle_grey,
-        )
-        cube.table = self.apply(cube.table)
+        cube.table = self.apply(shaper_to_lin(cube.table))
         return LUTSequence(shaper, cube)
 
     def generate_clf(self, size=33):
@@ -133,6 +138,7 @@ class AestheticTransferFunction(AbstractLUTSequenceOperator):
             max_out_value=self.radiometric_maximum,
             no_clamp=not self.gamut_clip,
         )
+
         cube.table = inv_shaper.apply(cube.table)
         cube.table = self.apply(cube.table)
         return LUTSequence(shaper, cube)
