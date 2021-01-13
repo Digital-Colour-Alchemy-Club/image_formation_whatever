@@ -16,9 +16,7 @@ import streamlit as st
 from boltons.fileutils import mkdir_p
 from streamlit.report_thread import REPORT_CONTEXT_ATTR_NAME
 
-from settings import EXTERNAL_DEPENDENCIES, LOCAL_DATA, __app__
-
-logger = logging.getLogger(__app__)
+from settings import EXTERNAL_DEPENDENCIES, LOCAL_DATA, logger
 
 
 @contextmanager
@@ -61,9 +59,22 @@ def st_stderr(dst):
 
 @attr.s(auto_attribs=True, frozen=True)
 class RemoteData:
-    filename: str = "my_file.exr"
     url: str = "https://path/to/resource.exr"
-    size: int = 0
+    filename: str = attr.ib()
+    size: int = attr.ib()
+
+    @filename.default
+    def set_initial_filename(self):
+        return self.url.split("/")[-1]
+
+    @size.default
+    def set_initial_size(self):
+        try:
+            with urllib.request.urlopen(self.url, cafile=certifi.where()) as response:
+                size = int(response.info()["Content-Length"])
+            return size
+        except:
+            return 0
 
     def download(self, path=Path.cwd()):
         # mostly taken from https://github.com/streamlit/demo-face-gan/
