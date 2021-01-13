@@ -109,9 +109,9 @@ class generic_aesthetic_transfer_function(AbstractLUTSequenceOperator):
 
     def apply(self, RGB, per_channel=False, **kwargs):
         if per_channel:
-            return self.apply_maxRGB(RGB, **kwargs)
-        else:
             return self.apply_per_channel(RGB, **kwargs)
+        else:
+            return self.apply_maxRGB(RGB, **kwargs)
 
     def apply_maxRGB(self, RGB, gamut_clip=False, gamut_clip_alert=False):
         gamut_clipped_above = np.where(RGB >= self._radiometric_maximum)
