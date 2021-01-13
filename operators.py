@@ -62,7 +62,7 @@ class AestheticTransferFunction(AbstractLUTSequenceOperator):
 
         return RGB_out
 
-    def apply(self, RGB):
+    def apply(self, RGB, *args):
         RGB_out = np.copy(as_float_array(RGB))
         gamut_clipped_above = np.where(RGB_out >= self.radiometric_maximum)
 
