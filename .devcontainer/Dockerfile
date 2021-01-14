@@ -60,7 +60,7 @@ RUN mkdir -p /tmp/build_workspace/build \
     CXXFLAGS="-Wno-deprecated-declarations -fPIC" \
         cmake /tmp/build_workspace/OpenColorIO \
             #-G Ninja \
-            -DCMAKE_INSTALL_PREFIX=/usr/local \
+            -DCMAKE_INSTALL_PREFIX=/home/appuser \
             -DCMAKE_BUILD_TYPE=Release \
             -DOCIO_BUILD_TESTS=OFF \
             -DOCIO_BUILD_GPU_TESTS=OFF \
@@ -71,7 +71,7 @@ RUN mkdir -p /tmp/build_workspace/build \
             -DCMAKE_CXX_STANDARD=14 \
             -DOCIO_BUILD_PYTHON=ON \
             -DOCIO_BUILD_JAVA=OFF \
-            -DBUILD_SHARED_LIBS=OFF \
+            -DBUILD_SHARED_LIBS=ON \
     && cd /tmp/build_workspace/build \
     #&& ninja install
     && make install \
