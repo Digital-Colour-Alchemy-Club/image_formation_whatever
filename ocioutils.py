@@ -29,8 +29,6 @@ class DisplayCCTFs(Enum):
     GAMMA22 = "Gamma 2.2"
     GAMMA18 = "Gamma 1.8"
     GAMMA10 = "Gamma 1.0"
-    PFWL = "ARRI Gamma ~2.4"
-    PFWL26 = "ARRI Gamma ~2.6"
     ADOBE_1998 = "Adobe (1998)"
 
     @property
@@ -44,8 +42,6 @@ class DisplayCCTFs(Enum):
             cls.GAMMA24: display_cctf(gamma=2.4),
             cls.GAMMA22: display_cctf(gamma=2.2),
             cls.GAMMA18: display_cctf(gamma=1.8),
-            cls.PFWL: display_cctf(gamma=2.725, offset=0.097),
-            cls.PFWL26: display_cctf(gamma=2.9961, offset=0.1111),
             cls.ADOBE_1998: display_cctf(gamma=563 / 256.0),
         }[self]
 
@@ -100,6 +96,8 @@ def get_name(obj):
         return obj.getName()
     elif hasattr(obj, "name"):
         return obj.name
+    elif hasattr(obj, "value"):
+        return obj.value
     else:
         return obj
 
@@ -157,13 +155,14 @@ def get_camera_colorspaces(family=""):
     # get Camera Log colorspaces from Builtins
     for name, description in ocio.BuiltinTransformRegistry().getBuiltins():
         if name.endswith("to_ACES2065-1"):
-            cs = ocio.ColorSpace(
-                name=description.split("Convert ")[-1].split(" to ")[0],
-                family=family,
-                encoding="log",
-                toReference=ocio.BuiltinTransform(name),
+            colorspaces.append(
+                ocio.ColorSpace(
+                    name=description.split("Convert ")[-1].split(" to ")[0],
+                    family=family,
+                    encoding="log",
+                    toReference=ocio.BuiltinTransform(name),
+                )
             )
-            colorspaces.append(cs)
     return colorspaces
 
 
@@ -448,10 +447,7 @@ def create_new_config(
     cfg.setFileRules(filerules)
 
     # todo: add default displays
-
-    if hasattr(default_display, "value"):
-        default_display = default_display.value
-    cfg.addDisplayView(default_display, "Colorimetry", "Colorimetry")
+    cfg.addDisplayView(get_name(default_display), "Colorimetry", "Colorimetry")
     # cfg.addSharedView('Colorimetry', 'colorimetry', '<USE_DISPLAY_NAME>')
     # cfg.addDisplaySharedView(default_display.value, 'Colorimetry')
     return cfg
@@ -471,7 +467,7 @@ def serialize_processor(processor, format="Color Transform Format", filename=Non
     return processor.write(fmt)
 
 
-def ocio_colourspace_process(
+def ocio_colorspace_process(
     a, config, source, target=None, display=None, view=None, use_cpu=True
 ):
     # modified version of TM's code, adds "display-view" processes
@@ -516,7 +512,6 @@ def apply_ocio_processor(processor, RGB, use_gpu=False):
 
 
 def baby_config():
-
     linear = ocio.ColorSpace(
         referenceSpace=ocio.REFERENCE_SPACE_SCENE,
         name="linear",
@@ -610,7 +605,7 @@ def baby_config():
 
 
 def ocio_viewer(
-    RGB,
+    RGB=None,
     source=None,
     display=None,
     view=None,
@@ -623,7 +618,6 @@ def ocio_viewer(
     context=None,
 ):
 
-    RGB_out = np.copy(RGB)
     cfg = config or create_new_config()
     context = context or cfg.getCurrentContext()
 
@@ -631,7 +625,7 @@ def ocio_viewer(
         exposure=exposure, gamma=gamma, contrast=contrast, style=style
     )
 
-    proc = cfg.getProcessor(
+    processor = cfg.getProcessor(
         context=context,
         direction=ocio.TRANSFORM_DIR_FORWARD,
         transform=ocio.GroupTransform(
@@ -646,9 +640,13 @@ def ocio_viewer(
         ),
     )
 
-    RGB_out = apply_ocio_processor(proc, RGB_out, use_gpu=use_gpu)
+    if not RGB:
+        return processor
+    else:
+        RGB_out = np.copy(RGB)
+        RGB_out = apply_ocio_processor(processor, RGB_out, use_gpu=use_gpu)
 
-    return RGB_out
+        return RGB_out
 
 
 def add_aesthetic_transfer_function_to_config(atf, config):
