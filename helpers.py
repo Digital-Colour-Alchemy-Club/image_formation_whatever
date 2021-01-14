@@ -1,6 +1,6 @@
 import base64
 import os
-from typing import List, Optional, Mapping
+from typing import List, Optional, Mapping, Union
 import urllib
 from contextlib import contextmanager
 from io import StringIO
@@ -154,7 +154,7 @@ def st_file_downloader(bin_file, file_label="File"):
 
 
 def get_dependency_local_path(
-    key: str, local_dir: Optional[str, Path] = LOCAL_DATA
+    key: str, local_dir: Union[str, Path] = LOCAL_DATA
 ) -> Path:
     remote_file = RemoteData(label=key, **EXTERNAL_DEPENDENCIES[key])
     remote_file.download(path=local_dir)
