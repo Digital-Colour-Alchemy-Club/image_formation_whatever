@@ -56,7 +56,7 @@ RUN mkdir -p /tmp/build_workspace/build \
     && cd /tmp/build_workspace\
     && git clone --branch master https://github.com/AcademySoftwareFoundation/OpenColorIO.git \
     && cd /tmp/build_workspace/build && \
-    LDFLAGS="-Wl,-rpath,/usr/local/lib" \
+    LDFLAGS="-Wl,-rpath,/home/appuser/lib" \
     CXXFLAGS="-Wno-deprecated-declarations -fPIC" \
         cmake /tmp/build_workspace/OpenColorIO \
             #-G Ninja \
@@ -82,9 +82,12 @@ RUN mkdir -p /tmp/build_workspace/build \
     && cd /workspace \
     && rm -rf /tmp/build_workspace
 
+
+RUN tar -cvf /tmp/ocio_streamlit.tar /home/appuser/lib /home/appuser/include /home/appuser/bin
+
 WORKDIR /workspace
 
-ENV PYTHONUSERBASE=/usr/local
+ENV PYTHONUSERBASE=/home/appuser
 
 # app root directory
 ENV IMAGE_FORMATION_TOOLKIT__ROOT_DIRECTORY=/workspaces/image_formation_toolkit
