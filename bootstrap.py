@@ -75,7 +75,7 @@ def update_imageio():
 
 def run_bootstrap():
     update_imageio()
-    setup_opencolorio(prefix="/home/appuser", version="2.0.0beta2", force=False)
+    setup_opencolorio()
 
 
 def build_ocio(
@@ -160,7 +160,7 @@ def build_ocio(
     # Configure build variables
     url = "https://github.com/AcademySoftwareFoundation/OpenColorIO.git"
     git_clone = git["clone"]
-    if version in ["2.0.0beta1", "2.0.0beta2"]:
+    if version in ["2.0.0beta1", "2.0.0beta2", "2.0.0rc1"]:
         branch = re.sub(r"(\d)(\w)", r"\1-\2", f"v{version}")
         git_clone = git_clone["--branch", branch]
     git_clone = git_clone[url]
