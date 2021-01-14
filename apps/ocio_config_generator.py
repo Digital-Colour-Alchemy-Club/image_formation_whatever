@@ -15,7 +15,7 @@ def downsize_image(image, factor=3):
 def ocio_skeleton_config():
     import PyOpenColorIO as ocio
     import ocioutils as ocu
-    from helpers import get_dependency
+    from helpers import get_dependency_local_path
     from operators import AestheticTransferFunction
     from colour import read_image
 
@@ -38,7 +38,7 @@ def ocio_skeleton_config():
                 label="Input Image", type=[".exr"]
             )
         else:
-            img = get_dependency(key)
+            img = get_dependency_local_path(key)
 
         return downsize_image(
             read_image(img.read() if hasattr(img, "read") else img), factor=image_scale

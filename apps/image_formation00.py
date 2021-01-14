@@ -298,7 +298,7 @@ def application_experimental_image_formation_00():
         gamut_warn_2 = st.checkbox("Formation B: Exceeds Radiometric Gamut Indicator")
 
     if upload_image is None:
-        default_image_path = helpers.get_dependency(default_image_path)
+        default_image_path = helpers.get_dependency_local_path(default_image_path)
         default_image = colour.io.read_image_Imageio(default_image_path)[..., 0:3]
         reduced_image = default_image[::image_scale, ::image_scale, ...]
         original_image = default_image

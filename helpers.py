@@ -14,6 +14,7 @@ import gdown
 import streamlit as st
 from boltons.fileutils import mkdir_p
 from streamlit.report_thread import REPORT_CONTEXT_ATTR_NAME
+from munch import Munch
 
 from settings import EXTERNAL_DEPENDENCIES, LOCAL_DATA, logger
 
@@ -152,7 +153,13 @@ def st_file_downloader(bin_file, file_label="File"):
     )
 
 
-def get_dependency(key, local_dir=LOCAL_DATA):
+def get_dependency_local_path(
+    key: str, local_dir: Optional[str, Path] = LOCAL_DATA
+) -> Path:
     remote_file = RemoteData(label=key, **EXTERNAL_DEPENDENCIES[key])
     remote_file.download(path=local_dir)
     return local_dir / remote_file.filename
+
+
+def get_dependency_data(key: str) -> RemoteData:
+    return RemoteData(label=key, **Munch(**EXTERNAL_DEPENDENCIES[key]))

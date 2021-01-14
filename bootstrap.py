@@ -7,7 +7,13 @@ import fs
 import streamlit as st
 from plumbum import local
 
-from helpers import get_dependency, logger, st_file_downloader, st_stdout
+from helpers import (
+    get_dependency_local_path,
+    get_dependency_data,
+    logger,
+    st_file_downloader,
+    st_stdout,
+)
 
 
 def setup_opencolorio(prefix="/usr/local", version="2.0.0beta2", force=False):
@@ -227,7 +233,8 @@ def fetch_ocio(prefix="/home/appuser", version="2.0.0beta2", force=False):
             pass
 
     # fetch archive
-    archive_path = get_dependency(f"OCIO v{version}")
+    key = f"OCIO v{version}"
+    archive_path = get_dependency_local_path(key)
     archive = fs.open_fs(f"tar://{archive_path}")
 
     # unpack

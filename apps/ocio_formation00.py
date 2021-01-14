@@ -1,6 +1,6 @@
 import PyOpenColorIO as ocio
 import ocioutils as ocu
-from helpers import get_dependency, st_stdout
+from helpers import get_dependency_local_path, st_stdout
 from operators import AestheticTransferFunction
 from colour import read_image
 import streamlit as st
@@ -18,7 +18,7 @@ def application_ocio_formation_00():
 
     # @st.cache
     def get_test_image(proxy=True):
-        path = get_dependency(key)
+        path = get_dependency_local_path(key)
         im = read_image(path)[..., 0:3]
         # if proxy:
         #     proxy_res = (1920, 1080)
