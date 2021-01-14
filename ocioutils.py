@@ -640,7 +640,7 @@ def ocio_viewer(
         ),
     )
 
-    if not RGB:
+    if RGB is None:
         return processor
     else:
         RGB_out = np.copy(RGB)
