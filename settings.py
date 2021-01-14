@@ -121,7 +121,7 @@ EXTERNAL_DEPENDENCIES = {
         "url": "https://zozobra.s3.us-east-1.amazonaws.com/colour"
         "/data/ocio_streamlit_v2.0.0rc1.tar",
         "metadata": {
-            "prefix": "/usr/local",
+            "prefix": "/home/appuser",
         },
     },
 }
