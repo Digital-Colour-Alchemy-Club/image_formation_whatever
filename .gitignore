@@ -141,3 +141,5 @@ dmypy.json
 tmp/
 
 ocio_streamlit.tar
+
+.DS_Store
