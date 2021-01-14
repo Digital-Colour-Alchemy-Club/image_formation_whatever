@@ -14,9 +14,12 @@ from helpers import (
     st_file_downloader,
     st_stdout,
 )
+from settings import config
 
 
-def setup_opencolorio(prefix="/usr/local", version="2.0.0beta2", force=False):
+def setup_opencolorio(
+    prefix=config.libs.prefix, version=config.libs.OpenColorIO.version, force=False
+):
     try:
         import PyOpenColorIO as ocio
     except ImportError:
@@ -42,7 +45,7 @@ def setup_opencolorio(prefix="/usr/local", version="2.0.0beta2", force=False):
                 )
             else:
                 try:
-                    fetch_ocio(prefix=prefix, version=version, force=force)
+                    fetch_ocio(version=version, force=force)
                 except:
                     build_ocio(
                         prefix=prefix,
@@ -63,7 +66,7 @@ def setup_opencolorio(prefix="/usr/local", version="2.0.0beta2", force=False):
     install_opencolorio(prefix=prefix, version=version, force=False)
 
 
-def update_imageio(build_libs=False):
+def update_imageio():
     # Install imageio freeimage plugin (i.e., for EXR support)
     import imageio
 
@@ -71,13 +74,13 @@ def update_imageio(build_libs=False):
 
 
 def run_bootstrap():
-    update_imageio(build_libs=False)
+    update_imageio()
     setup_opencolorio(prefix="/home/appuser", version="2.0.0beta2", force=False)
 
 
 def build_ocio(
-    prefix="/usr/local",
-    version="2.0.0beta2",
+    prefix=config.libs.prefix,
+    version=config.libs.OpenColorIO.version,
     build_shared=False,
     build_apps=False,
     force=False,
@@ -220,7 +223,7 @@ def build_ocio(
         raise ChildProcessError("Could not install OpenColorIO.")
 
 
-def fetch_ocio(prefix="/home/appuser", version="2.0.0beta2", force=False):
+def fetch_ocio(version=config.libs.OpenColorIO.version, force=False):
 
     # Only download if not importable
     if not force:
@@ -236,7 +239,7 @@ def fetch_ocio(prefix="/home/appuser", version="2.0.0beta2", force=False):
     key = f"OCIO v{version}"
     archive_path = get_dependency_local_path(key)
     archive = fs.open_fs(f"tar://{archive_path}")
-
+    prefix = get_dependency_data(key).metadata.prefix
     # unpack
     with fs.open_fs(prefix, writeable=True) as dst:
         fs.copy.copy_dir(archive, prefix, dst, ".")
