@@ -122,7 +122,7 @@ def build_ocio(
         try:
             import PyOpenColorIO
 
-            logger.debug("PyOpenColorIO v{PyOpenColorIO.__version__} is installed.")
+            logger.debug(f"PyOpenColorIO v{PyOpenColorIO.__version__} is installed.")
             return True
         except ImportError:
             return False
