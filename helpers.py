@@ -105,33 +105,44 @@ class RemoteData:
                 _ = gdown.cached_download(self.url, path=path)
             else:
                 progress_bar = st.progress(0)
-                with open(path, "wb") as output_file:
-                    with urllib.request.urlopen(
-                        self.url, cafile=certifi.where()
-                    ) as response:
-                        length = int(response.info()["Content-Length"])
-                        counter = 0.0
-                        MEGABYTES = 2.0 ** 20.0
-                        while True:
-                            data = response.read(8192)
-                            if not data:
-                                break
-                            counter += len(data)
-                            output_file.write(data)
+                # with open(path, "wb") as output_file:
+                with urllib.request.urlopen(
+                    self.url, cafile=certifi.where()
+                ) as response:
+                    if response.info()["Content-Length"] is not None:
+                        with open(path, "wb") as output_file:
+                            length = int(response.info()["Content-Length"])
+                            counter = 0.0
+                            MEGABYTES = 2.0 ** 20.0
+                            while True:
+                                data = response.read(8192)
+                                if not data:
+                                    break
+                                counter += len(data)
+                                output_file.write(data)
 
-                            # We perform animation by overwriting the elements.
-                            status.warning(
-                                "Downloading %s... (%6.2f/%6.2f MB)"
-                                % (path, counter / MEGABYTES, length / MEGABYTES)
-                            )
-                            progress_bar.progress(min(counter / length, 1.0))
+                                # We perform animation by overwriting the elements.
+                                status.warning(
+                                    "Downloading %s... (%6.2f/%6.2f MB)"
+                                    % (path, counter / MEGABYTES, length / MEGABYTES)
+                                )
+                                progress_bar.progress(min(counter / length, 1.0))
 
+        except urllib.error.URLError as e:
+            logger.exception(exc_info=e)
         # Finally, we remove these visual elements by calling .empty().
         finally:
             if status is not None:
                 status.empty()
             if progress_bar is not None:
                 progress_bar.empty()
+
+        if not path.exists():
+            raise FileNotFoundError(str(path))
+
+        elif os.path.getsize(path) == 0:
+            os.remove(path)
+            raise ValueError(f"Invalid URL: {self.url}")
 
         return path
 
@@ -162,4 +173,4 @@ def get_dependency_local_path(
 
 
 def get_dependency_data(key: str) -> RemoteData:
-    return RemoteData(label=key, **Munch(**EXTERNAL_DEPENDENCIES[key]))
+    return RemoteData(label=key, **Munch.fromDict(EXTERNAL_DEPENDENCIES[key]))

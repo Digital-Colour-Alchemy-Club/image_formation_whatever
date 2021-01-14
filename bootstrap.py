@@ -46,7 +46,8 @@ def setup_opencolorio(
             else:
                 try:
                     fetch_ocio(version=version, force=force)
-                except:
+                except Exception as e:
+                    raise e
                     build_ocio(
                         prefix=prefix,
                         version=version,
