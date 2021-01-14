@@ -1,6 +1,6 @@
 import base64
-import logging
 import os
+from typing import List, Optional, Mapping
 import urllib
 from contextlib import contextmanager
 from io import StringIO
@@ -11,7 +11,6 @@ from threading import current_thread
 import attr
 import certifi
 import gdown
-
 import streamlit as st
 from boltons.fileutils import mkdir_p
 from streamlit.report_thread import REPORT_CONTEXT_ATTR_NAME
@@ -62,6 +61,10 @@ class RemoteData:
     url: str = "https://path/to/resource.exr"
     filename: str = attr.ib()
     size: int = attr.ib()
+    family: Optional[str] = None
+    label: Optional[str] = None
+    tags: Optional[List[str]] = None
+    metadata: Optional[Mapping] = None
 
     @filename.default
     def set_initial_filename(self):
@@ -76,7 +79,7 @@ class RemoteData:
         except:
             return 0
 
-    def download(self, path=Path.cwd()):
+    def download(self, path=LOCAL_DATA):
         # mostly taken from https://github.com/streamlit/demo-face-gan/
         #   blob/master/streamlit_app.py
         root = Path(path).resolve()
@@ -150,6 +153,6 @@ def st_file_downloader(bin_file, file_label="File"):
 
 
 def get_dependency(key, local_dir=LOCAL_DATA):
-    remote_file = RemoteData(**EXTERNAL_DEPENDENCIES[key])
+    remote_file = RemoteData(label=key, **EXTERNAL_DEPENDENCIES[key])
     remote_file.download(path=local_dir)
     return local_dir / remote_file.filename
