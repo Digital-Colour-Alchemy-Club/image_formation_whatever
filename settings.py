@@ -27,58 +27,93 @@ LOCAL_DATA = Path.cwd() / "data"
 OCIO_VERSION = config.libs.OpenColorIO.version
 
 EXTERNAL_DEPENDENCIES = {
-    # "ACES-1.2 Config": dict(
-    #     "filename: "OpenColorIO-Config-ACES-1.2.zip",
-    #     url="https://github.com/colour-science/OpenColorIO-Configs/"
-    #       "releases/download/v1.2/OpenColorIO-Config-ACES-1.2.zip",
-    #     size=130123781,
-    # ),
+    "ACES-1.2 Config": {
+        "url": "https://github.com/colour-science/OpenColorIO-Configs"
+        "/releases/download/v1.2/OpenColorIO-Config-ACES-1.2.zip",
+        "size": 130123781,
+        "family": "ocio-archive",
+        "tags": ["ACES2065-1", "ACES"],
+    },
     "Marcie ACES2065-1": {
         "filename": "DigitalLAD.2048x1556.exr",
-        "url": "https://zozobra.s3.us-east-1.amazonaws.com/colour/"
-        "images/DigitalLAD.2048x1556.exr",
+        "url": "https://zozobra.s3.us-east-1.amazonaws.com/colour"
+        "/images/DigitalLAD.2048x1556.exr",
         "size": 25518832,
+        "family": "image",
+        "tags": ["test", "plate", "skin"],
+        "metadata": {"encoding": "ACES2065-1"},
     },
     "CLF Test Image": {
         "filename": "CLF_testImagePrototype_v006.exr",
-        "url": "https://raw.githubusercontent.com/alexfry/CLFTestImage/"
-        "master/images/CLF_testImagePrototype_v006.exr",
+        "url": "https://raw.githubusercontent.com/alexfry/CLFTestImage"
+        "/master/images/CLF_testImagePrototype_v006.exr",
         "size": 201549,
+        "family": "image",
+        "tags": ["test", "synthetic"],
+        "metadata": {
+            "encoding": "ACES2065-1",
+        },
     },
     "Marcie 4K": {
         "filename": "marcie-4k.exr",
-        "url": "https://zozobra.s3.us-east-1.amazonaws.com/colour/"
-        "images/marcie-4k.exr",
+        "url": "https://zozobra.s3.us-east-1.amazonaws.com/colour"
+        "/images/marcie-4k.exr",
         "size": 63015668,
+        "family": "image",
+        "tags": ["test", "film", "skin"],
+        "metadata": {
+            "encoding": None,
+        },
     },
     "Synthetic Testing Chart": {
         "filename": "syntheticChart_rec709.01.exr",
-        "url": "https://raw.githubusercontent.com/sobotka/Testing_Imagery/"
-        "master/syntheticChart_rec709.01.exr",
+        "url": "https://raw.githubusercontent.com/sobotka/Testing_Imagery"
+        "/master/syntheticChart_rec709.01.exr",
         "size": 2968371,
+        "family": "image",
+        "tags": ["test", "synthetic"],
+        "metadata": {
+            "encoding": "Linear-Rec709",
+        },
     },
     "CC24 Chart, Synthetic": {
-        "filename": "syntheticChart_rec709.01.exr",
-        "url": "https://raw.githubusercontent.com/sobotka/Testing_Imagery/"
-        "master/CC24_BT-709_linear_1931.exr",
+        "url": "https://raw.githubusercontent.com/sobotka/Testing_Imagery"
+        "/master/CC24_BT-709_linear_1931.exr",
         "size": 12979565,
+        "family": "image",
+        "tags": ["test", "synthetic", "CC24"],
+        "metadata": {
+            "encoding": "Linear-Rec709",
+        },
     },
     "CC24 Chart Photo": {
-        "filename": "syntheticChart_rec709.01.exr",
-        "url": "https://raw.githubusercontent.com/sobotka/Testing_Imagery/"
-        "master/CC24_d65adapted_bt709.exr",
+        "url": "https://raw.githubusercontent.com/sobotka/Testing_Imagery"
+        "/master/CC24_d65adapted_bt709.exr",
         "size": 8927374,
+        "family": "image",
+        "tags": ["test", "video", "CC24"],
+        "metadata": {
+            "encoding": "Linear-Rec709",
+        },
     },
     "CC24 Chart Photo, Cropped": {
         "filename": "syntheticChart_rec709.01.exr",
-        "url": "https://raw.githubusercontent.com/sobotka/Testing_Imagery/"
-        "master/CC24_d65adapted_bt709_cropped.exr",
+        "url": "https://raw.githubusercontent.com/sobotka/Testing_Imagery"
+        "/master/CC24_d65adapted_bt709_cropped.exr",
         "size": 6278551,
+        "family": "image",
+        "tags": ["test", "video", "CC24"],
+        "metadata": {
+            "encoding": "Linear-Rec709",
+        },
     },
     "OCIO v2.0.0beta2": {
-        "filename": "ocio_streamlit_v2.0.0beta2.tar",
-        "url": "https://zozobra.s3.us-east-1.amazonaws.com/colour/"
-        "data/ocio_streamlit_v2.0.0beta2.tar",
+        "url": "https://zozobra.s3.us-east-1.amazonaws.com/colour"
+        "/data/ocio_streamlit_v2.0.0beta2.tar",
         "size": 28119040,
+        "family": "lib",
+        "metadata": {
+            "prefix": "/home/appuser",
+        },
     },
 }
