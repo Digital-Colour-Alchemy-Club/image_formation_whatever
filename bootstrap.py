@@ -44,18 +44,12 @@ def setup_opencolorio(
                     build_shared=False,
                 )
             else:
-                try:
-                    fetch_ocio(version=version, force=force)
-                except Exception as e:
-                    raise e
-                    build_ocio(
-                        prefix=prefix,
-                        version=version,
-                        force=force,
-                        build_apps=True,
-                        build_shared=False,
-                    )
-
+                if not ocio:
+                    try:
+                        fetch_ocio(version=version, force=force)
+                    except Exception as e:
+                        raise e
+                    
     # Offer archive of existing libraries
     if ocio:
         lib_archive = Path(ocio.__file__).parents[3] / "ocio_streamlit.tar"
