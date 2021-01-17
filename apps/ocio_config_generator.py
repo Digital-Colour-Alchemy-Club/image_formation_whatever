@@ -33,7 +33,7 @@ def ocio_skeleton_config():
             step=1,
         )
 
-        if key is "Upload EXR":
+        if key == "Upload EXR":
             img = upload_image_placeholder.file_uploader(
                 label="Input Image", type=[".exr"]
             )
