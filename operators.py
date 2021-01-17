@@ -1,6 +1,6 @@
 from functools import partial
 from typing import List, Optional
-
+from six import string_types
 import attr
 from boltons.strutils import camel2under, under2camel, slugify
 from colour.io import AbstractLUTSequenceOperator, LUT3D, LUT1D, LUTSequence
@@ -13,7 +13,7 @@ import numpy as np
 @attr.s(auto_attribs=True, frozen=True)
 class AestheticTransferFunction(AbstractLUTSequenceOperator):
     name: str = "Generic Lottes (2016) with Fixes"
-    comments: Optional[List[str]] = None
+    comments: Optional[List[string_types]] = None
     contrast: float = 1.0
     shoulder_contrast: float = 1.0
     middle_grey_in: float = 0.18
@@ -62,14 +62,31 @@ class AestheticTransferFunction(AbstractLUTSequenceOperator):
 
         return RGB_out
 
-    def apply(self, RGB, *args):
+    def _apply_shaped(self, shaped_RGB):
+        min_exposure = -6.5
+        unshaped_RGB = log_decoding_Log2(
+            shaped_RGB,
+            middle_grey=self.middle_grey_in,
+            min_exposure=min_exposure,
+            max_exposure=self.ev_above_middle_grey,
+        )
+        # shaped_output_RGB = log_encoding_Log2(
+        #     self.apply(unshaped_RGB),
+        #     middle_grey=self.middle_grey_in,
+        #     min_exposure=min_exposure,
+        #     max_exposure=self.ev_above_middle_grey,
+        # )
+        # return shaped_output_RGB
+        return self.apply(unshaped_RGB)
+
+    def apply(self, RGB):
         RGB_out = np.copy(as_float_array(RGB))
         gamut_clipped_above = np.where(RGB_out >= self.radiometric_maximum)
 
         if self.per_channel_lookup:
             RGB_out = self._apply(RGB_out)
         else:
-            RGB_max = np.amax(RGB_out, axis=2, keepdims=True)
+            RGB_max = np.amax(RGB_out, axis=-1, keepdims=True)
             ratios = np.ma.divide(RGB_out, RGB_max).filled(fill_value=0.0)
             RGB_out = self._apply(RGB_max) * ratios
 
@@ -82,12 +99,6 @@ class AestheticTransferFunction(AbstractLUTSequenceOperator):
             RGB_out[gamut_clipped_above[0], gamut_clipped_above[1], :] = warning
 
         return RGB_out
-
-    def get_filename(self, extension=None):
-        basename = under2camel(slugify(self.name))
-        if extension:
-            return f"{basename}.{extension}"
-        return basename
 
     def generate_lut1d3d(self, size=33, shaper_size=2 ** 14, min_exposure=-6.5):
         shaper_to_lin = partial(
@@ -118,7 +129,7 @@ class AestheticTransferFunction(AbstractLUTSequenceOperator):
             name=self.name,
             comments=self.comments,
         )
-        cube.table = self.apply(shaper_to_lin(cube.table))
+        cube.table = self._apply_shaped(cube.table)
         return LUTSequence(shaper, cube)
 
     def generate_clf(self, size=33):
