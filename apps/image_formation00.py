@@ -137,10 +137,13 @@ class generic_aesthetic_transfer_function(AbstractLUTSequenceOperator):
 
         return output_RGBs
 
-    def apply_per_channel(self, RGB, gamut_clip=False, gamut_clip_alert=False):
-        gamut_clipped_above = np.where(RGB >= self._radiometric_maximum)
+    def apply_per_channel(self, RGBs, gamut_clip=False, gamut_clip_alert=False):
+        gamut_clipped_above = np.where(RGBs >= self._radiometric_maximum)
+        input_RGBs = np.abs(RGBs)
+        evaluate_RGBs = self.evaluate(input_RGBs)
 
-        output_RGBs = self.evaluate(RGB)
+        # Restore negatives that the curve removed the sign from.
+        output_RGBs = np.negative(evaluate_RGBs, where=(RGBs < 0.0), out=evaluate_RGBs)
 
         if gamut_clip is True:
             output_RGBs[
@@ -170,12 +173,6 @@ def apply_CDL(in_RGB, slope, offset, power, pivot):
     power = np.asarray(power)
 
     return (((slope * (in_RGB / pivot)) + offset) ** power) * pivot
-
-
-# See if this resolves the Cache Crashy.
-# @#st.cache(suppress_st_warning=True)
-# img_path = helpers.get_dependency("Marcie 4K")
-# default_image = colour.read_image(img_path)[..., 0:3]
 
 
 matplotlib.pyplot.style.use({"figure.figsize": (4, 4), "font.size": 4})
@@ -257,6 +254,7 @@ def application_experimental_image_formation_00():
         default_image_path = st.selectbox(
             label="Test Image",
             options=[
+                "Multi-Swatch Test Chart",
                 "Marcie 4K",
                 "CC24 Chart, Synthetic",
                 "CC24 Chart Photo",
