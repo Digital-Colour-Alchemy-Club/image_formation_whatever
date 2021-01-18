@@ -65,6 +65,17 @@ EXTERNAL_DEPENDENCIES = {
             "encoding": None,
         },
     },
+    "Multi-Swatch Test Chart": {
+        "filename": "syntheticChart_rec709.01.exr",
+        "url": "https://raw.githubusercontent.com/sobotka/Testing_Imagery"
+        "/master/AAD_BT_709_CAT_02_5600k_to_D65.exr",
+        "size": 6690396,
+        "family": "image",
+        "tags": ["test", "CC24", "plots"],
+        "metadata": {
+            "encoding": "Linear-Rec709",
+        },
+    },
     "Synthetic Testing Chart": {
         "filename": "syntheticChart_rec709.01.exr",
         "url": "https://raw.githubusercontent.com/sobotka/Testing_Imagery"
