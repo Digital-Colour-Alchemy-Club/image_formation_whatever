@@ -3,7 +3,7 @@ import matplotlib
 import colour
 import streamlit as st
 from colour.io.luts import AbstractLUTSequenceOperator
-
+import pandas
 import helpers
 
 
@@ -16,6 +16,7 @@ class generic_aesthetic_transfer_function(AbstractLUTSequenceOperator):
         middle_grey_out=0.18,
         ev_above_middle_grey=4.0,
     ):
+        self._linear = None
         self.set_transfer_details(
             contrast,
             shoulder_contrast,
@@ -106,6 +107,7 @@ class generic_aesthetic_transfer_function(AbstractLUTSequenceOperator):
             domain=[0.0, self._radiometric_maximum + 0.005],
         )
         self._LUT_size = LUT_size
+        self._linear = np.linspace(0.0, self._radiometric_maximum, self._LUT_size)
 
     def apply(self, RGB, per_channel=False, **kwargs):
         if per_channel:
@@ -248,7 +250,11 @@ def application_experimental_image_formation_00():
         ev_above_middle_grey=maximum_ev,
     )
     with region_1_2:
-        st.line_chart(data=LUT._LUT.table, height=200)
+        plot_data = pandas.DataFrame(
+            {"Radiometric": LUT._linear, "Curve": LUT._LUT.table}
+        )
+        plot_data = plot_data.set_index("Radiometric")
+        st.line_chart(data=plot_data, height=200)
         upload_image = st.file_uploader(label="Input Image", type=[".exr", ".hdr"])
 
         default_image_path = st.selectbox(
