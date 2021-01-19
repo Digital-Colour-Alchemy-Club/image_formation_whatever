@@ -76,6 +76,17 @@ EXTERNAL_DEPENDENCIES = {
             "encoding": "Linear-Rec709",
         },
     },
+    "Alexa Models and Charts": {
+        "filename": "syntheticChart_rec709.01.exr",
+        "url": "https://raw.githubusercontent.com/sobotka/Testing_Imagery"
+        "/master/alexa_BT_709.exr",
+        "size": 18464820,
+        "family": "image",
+        "tags": ["test", "alexa"],
+        "metadata": {
+            "encoding": "Linear-Rec709",
+        },
+    },
     "Synthetic Testing Chart": {
         "filename": "syntheticChart_rec709.01.exr",
         "url": "https://raw.githubusercontent.com/sobotka/Testing_Imagery"

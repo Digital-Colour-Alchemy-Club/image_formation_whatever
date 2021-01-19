@@ -260,13 +260,14 @@ def application_experimental_image_formation_00():
         default_image_path = st.selectbox(
             label="Test Image",
             options=[
+                "Alexa Models and Charts",
                 "Multi-Swatch Test Chart",
-                "Marcie 4K",
                 "CC24 Chart, Synthetic",
                 "CC24 Chart Photo",
                 "CC24 Chart Photo, Cropped",
                 "Synthetic Testing Chart",
                 "CLF Test Image",
+                "Marcie 4K",
             ],
         )
 
