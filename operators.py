@@ -7,6 +7,7 @@ from colour.io import AbstractLUTSequenceOperator, LUT3D, LUT1D, LUTSequence
 from colour.models.rgb.transfer_functions.log import *
 from colour.models.rgb.transfer_functions.exponent import *
 from colour.utilities import as_float_array, tstack, tsplit, vector_dot, filter_kwargs
+from colour.algebra import spow
 import numpy as np
 
 
@@ -19,6 +20,9 @@ class AestheticTransferFunction(AbstractLUTSequenceOperator):
     middle_grey_in: float = 0.18
     middle_grey_out: float = 0.18
     ev_above_middle_grey: float = attr.ib(default=4.0)
+    ev_below_middle_grey: float = attr.ib(
+        default=-6.5, converter=lambda x: -abs(float(x))
+    )
     per_channel_lookup: bool = False
     gamut_clip: bool = True
     gamut_warning: bool = False
@@ -30,20 +34,25 @@ class AestheticTransferFunction(AbstractLUTSequenceOperator):
     @property
     def radiometric_maximum(self):
         ev = np.clip(self.ev_above_middle_grey, 1.0, 20.0)
-        return np.power(2.0, ev) * self.middle_grey_in
+        return spow(2.0, ev) * self.middle_grey_in
 
-    def _apply(self, RGB):
+    @property
+    def radiometric_minimum(self):
+        ev = np.clip(self.ev_below_middle_grey, -20.0, -1.0)
+        return spow(2.0, ev) * self.middle_grey_in
+
+    def _apply(self, RGB, preserve_negatives=False):
         RGB_out = np.copy(as_float_array(RGB))
 
         shoulder_multiplied = self.contrast * self.shoulder_contrast
 
-        middle_grey_contrast = pow(self.middle_grey_in, self.contrast)
+        middle_grey_contrast = spow(self.middle_grey_in, self.contrast)
 
-        middle_gray_shoulder_contrast = pow(self.middle_grey_in, shoulder_multiplied)
+        middle_gray_shoulder_contrast = spow(self.middle_grey_in, shoulder_multiplied)
 
-        radiometric_contrast = pow(self.radiometric_maximum, self.contrast)
+        radiometric_contrast = spow(self.radiometric_maximum, self.contrast)
 
-        radiometric_multiplied_contrast = pow(
+        radiometric_multiplied_contrast = spow(
             self.radiometric_maximum, shoulder_multiplied
         )
 
@@ -53,35 +62,36 @@ class AestheticTransferFunction(AbstractLUTSequenceOperator):
             radiometric_multiplied_contrast * middle_grey_contrast
             - radiometric_contrast * v
         )
-        b = -((-middle_grey_contrast + (self.middle_grey_out * (a)) / u) / v)
+        b = -((-middle_grey_contrast + (self.middle_grey_out * a) / u) / v)
         c = a / u
 
+        negative_values = np.where(RGB_out < 0.0)
+        if preserve_negatives:
+            RGB_out = np.abs(RGB_out)
+
         RGB_out = np.minimum(self.radiometric_maximum, RGB_out)
-        RGB_out = np.power(RGB_out, self.contrast)
-        RGB_out = RGB_out / (np.power(RGB_out, self.shoulder_contrast) * b + c)
+        RGB_out = spow(RGB_out, self.contrast)
+        RGB_out = RGB_out / (spow(RGB_out, self.shoulder_contrast) * b + c)
+
+        if preserve_negatives:
+            RGB_out[negative_values] = np.negative(RGB_out)
 
         return RGB_out
 
     def _apply_shaped(self, shaped_RGB):
-        min_exposure = -6.5
+        min_exposure = self.ev_below_middle_grey
         unshaped_RGB = log_decoding_Log2(
             shaped_RGB,
             middle_grey=self.middle_grey_in,
             min_exposure=min_exposure,
             max_exposure=self.ev_above_middle_grey,
         )
-        # shaped_output_RGB = log_encoding_Log2(
-        #     self.apply(unshaped_RGB),
-        #     middle_grey=self.middle_grey_in,
-        #     min_exposure=min_exposure,
-        #     max_exposure=self.ev_above_middle_grey,
-        # )
-        # return shaped_output_RGB
         return self.apply(unshaped_RGB)
 
-    def apply(self, RGB):
+    def apply(self, RGB, *args):
         RGB_out = np.copy(as_float_array(RGB))
         gamut_clipped_above = np.where(RGB_out >= self.radiometric_maximum)
+        gamut_clipped_below = np.where(RGB_out < self.radiometric_minimum)
 
         if self.per_channel_lookup:
             RGB_out = self._apply(RGB_out)
@@ -92,25 +102,27 @@ class AestheticTransferFunction(AbstractLUTSequenceOperator):
 
         if self.gamut_clip:
             max_val = self._apply(self.radiometric_maximum)
+            min_val = self._apply(self.radiometric_minimum)
             RGB_out[gamut_clipped_above[0], gamut_clipped_above[1], :] = max_val
+            RGB_out[gamut_clipped_below] = min_val
 
         if self.gamut_warning and (RGB_out.size > 1 or RGB_out.shape[-1] > 1):
-            warning = [1.0, 0.0, 0.0]
+            warning = np.array([1.0, 0.0, 0.0])
             RGB_out[gamut_clipped_above[0], gamut_clipped_above[1], :] = warning
 
         return RGB_out
 
-    def generate_lut1d3d(self, size=33, shaper_size=2 ** 14, min_exposure=-6.5):
+    def generate_lut1d3d(self, size=33, shaper_size=2 ** 14):
         shaper_to_lin = partial(
             log_decoding_Log2,
             middle_grey=self.middle_grey_in,
-            min_exposure=min_exposure,
+            min_exposure=self.ev_below_middle_grey,
             max_exposure=self.ev_above_middle_grey,
         )
         lin_to_shaper = partial(
             log_encoding_Log2,
             middle_grey=self.middle_grey_in,
-            min_exposure=min_exposure,
+            min_exposure=self.ev_below_middle_grey,
             max_exposure=self.ev_above_middle_grey,
         )
         shaper = LUT1D(
@@ -118,7 +130,7 @@ class AestheticTransferFunction(AbstractLUTSequenceOperator):
             name=f"{self.name} -- Shaper",
             domain=shaper_to_lin([0.0, 1.0]),
             comments=[
-                f"{'Min Exposure:':<20}{min_exposure}",
+                f"{'Min Exposure:':<20}{self.ev_below_middle_grey}",
                 f"{'Max Exposure:':<20}{self.ev_above_middle_grey}",
                 f"{'Middle Grey:':<20}{self.middle_grey_in}",
             ],
@@ -134,8 +146,9 @@ class AestheticTransferFunction(AbstractLUTSequenceOperator):
 
     def generate_clf(self, size=33):
         cube = LUT3D(size=size, name=self.name, comments=self.comments)
+        radiometric_minimum = 0.18 * spow(2, self.ev_below_middle_grey)
         shaper = Range(
-            min_in_value=0,
+            min_in_value=radiometric_minimum,
             max_in_value=self.radiometric_maximum,
             min_out_value=0,
             max_out_value=1,
@@ -145,7 +158,7 @@ class AestheticTransferFunction(AbstractLUTSequenceOperator):
         inv_shaper = Range(
             min_in_value=0,
             max_in_value=1,
-            min_out_value=0,
+            min_out_value=radiometric_minimum,
             max_out_value=self.radiometric_maximum,
             no_clamp=not self.gamut_clip,
         )
@@ -764,7 +777,7 @@ class Log(AbstractLUTSequenceOperator):
 
         return logarithmic_function(RGB_out)
 
-    def apply(self, RGB):
+    def apply(self, RGB, *args):
         return self._apply_directed(RGB, inverse=False)
 
     def reverse(self, RGB):
