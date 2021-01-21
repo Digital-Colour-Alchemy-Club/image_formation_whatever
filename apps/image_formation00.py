@@ -192,7 +192,7 @@ def application_experimental_image_formation_00():
             step=0.25,
         )
         contrast = st.slider(
-            label="Contrast", min_value=0.01, max_value=3.00, value=1.75, step=0.01
+            label="Contrast", min_value=0.01, max_value=3.00, value=1.25, step=0.01
         )
 
     region_1_1, region_1_2, region_1_3 = st.beta_columns((2, 5, 2))
