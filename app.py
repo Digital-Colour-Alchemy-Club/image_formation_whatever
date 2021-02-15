@@ -17,11 +17,12 @@ run_bootstrap()
 from apps.ocio_config_generator import ocio_skeleton_config
 from apps.diagnostics import diagnostics
 from settings import LOCAL_DATA
-from apps import image_formation00, ocio_formation00
+from apps import image_formation00, image_formation01, ocio_formation00
 
 
 demo_pages = {
     "Experimental Image Formation": image_formation00.application_experimental_image_formation_00,
+    "Luminance Evaluation": image_formation01.application_image_formation_01,
     "Diagnostics": partial(diagnostics, LOCAL_DATA),
     "OpenColorIO Formation": ocio_formation00.application_ocio_formation_00,
 }
