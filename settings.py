@@ -11,7 +11,6 @@ __version__ = "0.1.7"
 
 __all__ = ["logger", "config", "LOCAL_DATA", "OCIO_VERSION", "EXTERNAL_DEPENDENCIES"]
 
-
 config = Munch.fromDict(yaml.safe_load(open("config.yaml")))
 
 logger = logging.getLogger(__app__)
@@ -21,7 +20,6 @@ timber_handler = timber.TimberHandler(
     source_id=config.services.timber.source_id,
 )
 logger.addHandler(timber_handler)
-
 
 LOCAL_DATA = Path.cwd() / "data"
 OCIO_VERSION = config.libs.OpenColorIO.version
@@ -129,6 +127,51 @@ EXTERNAL_DEPENDENCIES = {
             "encoding": "Linear-Rec709",
         },
     },
+    "Okja": {
+        "url": "https://zozobra.s3.us-east-1.amazonaws.com/colour"
+        "/images/GM_TEST_002.0000.exr",
+        "family": "image",
+        "size": 8158434,
+        "metadata": {
+            "encoding": "ACES2065-1"
+        }
+    },
+    "Products": {
+        "url": "https://zozobra.s3.us-east-1.amazonaws.com/colour"
+        "/images/GM_TEST_001.0000.exr",
+        "family": "image",
+        "size": 5472858,
+        "metadata": {
+            "encoding": "ACES2065-1"
+        }
+    },
+    "Red Xmas": {
+        "url": "https://zozobra.s3.us-east-1.amazonaws.com/colour"
+        "/images/GM_TEST_011.0000.exr",
+        "family": "image",
+        "size": 9583965,
+        "metadata": {
+            "encoding": "ACES2065-1"
+        }
+    },
+    "Blue Bar": {
+        "url": "https://zozobra.s3.us-east-1.amazonaws.com/colour"
+        "/images/GM_TEST_010.0187.exr",
+        "family": "image",
+        "size": 7267792,
+        "metadata": {
+            "encoding": "ACES2065-1"
+        }
+    },
+    "Club DJ": {
+        "url": "https://zozobra.s3.us-east-1.amazonaws.com/colour"
+        "/images/GM_TEST_004.0357.exr",
+        "family": "image",
+        "size": 6894347,
+        "metadata": {
+            "encoding": "ACES2065-1"
+        }
+    },
     "OCIO v2.0.0beta2": {
         "url": "https://zozobra.s3.us-east-1.amazonaws.com/colour"
         "/data/ocio_streamlit_v2.0.0beta2.tar",
@@ -142,6 +185,14 @@ EXTERNAL_DEPENDENCIES = {
         "family": "lib",
         "url": "https://zozobra.s3.us-east-1.amazonaws.com/colour"
         "/data/ocio_streamlit_v2.0.0rc1.tar",
+        "metadata": {
+            "prefix": "/home/appuser",
+        },
+    },
+    "OCIO v2.0.0": {
+        "family": "lib",
+        "url": "https://zozobra.s3.us-east-1.amazonaws.com/colour"
+        "/data/ocio_streamlit_v2.0.0.tar",
         "metadata": {
             "prefix": "/home/appuser",
         },

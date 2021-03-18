@@ -260,6 +260,11 @@ def application_experimental_image_formation_00():
         default_image_path = st.selectbox(
             label="Test Image",
             options=[
+                "Blue Bar",
+                "Red Xmas",
+                "Okja",
+                "Club DJ",
+                "Products",
                 "Alexa Models and Charts",
                 "Multi-Swatch Test Chart",
                 "CC24 Chart, Synthetic",

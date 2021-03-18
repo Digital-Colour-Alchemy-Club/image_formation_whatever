@@ -17,9 +17,9 @@ from helpers import (
 from settings import config
 
 
-def setup_opencolorio(
-    prefix=config.libs.prefix, version=config.libs.OpenColorIO.version, force=False
-):
+def setup_opencolorio(prefix=config.libs.prefix,
+                      version=config.libs.OpenColorIO.version,
+                      force=False):
     try:
         import PyOpenColorIO as ocio
     except ImportError:
@@ -49,7 +49,7 @@ def setup_opencolorio(
                         fetch_ocio(version=version, force=force)
                     except Exception as e:
                         raise e
-                    
+
     # Offer archive of existing libraries
     if ocio:
         lib_archive = Path(ocio.__file__).parents[3] / "ocio_streamlit.tar"
@@ -104,7 +104,6 @@ def build_ocio(
         Definition success.
 
     """
-
     def is_ocio_installed():
         """
         Checks if `PyOpenColorIO` is installed and importable.
@@ -117,7 +116,8 @@ def build_ocio(
         try:
             import PyOpenColorIO
 
-            logger.debug(f"PyOpenColorIO v{PyOpenColorIO.__version__} is installed.")
+            logger.debug(
+                f"PyOpenColorIO v{PyOpenColorIO.__version__} is installed.")
             return True
         except ImportError:
             return False
@@ -128,9 +128,12 @@ def build_ocio(
         """
         archive_path = f"{output_dir}/{filename}"
         src = fs.open_fs(f"{prefix}")
-        glob_filters = ["**/OpenColorIO/**/*.h", "**/ocio*", "**/lib/**/*penColor*"]
+        glob_filters = [
+            "**/OpenColorIO/**/*.h", "**/ocio*", "**/lib/**/*penColor*"
+        ]
         files_to_archive = [p.path for g in glob_filters for p in src.glob(g)]
-        with fs.open_fs(f"tar:///{archive_path}", writeable=True, create=True) as dst:
+        with fs.open_fs(f"tar:///{archive_path}", writeable=True,
+                        create=True) as dst:
             for file in files_to_archive:
                 fs.copy.copy_file(src, file, dst, file)
         logger.debug(f"Archived {archive_path}")
@@ -141,8 +144,12 @@ def build_ocio(
             # Clean prefix and proceed with build + install
             logger.debug("Removing existing OCIO artifacts...")
             install_root = fs.open_fs(f"{prefix}")
-            glob_filters = ["**/OpenColorIO/**/*.h", "**/ocio*", "**/lib/**/*penColor*"]
-            _ = [p.remove() for g in glob_filters for p in install_root.glob(g)]
+            glob_filters = [
+                "**/OpenColorIO/**/*.h", "**/ocio*", "**/lib/**/*penColor*"
+            ]
+            _ = [
+                p.remove() for g in glob_filters for p in install_root.glob(g)
+            ]
 
         else:
             # Bypass build + install
@@ -155,7 +162,7 @@ def build_ocio(
     # Configure build variables
     url = "https://github.com/AcademySoftwareFoundation/OpenColorIO.git"
     git_clone = git["clone"]
-    if version in ["2.0.0beta1", "2.0.0beta2", "2.0.0rc1"]:
+    if version in ["2.0.0beta1", "2.0.0beta2", "2.0.0rc1", "2.0.0"]:
         branch = re.sub(r"(\d)(\w)", r"\1-\2", f"v{version}")
         git_clone = git_clone["--branch", branch]
     git_clone = git_clone[url]
@@ -241,17 +248,16 @@ def fetch_ocio(version=config.libs.OpenColorIO.version, force=False):
 
     # append to system path
     dst = fs.open_fs(prefix)
-    sys.path.extend([dst.getsyspath(p.path) for p in dst.glob("**/site-packages/")])
+    sys.path.extend(
+        [dst.getsyspath(p.path) for p in dst.glob("**/site-packages/")])
 
     # validate
     try:
         import PyOpenColorIO
     except ImportError:
         with st_stdout("error"):
-            print(
-                """***NICE WORK, GENIUS: ***
+            print("""***NICE WORK, GENIUS: ***
             You've managed to build, archive, retrieve, and deploy OCIO...
-            yet you couldn't manage to import PyOpenColorIO."""
-            )
+            yet you couldn't manage to import PyOpenColorIO.""")
 
     logger.debug(f"OpenColorIO v{version} installed!")
