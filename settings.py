@@ -154,6 +154,15 @@ EXTERNAL_DEPENDENCIES = {
             "encoding": "ACES2065-1"
         }
     },
+    "Red Xmas 709": {
+        "url": "https://zozobra.s3.us-east-1.amazonaws.com/colour"
+        "/images/red_xmas_rec709.exr",
+        "family": "image",
+        "size": 8992075,
+        "metadata": {
+            "encoding": "Linear-Rec709"
+        }
+    },
     "Blue Bar": {
         "url": "https://zozobra.s3.us-east-1.amazonaws.com/colour"
         "/images/GM_TEST_010.0187.exr",
