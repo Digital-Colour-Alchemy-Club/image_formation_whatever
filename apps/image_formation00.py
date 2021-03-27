@@ -262,6 +262,7 @@ def application_experimental_image_formation_00():
             options=[
                 "Blue Bar",
                 "Red Xmas",
+                "Red Xmas 709",
                 "Okja",
                 "Club DJ",
                 "Products",
