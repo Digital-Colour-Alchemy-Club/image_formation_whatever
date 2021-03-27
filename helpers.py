@@ -129,7 +129,7 @@ class RemoteData:
                                 progress_bar.progress(min(counter / length, 1.0))
 
         except urllib.error.URLError as e:
-            logger.exception(exc_info=e)
+            logger.exception(f"Invalid URL: {self.url}", exc_info=e)
         # Finally, we remove these visual elements by calling .empty().
         finally:
             if status is not None:
