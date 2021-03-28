@@ -261,6 +261,7 @@ def application_experimental_image_formation_00():
             label="Test Image",
             options=[
                 "Blue Bar",
+                "Blue Bar 709",
                 "Red Xmas",
                 "Red Xmas 709",
                 "Okja",

@@ -373,6 +373,7 @@ def application_image_formation_01():
             options=[
                 "Alexa Models and Charts",
                 "Red Xmas 709",
+                "Blue Bar 709",
                 "Multi-Swatch Test Chart",
                 "CC24 Chart, Synthetic",
                 "CC24 Chart Photo",

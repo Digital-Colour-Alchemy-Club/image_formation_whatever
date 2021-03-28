@@ -172,6 +172,15 @@ EXTERNAL_DEPENDENCIES = {
             "encoding": "ACES2065-1"
         }
     },
+    "Blue Bar 709": {
+        "url": "https://zozobra.s3.us-east-1.amazonaws.com/colour"
+        "/images/blue_bar_709.exr",
+        "family": "image",
+        "size": 8896298,
+        "metadata": {
+            "encoding": "Linear-Rec709"
+        }
+    },
     "Club DJ": {
         "url": "https://zozobra.s3.us-east-1.amazonaws.com/colour"
         "/images/GM_TEST_004.0357.exr",
