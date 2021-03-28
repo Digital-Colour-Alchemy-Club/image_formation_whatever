@@ -326,7 +326,7 @@ def application_image_formation_01():
         shoulder_contrast = streamlit.slider(
             label="",
             key="Shoulder Contrast",
-            min_value=0.01,
+            min_value=0.61,
             max_value=1.00,
             value=0.85,
             step=0.01,
@@ -372,6 +372,7 @@ def application_image_formation_01():
             key="Default Test Images",
             options=[
                 "Alexa Models and Charts",
+                "Red Xmas 709",
                 "Multi-Swatch Test Chart",
                 "CC24 Chart, Synthetic",
                 "CC24 Chart Photo",
