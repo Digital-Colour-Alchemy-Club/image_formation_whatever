@@ -6,6 +6,16 @@ import pandas
 import helpers
 
 
+LUMINANCE_WEIGHTS_BT709 = np.array(
+    # Minor tweak to green's BT.709 weight to assert sum to unity.
+    [
+        [0.2126729, 0.2126729, 0.2126729],
+        [0.7151521, 0.7151521, 0.7151521],
+        [0.0721750, 0.0721750, 0.0721750],
+    ]
+)
+
+
 class generic_aesthetic_transfer_function(AbstractLUTSequenceOperator):
     def __init__(
         self,
@@ -99,6 +109,9 @@ class generic_aesthetic_transfer_function(AbstractLUTSequenceOperator):
 
         return np.asarray(y)
 
+    def calculate_luminance(self, RGB_input):
+        return np.dot(np.abs(RGB_input), LUMINANCE_WEIGHTS_BT709)
+
     def calculate_LUT(self, LUT_size=1024):
         self._LUT = colour.LUT1D(
             table=self.evaluate(np.linspace(0.0, self._radiometric_maximum, LUT_size)),
@@ -151,20 +164,35 @@ class generic_aesthetic_transfer_function(AbstractLUTSequenceOperator):
         maximum_RGBs = np.amax(RGB, axis=-1, keepdims=True)
         ratios = np.ma.divide(RGB, maximum_RGBs).filled(fill_value=0.0)
 
-        # Minor tweak to green's BT.709 weight to assert sum to unity.
-        luminance_weights = np.asarray(
-            [
-                [0.2126729, 0.2126729, 0.2126729],
-                [0.7151521, 0.7151521, 0.7151521],
-                [0.0721750, 0.0721750, 0.0721750],
-            ]
-        )
-        luminance_RGBs = np.dot(np.abs(ratios), luminance_weights)
+        luminance_RGBs = self.calculate_luminance(np.abs(ratios))
 
         # curve_evaluation = self.evaluate(maximum_RGBs)
         curve_evaluation = extrapolator(maximum_RGBs)
 
         output_RGBs = curve_evaluation * luminance_RGBs
+
+        if gamut_clip is True:
+            output_RGBs[
+                gamut_clipped_above[0], gamut_clipped_above[1], :
+            ] = self._LUT.table[-1]
+
+        if gamut_clip_alert is True:
+            output_RGBs[gamut_clipped_above[0], gamut_clipped_above[1], :] = [
+                1.0,
+                0.0,
+                0.0,
+            ]
+
+        return output_RGBs
+
+    def luminance_mapping(self, RGB, gamut_clip=False, gamut_clip_alert=False):
+        gamut_clipped_above = np.where(RGB >= self._radiometric_maximum)
+
+        luminance_RGBs = self.calculate_luminance(RGB)
+
+        curve_evaluation = self.evaluate(luminance_RGBs)
+
+        output_RGBs = curve_evaluation
 
         if gamut_clip is True:
             output_RGBs[
@@ -451,6 +479,13 @@ def application_image_formation_01():
     )
     img_luminance_final = apply_inverse_EOTF(img_luminance, EOTF)
 
+    img_map_luminance = LUT.luminance_mapping(
+        video_buffer(img, exposure_adjustment),
+        False,
+        False,
+    )
+    img_map_luminance_final = apply_inverse_EOTF(img_map_luminance, EOTF)
+
     with image_region_1_1:
         streamlit.image(
             img_max_RGB_final,
@@ -464,5 +499,12 @@ def application_image_formation_01():
             img_luminance_final,
             clamp=[0.0, 1.0],
             use_column_width=True,
-            caption="Luminance",
+            caption="Luminance from Radiometric-like Open Domain",
+        )
+
+        streamlit.image(
+            img_map_luminance_final,
+            clamp=[0.0, 1.0],
+            use_column_width=True,
+            caption="Luminance Mapped from Luminance",
         )
