@@ -208,6 +208,41 @@ class generic_aesthetic_transfer_function(AbstractLUTSequenceOperator):
 
         return output_RGBs
 
+    def luminance_difference(self, RGB, gamut_clip=False, gamut_clip_alert=False):
+        gamut_clipped_above = np.where(RGB >= self._radiometric_maximum)
+
+        maximum_RGBs = np.amax(RGB, axis=-1, keepdims=True)
+        ratios = np.ma.divide(RGB, maximum_RGBs).filled(fill_value=0.0)
+
+        luminance_RGBs = self.calculate_luminance(RGB)
+
+        # curve_evaluation = self.evaluate(maximum_RGBs)
+        luminance_curve_evaluation = self.evaluate(luminance_RGBs)
+        luminance_ratios = self.calculate_luminance(np.abs(ratios))
+        luminance_scalar = np.ma.divide(
+            luminance_curve_evaluation, luminance_ratios
+        ).filled(fill_value=0.0)
+
+        target_RGBs = luminance_scalar * ratios
+        target_diff = target_RGBs - 1.0
+        target_diff[target_diff < 0.0] = 0.0
+
+        output_RGBs = target_diff
+
+        if gamut_clip is True:
+            output_RGBs[
+                gamut_clipped_above[0], gamut_clipped_above[1], :
+            ] = self._LUT.table[-1]
+
+        if gamut_clip_alert is True:
+            output_RGBs[gamut_clipped_above[0], gamut_clipped_above[1], :] = [
+                1.0,
+                0.0,
+                0.0,
+            ]
+
+        return output_RGBs
+
     def apply_per_channel(self, RGBs, gamut_clip=False, gamut_clip_alert=False):
         gamut_clipped_above = np.where(RGBs >= self._radiometric_maximum)
         input_RGBs = np.abs(RGBs)
@@ -486,12 +521,26 @@ def application_image_formation_01():
     )
     img_map_luminance_final = apply_inverse_EOTF(img_map_luminance, EOTF)
 
+    img_diff_map = LUT.luminance_difference(
+        video_buffer(img, exposure_adjustment),
+        False,
+        False,
+    )
+    img_diff_map_final = apply_inverse_EOTF(img_diff_map, EOTF)
+
     with image_region_1_1:
         streamlit.image(
             img_max_RGB_final,
             clamp=[0.0, 1.0],
             use_column_width=True,
             caption="Chroma",
+        )
+
+        streamlit.image(
+            img_map_luminance_final,
+            clamp=[0.0, 1.0],
+            use_column_width=True,
+            caption="Luminance Mapped from Luminance",
         )
 
     with image_region_1_2:
@@ -503,8 +552,8 @@ def application_image_formation_01():
         )
 
         streamlit.image(
-            img_map_luminance_final,
+            img_diff_map_final,
             clamp=[0.0, 1.0],
             use_column_width=True,
-            caption="Luminance Mapped from Luminance",
+            caption="Luminance Difference from Chrominance",
         )
