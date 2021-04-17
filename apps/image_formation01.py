@@ -264,16 +264,13 @@ class generic_aesthetic_transfer_function(AbstractLUTSequenceOperator):
         # Try to give an idea of how much out of whack the values are by
         # adding achromatic light to the difference view based on how
         # much the difference exceeds the maximum output at the display.
-        additional = (
-            RGB_luminance_target_diff[np.any(RGB_luminance_target_diff > 1.0, axis=-1)]
-            - 1.0
-        )
-        additional[additional < 0.0] = 0.0
-        additional_luminance = self.derive_luminance(additional).reshape((-1, 1))
+        diff_diff = (
+            RGB_luminance_target_diff[..., RGB_luminance_target_diff > 1.0] - 1.0
+        ).reshape((-1, 1))
 
         RGB_luminance_target_diff[
             np.any(RGB_luminance_target_diff > 1.0, axis=-1)
-        ] += additional_luminance
+        ] += diff_diff
 
         output_RGBs = RGB_luminance_target_diff
 
