@@ -112,10 +112,31 @@ class generic_aesthetic_transfer_function(AbstractLUTSequenceOperator):
     def calculate_luminance(self, RGB_input):
         return np.dot(np.abs(RGB_input), LUMINANCE_WEIGHTS_BT709)
 
+    def evaluate_siragusano2021(self, x):
+        input_domain_scale = (
+            (self._radiometric_maximum * self._middle_grey_in)
+            * (self._middle_grey_out ** (1.0 / self._contrast) - 1.0)
+        ) / (
+            self._middle_grey_in
+            - (
+                self._radiometric_maximum
+                * self._middle_grey_out ** (1.0 / self._contrast)
+            )
+        )
+
+        output_domain_scale = (
+            self._radiometric_maximum / (self._radiometric_maximum + input_domain_scale)
+        ) ** -self._contrast
+
+        # Siragusano Smith 2021
+        return output_domain_scale * (x / (x + input_domain_scale)) ** self._contrast
+
     def calculate_LUT(self, LUT_size=1024):
         self._LUT = colour.LUT1D(
-            table=self.evaluate(np.linspace(0.0, self._radiometric_maximum, LUT_size)),
-            name="Generic Lottes 2016 with Fixes",
+            table=self.evaluate_siragusano2021(
+                np.linspace(0.0, self._radiometric_maximum, LUT_size)
+            ),
+            name="Siragusano Smith 2021",
             domain=[0.0, self._radiometric_maximum + 0.005],
         )
         self._LUT_size = LUT_size
