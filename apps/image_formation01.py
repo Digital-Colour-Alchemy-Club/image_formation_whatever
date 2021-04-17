@@ -261,6 +261,17 @@ class generic_aesthetic_transfer_function(AbstractLUTSequenceOperator):
         # Any negative values are outside of the gamut volume.
         RGB_luminance_target_diff[RGB_luminance_target_diff < 0.0] = 0.0
 
+        # Try to give an idea of how much out of whack the values are by
+        # adding achromatic light to the difference view based on how
+        # much the difference exceeds the maximum output at the display.
+        diff_diff = (
+            RGB_luminance_target_diff[..., RGB_luminance_target_diff > 1.0] - 1.0
+        ).reshape((-1, 1))
+
+        RGB_luminance_target_diff[
+            np.any(RGB_luminance_target_diff > 1.0, axis=-1)
+        ] += diff_diff
+
         output_RGBs = RGB_luminance_target_diff
 
         if gamut_clip is True:
