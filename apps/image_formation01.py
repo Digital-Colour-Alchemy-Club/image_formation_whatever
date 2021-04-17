@@ -569,7 +569,7 @@ def application_image_formation_01():
             img_luminance_final,
             clamp=[0.0, 1.0],
             use_column_width=True,
-            caption="Luminance from Radiometric-like Open Domain",
+            caption="Luminance from Radiometric-like Closed Domain Calculation",
         )
 
         streamlit.image(
