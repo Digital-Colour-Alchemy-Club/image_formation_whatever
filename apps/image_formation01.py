@@ -276,11 +276,6 @@ class generic_aesthetic_transfer_function(AbstractLUTSequenceOperator):
         )
 
         over_difference_luminance = self.derive_luminance(over_difference)
-        print(
-            over_difference.shape,
-            over_difference_luminance.shape,
-            over_difference_luminance[0],
-        )
 
         RGB_luminance_target_diff[
             np.any(RGB_luminance_target_diff > 1.0, axis=-1)
