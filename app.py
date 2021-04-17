@@ -21,8 +21,8 @@ from apps import image_formation00, image_formation01, ocio_formation00
 
 
 demo_pages = {
-    "Experimental Image Formation": image_formation00.application_experimental_image_formation_00,
     "Luminance Evaluation": image_formation01.application_image_formation_01,
+    "Experimental Image Formation": image_formation00.application_experimental_image_formation_00,
     "Diagnostics": partial(diagnostics, LOCAL_DATA),
     "OpenColorIO Formation": ocio_formation00.application_ocio_formation_00,
 }

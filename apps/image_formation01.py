@@ -233,22 +233,35 @@ class generic_aesthetic_transfer_function(AbstractLUTSequenceOperator):
         gamut_clipped_above = np.where(RGB >= self._radiometric_maximum)
 
         maximum_RGBs = np.amax(RGB, axis=-1, keepdims=True)
-        ratios = np.ma.divide(RGB, maximum_RGBs).filled(fill_value=0.0)
 
-        luminance_RGBs = self.calculate_luminance(RGB)
+        # Out of gamut prism values will be negative after this operation.
+        chroma_normalized = np.ma.divide(RGB, maximum_RGBs).filled(fill_value=0.0)
+
+        # Abs result to properly sum luminance for values that are outside
+        # of the gamut prism.
+        luminance_RGBs = self.calculate_luminance(np.abs(RGB))
 
         # curve_evaluation = self.evaluate(maximum_RGBs)
         luminance_curve_evaluation = self.evaluate(luminance_RGBs)
-        luminance_ratios = self.calculate_luminance(np.abs(ratios))
+
+        # Calculate normalized chroma maximal luminance.
+        luminance_chroma_normalized = self.calculate_luminance(
+            np.abs(chroma_normalized)
+        )
         luminance_scalar = np.ma.divide(
-            luminance_curve_evaluation, luminance_ratios
+            luminance_curve_evaluation, luminance_chroma_normalized
         ).filled(fill_value=0.0)
 
-        target_RGBs = luminance_scalar * ratios
-        target_diff = target_RGBs - 1.0
-        target_diff[target_diff < 0.0] = 0.0
+        target_RGBs = luminance_scalar * chroma_normalized
 
-        output_RGBs = target_diff
+        # Negative values denote out of gamut volume. Clip the normalized chroma
+        # to avoid gamut prism contribution.
+        RGB_luminance_target_diff = target_RGBs - np.clip(chroma_normalized, 0.0, 1.0)
+
+        # Any negative values are outside of the gamut volume.
+        RGB_luminance_target_diff[RGB_luminance_target_diff < 0.0] = 0.0
+
+        output_RGBs = RGB_luminance_target_diff
 
         if gamut_clip is True:
             output_RGBs[
@@ -332,7 +345,7 @@ def application_image_formation_01():
             key="Contrast",
             min_value=0.01,
             max_value=3.00,
-            value=1.40,
+            value=1.20,
             step=0.01,
         )
 
@@ -393,33 +406,37 @@ def application_image_formation_01():
             key="Maximum EV Above Middle Grey",
             min_value=1.0,
             max_value=15.0,
-            value=4.50,
+            value=6.0,
             step=0.25,
         )
 
-        shoulder_contrast_help = streamlit.beta_expander("Shoulder Contrast")
-        with shoulder_contrast_help:
-            streamlit.text_area(
-                label="",
-                key="Shoulder Contrast Help",
-                value="Shoulder contrast value. This value is an abstract value "
-                "based on the formula used for the asethetic transfer function. "
-                "It will control the tension of the curved portion near the "
-                "maximum display emission.",
-            )
-        shoulder_contrast = streamlit.slider(
-            label="",
-            key="Shoulder Contrast",
-            min_value=0.61,
-            max_value=1.00,
-            value=0.85,
-            step=0.01,
-        )
+        # Removed Shoulder Contrast, as this has no equivalent parameter
+        # under Siragusano Smith 2021. Can re-add it if selectable curve
+        # formations are provided.
+        #
+        # shoulder_contrast_help = streamlit.beta_expander("Shoulder Contrast")
+        # with shoulder_contrast_help:
+        #     streamlit.text_area(
+        #         label="",
+        #         key="Shoulder Contrast Help",
+        #         value="Shoulder contrast value. This value is an abstract value "
+        #         "based on the formula used for the asethetic transfer function. "
+        #         "It will control the tension of the curved portion near the "
+        #         "maximum display emission.",
+        #     )
+        # shoulder_contrast = streamlit.slider(
+        #     label="",
+        #     key="Shoulder Contrast",
+        #     min_value=0.61,
+        #     max_value=1.00,
+        #     value=0.85,
+        #     step=0.01,
+        # )
 
     LUT = generic_aesthetic_transfer_function()
     LUT.set_transfer_details(
         contrast=contrast,
-        shoulder_contrast=shoulder_contrast,
+        shoulder_contrast=1.0,
         middle_grey_in=middle_grey_input,
         middle_grey_out=middle_grey_output,
         ev_above_middle_grey=maximum_ev,
@@ -455,9 +472,9 @@ def application_image_formation_01():
             label="",
             key="Default Test Images",
             options=[
-                "Alexa Models and Charts",
                 "Red Xmas 709",
                 "Blue Bar 709",
+                "Alexa Models and Charts",
                 "Multi-Swatch Test Chart",
                 "CC24 Chart, Synthetic",
                 "CC24 Chart Photo",
@@ -576,5 +593,5 @@ def application_image_formation_01():
             img_diff_map_final,
             clamp=[0.0, 1.0],
             use_column_width=True,
-            caption="Luminance Difference from Chrominance",
+            caption="Luminance Difference from Maximal Chrominance at Output",
         )
