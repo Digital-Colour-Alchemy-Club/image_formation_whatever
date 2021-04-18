@@ -237,51 +237,98 @@ class generic_aesthetic_transfer_function(AbstractLUTSequenceOperator):
         # Out of gamut prism values will be negative after this operation.
         chroma_normalized = np.ma.divide(RGB, maximum_RGBs).filled(fill_value=0.0)
 
+        # print("****** RUN ******")
+        # print("Max of chroma_normalized {}".format(np.amax(chroma_normalized)))
+        # print("Min of chroma_normalized {}\n".format(np.amin(chroma_normalized)))
+
         # Abs result to properly sum luminance for values that are outside
         # of the gamut prism.
-        luminance_RGBs = self.calculate_luminance(np.abs(RGB))
+        luminance_RGBs = self.calculate_luminance(RGB)
+
+        # print("Max of luminance_RGBs {}".format(np.amax(luminance_RGBs)))
+        # print("Min of luminance_RGBs {}\n".format(np.amin(luminance_RGBs)))
 
         # curve_evaluation = self.evaluate(maximum_RGBs)
         luminance_curve_evaluation = self.evaluate(luminance_RGBs)
 
+        # print("Max of the luminance_curve {}".format(np.amax(luminance_curve_evaluation)))
+        # print("Min of the luminance_curve {}\n".format(np.amin(luminance_curve_evaluation)))
+
         # Calculate normalized chroma maximal luminance.
-        luminance_chroma_normalized = self.calculate_luminance(
-            np.abs(chroma_normalized)
-        )
+        luminance_chroma_normalized = self.calculate_luminance(chroma_normalized)
+
+        # print("Max of luminance_chroma_normalized {}".format(np.amax(luminance_chroma_normalized)))
+        # print("Min of luminance_chroma_normalized {}\n".format(np.amin(luminance_chroma_normalized)))
+
+        # Calculate how much intensity scaling is required to scale the values
+        # to the proper luminance for output.
         luminance_scalar = np.ma.divide(
             luminance_curve_evaluation, luminance_chroma_normalized
         ).filled(fill_value=0.0)
 
+        # print("Max of the luminance_scalar {}".format(np.amax(luminance_scalar)))
+        # print("Min of the luminance_scalar {}\n".format(np.amin(luminance_scalar)))
+
+        # Scale the RGBs such that they match the output luminance.
         target_RGBs = luminance_scalar * chroma_normalized
 
-        # Negative values denote out of gamut volume. Clip the normalized chroma
-        # to avoid gamut prism contribution.
-        RGB_luminance_target_diff = target_RGBs - np.clip(chroma_normalized, 0.0, 1.0)
+        # print("Max of target_RGBs {}".format(np.amax(target_RGBs)))
+        # print("Min of target_RGBs {}\n".format(np.amin(target_RGBs)))
+
+        # Here we subtract the theoretical RGB mixtures from the maximal
+        # mixtures capable at the display. If the value is negative, the
+        # mixture is expressible at the display. If the value is postive,
+        # the mixture is beyond the gamut volume. Clip the normalized chroma
+        # to avoid gamut prism contribution. Clip and retain only the positive
+        # portion.
+        RGB_target_diff = np.abs(
+            np.clip(
+                np.clip(target_RGBs, 0.0, None) - np.clip(chroma_normalized, 0.0, None),
+                0.0,
+                None,
+            )
+        )
+
+        # print("Max of RGB_target_diff {}".format(np.amax(RGB_target_diff)))
+        # print("Min of RGB_target_diff {}\n".format(np.amin(RGB_target_diff)))
 
         # Any negative values are outside of the gamut volume.
-        RGB_luminance_target_diff[RGB_luminance_target_diff < 0.0] = 0.0
+        # RGB_luminance_target_diff[RGB_luminance_target_diff < 0.0] = 0.0
 
         # Try to give an idea of how much out of whack the values are by
         # adding achromatic light to the difference view based on how
         # much the difference exceeds the maximum output at the display.
-        diff_diff = (
-            RGB_luminance_target_diff[..., RGB_luminance_target_diff > 1.0] - 1.0
-        ).reshape((-1, 1))
+        # diff_diff = (
+        #     RGB_luminance_target_diff[..., RGB_luminance_target_diff > 1.0] - 1.0
+        # ).reshape((-1, 1))
 
-        over_difference = np.clip(
-            RGB_luminance_target_diff[np.any(RGB_luminance_target_diff > 1.0, axis=-1)]
-            - 1.0,
-            0.0,
-            None,
-        )
+        # over_difference = np.clip(
+        #     RGB_luminance_target_diff[np.any(RGB_luminance_target_diff > 1.0, axis=-1)]
+        #     - 1.0,
+        #     0.0,
+        #     None,
+        # )
 
-        over_difference_luminance = self.derive_luminance(over_difference)
+        # over_difference_luminance = self.derive_luminance(RGB_luminance_target_diff)
+        # print("over_difference shape({})".format(over_difference_luminance.shape))
 
-        RGB_luminance_target_diff[
-            np.any(RGB_luminance_target_diff > 1.0, axis=-1)
-        ] += over_difference_luminance
+        # print("over sample ({})".format(over_difference_luminance[0, 0, :]))
 
-        output_RGBs = RGB_luminance_target_diff
+        # print("np.any shape({})".format(RGB_luminance_target_diff[
+        #     np.any(RGB_luminance_target_diff > 1.0, axis=-1)
+        # ].shape))
+        # RGB_luminance_target_diff[
+        #     np.any(RGB_luminance_target_diff > 1.0, axis=-1)
+        # ] += over_difference_luminance
+
+        luminance_diff = self.calculate_luminance(RGB_target_diff.copy() - 1.0)
+
+        RGB_target_diff += np.clip(luminance_diff - 1.0, 0.0, None)
+
+        # print("Max of luminance_diff {}".format(np.amax(luminance_diff)))
+        # print("Min of luminance_diff {}\n".format(np.amin(luminance_diff)))
+
+        output_RGBs = RGB_target_diff
 
         if gamut_clip is True:
             output_RGBs[
@@ -598,7 +645,7 @@ def application_image_formation_01():
             img_map_luminance_final,
             clamp=[0.0, 1.0],
             use_column_width=True,
-            caption="Luminance Mapped from Luminance",
+            caption="Closed Domain Luminance Mapped from Open Domain Luminance",
         )
 
     with image_region_1_2:
