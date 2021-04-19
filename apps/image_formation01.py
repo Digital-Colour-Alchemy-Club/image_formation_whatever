@@ -344,6 +344,40 @@ class generic_aesthetic_transfer_function(AbstractLUTSequenceOperator):
 
         return output_RGBs
 
+    def channel_clip_render(self, RGB, gamut_clip=False, gamut_clip_alert=False):
+        maximum_RGBs = np.amax(RGB, axis=-1, keepdims=True)
+
+        # Out of gamut prism values will be negative after this operation.
+        chroma_normalized = np.ma.divide(RGB, maximum_RGBs).filled(fill_value=0.0)
+
+        # Abs result to properly sum luminance for values that are outside
+        # of the gamut prism.
+        luminance_RGBs = self.calculate_luminance(RGB)
+
+        # curve_evaluation = self.evaluate(maximum_RGBs)
+        luminance_curve_evaluation = self.evaluate(luminance_RGBs)
+
+        # Calculate normalized chroma maximal luminance.
+        luminance_chroma_normalized = self.calculate_luminance(chroma_normalized)
+
+        # Calculate how much intensity scaling is required to scale the values
+        # to the proper luminance for output.
+        luminance_scalar = np.ma.divide(
+            luminance_curve_evaluation, luminance_chroma_normalized
+        ).filled(fill_value=0.0)
+
+        # Scale the RGBs such that they match the output luminance.
+        target_RGBs = luminance_scalar * chroma_normalized
+
+        target_gamut_clip_masked = np.ma.masked_greater(target_RGBs, 1.0)
+
+        # Set all values that aren't masked to zero
+        target_gamut_clip_masked[~target_gamut_clip_masked.mask] = 0.0
+
+        output_RGBs = target_gamut_clip_masked.filled(fill_value=1.0)
+
+        return output_RGBs
+
     def apply_per_channel(self, RGBs, gamut_clip=False, gamut_clip_alert=False):
         gamut_clipped_above = np.where(RGBs >= self._radiometric_maximum)
         input_RGBs = np.abs(RGBs)
@@ -605,7 +639,7 @@ def application_image_formation_01():
 
     img = reduced_image
 
-    img_max_RGB = LUT.apply_maxRGB(
+    img_max_RGB = LUT.channel_clip_render(
         video_buffer(img, exposure_adjustment),
         True,
         False,
@@ -638,14 +672,14 @@ def application_image_formation_01():
             img_max_RGB_final,
             clamp=[0.0, 1.0],
             use_column_width=True,
-            caption="Chroma",
+            caption="Reconstructed Closed Domain Clipped Values",
         )
 
         streamlit.image(
             img_map_luminance_final,
             clamp=[0.0, 1.0],
             use_column_width=True,
-            caption="Closed Domain Luminance Mapped from Open Domain Luminance",
+            caption="Open Domain Luminance Mapped to Closed Domain",
         )
 
     with image_region_1_2:
@@ -653,7 +687,7 @@ def application_image_formation_01():
             img_luminance_final,
             clamp=[0.0, 1.0],
             use_column_width=True,
-            caption="Luminance from Radiometric-like Closed Domain Calculation",
+            caption="Luminance from Traditionl Closed Domain Calculation",
         )
 
         streamlit.image(
