@@ -758,7 +758,8 @@ def application_image_formation_01():
             img_DEVILS_render_final,
             clamp=[0.0, 1.0],
             use_column_width=True,
-            caption="DEVILS 2021 Render / Siragusano Smith 2021 "
-            "(Directed Exposure Value Invariant Luminance Scaling) / "
-            "Gamut Prism Compression Forthcoming",
+            caption="Directed Exposure Value Invariant Luminance Scaling - "
+            "Sobotka 2021 / Siragusano Aesthetic Transfer "
+            "Function, with Smith Additions 2021 / "
+            "Exposure Invariant Gamut Prism Compression Forthcoming",
         )
