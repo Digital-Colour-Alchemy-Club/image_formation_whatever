@@ -110,7 +110,15 @@ class generic_aesthetic_transfer_function(AbstractLUTSequenceOperator):
         return np.asarray(y)
 
     def calculate_luminance(self, RGB_input):
-        return np.dot(np.abs(RGB_input), LUMINANCE_WEIGHTS_BT709)
+        return np.ma.dot(RGB_input, LUMINANCE_WEIGHTS_BT709)
+
+    def calculate_maximal_chroma(self, RGB_input):
+        return np.ma.divide(
+            RGB_input, np.ma.amax(RGB_input, keepdims=True, axis=-1)
+        ).filled(fill_value=0.0)
+
+    def compare_RGB(self, RGB_input_A, RGB_input_B):
+        return np.ma.all(np.isclose(RGB_input_A, RGB_input_B), axis=-1)
 
     def evaluate_siragusano2021(self, x):
         input_domain_scale = (
@@ -343,6 +351,62 @@ class generic_aesthetic_transfer_function(AbstractLUTSequenceOperator):
             ]
 
         return output_RGBs
+
+    def DEVILs_adjust_luminance(self, RGB_input, luminance_output):
+        # Calculate the maximal chroma expressible at the display for the incoming
+        # RGB triplet.
+        maximal_chroma = self.calculate_maximal_chroma(RGB_input)
+        # print("maximal_chroma:\n{}".format(maximal_chroma))
+
+        # Calculate the luminance of the maximal chroma expressible at the display.
+        maximal_chroma_luminance = self.calculate_luminance(maximal_chroma)
+        # print("maximal_chroma_luminance:\n{}".format(maximal_chroma_luminance))
+
+        # Calculate luminance reserves of inverse maximal chroma.
+        maximal_reserves = 1.0 - maximal_chroma
+        # print("maximal_reserves:\n{}".format(maximal_reserves))
+
+        # Calculate the luminance of the maximal reserves.
+        maximal_reserves_luminance = self.calculate_luminance(maximal_reserves)
+        # print("maximal_reserves_luminance:\n{}".format(maximal_reserves_luminance))
+
+        # Calculate the difference between the desired output luminance and
+        # the maximally chrominant luminance.
+        luminance_difference = np.clip(
+            luminance_output - maximal_chroma_luminance, 0.0, None
+        )
+        # print("luminance_difference:\n{}".format(luminance_difference))
+
+        luminance_difference_scalar = np.ma.divide(
+            luminance_difference, maximal_reserves_luminance
+        ).filled(0.0)
+        # print("luminance_difference_scalar:\n{}".format(luminance_difference_scalar))
+
+        chroma_scalar = np.ma.divide(
+            luminance_output - luminance_difference, maximal_chroma_luminance
+        ).filled(0.0)
+        # print("chroma_scalar:\n{}".format(chroma_scalar))
+
+        reserves_compliment = luminance_difference_scalar * maximal_reserves
+        # print("reserves_compliment:\n{}".format(reserves_compliment))
+
+        chroma_scaled = chroma_scalar * maximal_chroma
+        # print("chroma_scaled:\n{}".format(chroma_scaled))
+
+        # (RGB * scale) + ((1.0 - scale) * luminance)
+        return chroma_scaled + reserves_compliment
+
+    def DEVILs_render(self, RGB, gamut_clip=False, gamut_clip_alert=False):
+        # Abs result to properly sum luminance for values that are outside
+        # of the gamut prism.
+        luminance_RGBs = self.calculate_luminance(RGB)
+
+        # curve_evaluation = self.evaluate(maximum_RGBs)
+        luminance_curve_evaluation = self.evaluate(luminance_RGBs)
+
+        return self.DEVILs_adjust_luminance(
+            np.clip(RGB, 0.0, None), luminance_curve_evaluation
+        )
 
     def channel_clip_render(self, RGB, gamut_clip=False, gamut_clip_alert=False):
         maximum_RGBs = np.amax(RGB, axis=-1, keepdims=True)
@@ -660,12 +724,12 @@ def application_image_formation_01():
     )
     img_map_luminance_final = apply_inverse_EOTF(img_map_luminance, EOTF)
 
-    img_diff_map = LUT.luminance_difference(
+    img_DEVILs_render = LUT.DEVILs_render(
         video_buffer(img, exposure_adjustment),
         False,
         False,
     )
-    img_diff_map_final = apply_inverse_EOTF(img_diff_map, EOTF)
+    img_DEVILs_render_final = apply_inverse_EOTF(img_DEVILs_render, EOTF)
 
     with image_region_1_1:
         streamlit.image(
@@ -691,8 +755,8 @@ def application_image_formation_01():
         )
 
         streamlit.image(
-            img_diff_map_final,
+            img_DEVILs_render_final,
             clamp=[0.0, 1.0],
             use_column_width=True,
-            caption="Luminance Difference from Maximal Chrominance at Output",
+            caption="DEVILs 2021 Render",
         )
