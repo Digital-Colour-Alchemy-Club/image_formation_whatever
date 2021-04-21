@@ -571,7 +571,7 @@ def application_image_formation_01():
             key="Maximum EV Above Middle Grey",
             min_value=1.0,
             max_value=15.0,
-            value=6.0,
+            value=10.0,
             step=0.25,
         )
 
@@ -758,7 +758,7 @@ def application_image_formation_01():
             img_DEVILS_render_final,
             clamp=[0.0, 1.0],
             use_column_width=True,
-            caption="Directed Exposure Value Invariant Luminance Scaling - "
+            caption="Exposure Value Invariant Luminance Scaling - "
             "Sobotka 2021 / Siragusano Aesthetic Transfer "
             "Function, with Smith Additions 2021 / "
             "Exposure Invariant Gamut Prism Compression Forthcoming",
