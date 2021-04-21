@@ -352,7 +352,7 @@ class generic_aesthetic_transfer_function(AbstractLUTSequenceOperator):
 
         return output_RGBs
 
-    def DEVILs_adjust_luminance(self, RGB_input, luminance_output):
+    def DEVILS_adjust_luminance(self, RGB_input, luminance_output):
         # Calculate the maximal chroma expressible at the display for the incoming
         # RGB triplet.
         maximal_chroma = self.calculate_maximal_chroma(RGB_input)
@@ -396,7 +396,7 @@ class generic_aesthetic_transfer_function(AbstractLUTSequenceOperator):
         # (RGB * scale) + ((1.0 - scale) * luminance)
         return chroma_scaled + reserves_compliment
 
-    def DEVILs_render(self, RGB, gamut_clip=False, gamut_clip_alert=False):
+    def DEVILS_render(self, RGB, gamut_clip=False, gamut_clip_alert=False):
         # Abs result to properly sum luminance for values that are outside
         # of the gamut prism.
         luminance_RGBs = self.calculate_luminance(RGB)
@@ -404,7 +404,7 @@ class generic_aesthetic_transfer_function(AbstractLUTSequenceOperator):
         # curve_evaluation = self.evaluate(maximum_RGBs)
         luminance_curve_evaluation = self.evaluate(luminance_RGBs)
 
-        return self.DEVILs_adjust_luminance(
+        return self.DEVILS_adjust_luminance(
             np.clip(RGB, 0.0, None), luminance_curve_evaluation
         )
 
@@ -724,12 +724,12 @@ def application_image_formation_01():
     )
     img_map_luminance_final = apply_inverse_EOTF(img_map_luminance, EOTF)
 
-    img_DEVILs_render = LUT.DEVILs_render(
+    img_DEVILS_render = LUT.DEVILS_render(
         video_buffer(img, exposure_adjustment),
         False,
         False,
     )
-    img_DEVILs_render_final = apply_inverse_EOTF(img_DEVILs_render, EOTF)
+    img_DEVILS_render_final = apply_inverse_EOTF(img_DEVILS_render, EOTF)
 
     with image_region_1_1:
         streamlit.image(
@@ -755,8 +755,10 @@ def application_image_formation_01():
         )
 
         streamlit.image(
-            img_DEVILs_render_final,
+            img_DEVILS_render_final,
             clamp=[0.0, 1.0],
             use_column_width=True,
-            caption="DEVILs 2021 Render",
+            caption="DEVILS 2021 Render / Siragusano Smith 2021 "
+            "(Directed Exposure Value Invariant Luminance Scaling) / "
+            "Gamut Prism Compression Forthcoming",
         )
