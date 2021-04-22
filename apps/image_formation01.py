@@ -20,22 +20,20 @@ class generic_aesthetic_transfer_function(AbstractLUTSequenceOperator):
     def __init__(
         self,
         contrast=1.0,
-        shoulder_contrast=1.0,
         middle_grey_in=0.18,
         middle_grey_out=0.18,
         ev_above_middle_grey=4.0,
-        global_weights=LUMINANCE_WEIGHTS_BT709,
+        luminance_weights=LUMINANCE_WEIGHTS_BT709,
     ):
         self._linear = None
         self.set_transfer_details(
             contrast,
-            shoulder_contrast,
             middle_grey_in,
             middle_grey_out,
             ev_above_middle_grey,
         )
         self.calculate_LUT()
-        self._global_weights = global_weights
+        self._luminance_weights = luminance_weights
 
     @property
     def ev_above_middle_grey(self):
@@ -52,70 +50,22 @@ class generic_aesthetic_transfer_function(AbstractLUTSequenceOperator):
     def set_transfer_details(
         self,
         contrast,
-        shoulder_contrast,
         middle_grey_in,
         middle_grey_out,
         ev_above_middle_grey,
     ):
         self._contrast = contrast
-        self._shoulder_contrast = shoulder_contrast
         self._middle_grey_in = middle_grey_in
         self._middle_grey_out = middle_grey_out
         self.ev_above_middle_grey = ev_above_middle_grey
 
-        self._shoulder_multiplied = self._contrast * self._shoulder_contrast
-
-        middle_grey_contrast = pow(self._middle_grey_in, self._contrast)
-
-        middle_grey_shoulder_contrast = pow(
-            self._middle_grey_in, self._shoulder_multiplied
-        )
-
-        radiometric_contrast = pow(self._radiometric_maximum, self._contrast)
-
-        radiometric_multiplied_contrast = pow(
-            self._radiometric_maximum, self._shoulder_multiplied
-        )
-
-        u = (
-            radiometric_multiplied_contrast * self._middle_grey_out
-            - middle_grey_shoulder_contrast * self._middle_grey_out
-        )
-        v = middle_grey_shoulder_contrast * self._middle_grey_out
-
-        self.b = -(
-            (
-                -middle_grey_contrast
-                + (
-                    self._middle_grey_out
-                    * (
-                        radiometric_multiplied_contrast * middle_grey_contrast
-                        - radiometric_contrast * v
-                    )
-                )
-                / u
-            )
-            / v
-        )
-        self.c = (
-            radiometric_multiplied_contrast * middle_grey_contrast
-            - radiometric_contrast * v
-        ) / u
-
         self.calculate_LUT()
-
-    def evaluate(self, x):
-        x = np.minimum(self._radiometric_maximum, x)
-        z = np.ma.power(x, self._contrast).filled(fill_value=0.0)
-        y = z / (np.power(z, self._shoulder_contrast) * self.b + self.c)
-
-        return np.asarray(y)
 
     def calculate_luminance(
         self,
         RGB_input,
     ):
-        return np.ma.dot(RGB_input, self._global_weights)
+        return np.ma.dot(RGB_input, self._luminance_weights)
 
     def calculate_maximal_chroma(self, RGB_input):
         return np.ma.divide(
@@ -129,12 +79,12 @@ class generic_aesthetic_transfer_function(AbstractLUTSequenceOperator):
         return start + ((stop - start) * ratio)
 
     def adjust_weights(self, bias, entry_weights=LUMINANCE_WEIGHTS_BT709):
-        self._global_weights = self.calculate_ratio(
+        self._luminance_weights = self.calculate_ratio(
             entry_weights, [1.0 / 3.0, 1.0 / 3.0, 1.0 / 3.0], bias
         )
-        return self._global_weights
+        return self._luminance_weights
 
-    def evaluate_siragusano2021(self, x):
+    def evaluate(self, x):
         input_domain_scale = (
             (self._radiometric_maximum * self._middle_grey_in)
             * (self._middle_grey_out ** (1.0 / self._contrast) - 1.0)
@@ -155,78 +105,15 @@ class generic_aesthetic_transfer_function(AbstractLUTSequenceOperator):
 
     def calculate_LUT(self, LUT_size=1024):
         self._LUT = colour.LUT1D(
-            table=self.evaluate_siragusano2021(
-                np.linspace(0.0, self._radiometric_maximum, LUT_size)
-            ),
+            table=self.evaluate(np.linspace(0.0, self._radiometric_maximum, LUT_size)),
             name="Siragusano Smith 2021",
             domain=[0.0, self._radiometric_maximum + 0.005],
         )
         self._LUT_size = LUT_size
         self._linear = np.linspace(0.0, self._radiometric_maximum, self._LUT_size)
 
-    def apply(self, RGB, per_channel=False, **kwargs):
-        if per_channel:
-            return self.apply_per_channel(RGB, **kwargs)
-        else:
-            return self.apply_maxRGB(RGB, **kwargs)
-
-    def apply_maxRGB(self, RGB, gamut_clip=False, gamut_clip_alert=False):
-        gamut_clipped_above = np.where(RGB >= self._radiometric_maximum)
-
-        maximum_RGBs = np.amax(RGB, axis=2, keepdims=True)
-        ratios = np.ma.divide(RGB, maximum_RGBs).filled(fill_value=0.0)
-
-        curve_evaluation = self.evaluate(maximum_RGBs)
-
-        output_RGBs = curve_evaluation * ratios
-
-        if gamut_clip is True:
-            output_RGBs[
-                gamut_clipped_above[0], gamut_clipped_above[1], :
-            ] = self._LUT.table[-1]
-
-        if gamut_clip_alert is True:
-            output_RGBs[gamut_clipped_above[0], gamut_clipped_above[1], :] = [
-                1.0,
-                0.0,
-                0.0,
-            ]
-
-        return output_RGBs
-
-    def derive_luminance(self, RGB, gamut_clip=False, gamut_clip_alert=False):
-        gamut_clipped_above = np.where(RGB >= self._radiometric_maximum)
-
-        interpolator = colour.LinearInterpolator(
-            self._linear,
-            self._LUT.table,
-        )
-
-        extrapolator = colour.Extrapolator(interpolator)
-
-        maximum_RGBs = np.amax(RGB, axis=-1, keepdims=True)
-        ratios = np.ma.divide(RGB, maximum_RGBs).filled(fill_value=0.0)
-
-        luminance_RGBs = self.calculate_luminance(np.abs(ratios))
-
-        # curve_evaluation = self.evaluate(maximum_RGBs)
-        curve_evaluation = extrapolator(maximum_RGBs)
-
-        output_RGBs = curve_evaluation * luminance_RGBs
-
-        if gamut_clip is True:
-            output_RGBs[
-                gamut_clipped_above[0], gamut_clipped_above[1], :
-            ] = self._LUT.table[-1]
-
-        if gamut_clip_alert is True:
-            output_RGBs[gamut_clipped_above[0], gamut_clipped_above[1], :] = [
-                1.0,
-                0.0,
-                0.0,
-            ]
-
-        return output_RGBs
+    def apply(self, RGB, **kwargs):
+        return self.EVILS_render(RGB, **kwargs)
 
     def luminance_mapping(self, RGB, gamut_clip=False, gamut_clip_alert=False):
         gamut_clipped_above = np.where(RGB >= self._radiometric_maximum)
@@ -237,148 +124,42 @@ class generic_aesthetic_transfer_function(AbstractLUTSequenceOperator):
 
         output_RGBs = curve_evaluation
 
-        if gamut_clip is True:
-            output_RGBs[
-                gamut_clipped_above[0], gamut_clipped_above[1], :
-            ] = self._LUT.table[-1]
-
-        if gamut_clip_alert is True:
-            output_RGBs[gamut_clipped_above[0], gamut_clipped_above[1], :] = [
-                1.0,
-                0.0,
-                0.0,
-            ]
-
         return output_RGBs
 
-    def luminance_difference(self, RGB, gamut_clip=False, gamut_clip_alert=False):
-        gamut_clipped_above = np.where(RGB >= self._radiometric_maximum)
-
-        maximum_RGBs = np.amax(RGB, axis=-1, keepdims=True)
-
-        # Out of gamut prism values will be negative after this operation.
-        chroma_normalized = np.ma.divide(RGB, maximum_RGBs).filled(fill_value=0.0)
-
-        # print("****** RUN ******")
-        # print("Max of chroma_normalized {}".format(np.amax(chroma_normalized)))
-        # print("Min of chroma_normalized {}\n".format(np.amin(chroma_normalized)))
-
-        # Abs result to properly sum luminance for values that are outside
-        # of the gamut prism.
-        luminance_RGBs = self.calculate_luminance(RGB)
-
-        # print("Max of luminance_RGBs {}".format(np.amax(luminance_RGBs)))
-        # print("Min of luminance_RGBs {}\n".format(np.amin(luminance_RGBs)))
-
-        # curve_evaluation = self.evaluate(maximum_RGBs)
-        luminance_curve_evaluation = self.evaluate(luminance_RGBs)
-
-        # print("Max of the luminance_curve {}".format(np.amax(luminance_curve_evaluation)))
-        # print("Min of the luminance_curve {}\n".format(np.amin(luminance_curve_evaluation)))
-
-        # Calculate normalized chroma maximal luminance.
-        luminance_chroma_normalized = self.calculate_luminance(chroma_normalized)
-
-        # print("Max of luminance_chroma_normalized {}".format(np.amax(luminance_chroma_normalized)))
-        # print("Min of luminance_chroma_normalized {}\n".format(np.amin(luminance_chroma_normalized)))
-
-        # Calculate how much intensity scaling is required to scale the values
-        # to the proper luminance for output.
-        luminance_scalar = np.ma.divide(
-            luminance_curve_evaluation, luminance_chroma_normalized
-        ).filled(fill_value=0.0)
-
-        # print("Max of the luminance_scalar {}".format(np.amax(luminance_scalar)))
-        # print("Min of the luminance_scalar {}\n".format(np.amin(luminance_scalar)))
-
-        # Scale the RGBs such that they match the output luminance.
-        target_RGBs = luminance_scalar * chroma_normalized
-
-        # print("Max of target_RGBs {}".format(np.amax(target_RGBs)))
-        # print("Min of target_RGBs {}\n".format(np.amin(target_RGBs)))
-
-        # Here we subtract the theoretical RGB mixtures from the maximal
-        # mixtures capable at the display. If the value is negative, the
-        # mixture is expressible at the display. If the value is postive,
-        # the mixture is beyond the gamut volume. Clip the normalized chroma
-        # to avoid gamut prism contribution. Clip and retain only the positive
-        # portion.
-        RGB_target_diff = np.abs(
-            np.clip(
-                np.clip(target_RGBs, 0.0, None) - np.clip(chroma_normalized, 0.0, None),
-                0.0,
-                None,
-            )
-        )
-
-        luminance_diff = self.calculate_luminance(RGB_target_diff.copy() - 1.0)
-
-        RGB_target_diff += np.clip(luminance_diff - 1.0, 0.0, None)
-
-        # print("Max of luminance_diff {}".format(np.amax(luminance_diff)))
-        # print("Min of luminance_diff {}\n".format(np.amin(luminance_diff)))
-
-        output_RGBs = RGB_target_diff
-
-        if gamut_clip is True:
-            output_RGBs[
-                gamut_clipped_above[0], gamut_clipped_above[1], :
-            ] = self._LUT.table[-1]
-
-        if gamut_clip_alert is True:
-            output_RGBs[gamut_clipped_above[0], gamut_clipped_above[1], :] = [
-                1.0,
-                0.0,
-                0.0,
-            ]
-
-        return output_RGBs
-
-    def DEVILS_adjust_luminance(self, RGB_input, luminance_output):
+    def EVILS_calculate_RGB_from_luminance(self, RGB_input, luminance_output):
         # Calculate the maximal chroma expressible at the display for the incoming
         # RGB triplet.
         maximal_chroma = self.calculate_maximal_chroma(RGB_input)
-        # print("maximal_chroma:\n{}".format(maximal_chroma))
 
         # Calculate the luminance of the maximal chroma expressible at the display.
         maximal_chroma_luminance = self.calculate_luminance(maximal_chroma)
-        # print("maximal_chroma_luminance:\n{}".format(maximal_chroma_luminance))
 
         # Calculate luminance reserves of inverse maximal chroma.
         maximal_reserves = 1.0 - maximal_chroma
-        # print("maximal_reserves:\n{}".format(maximal_reserves))
 
         # Calculate the luminance of the maximal reserves.
         maximal_reserves_luminance = self.calculate_luminance(maximal_reserves)
-        # print("maximal_reserves_luminance:\n{}".format(maximal_reserves_luminance))
 
         # Calculate the difference between the desired output luminance and
         # the maximally chrominant luminance.
         luminance_difference = np.clip(
             luminance_output - maximal_chroma_luminance, 0.0, None
         )
-        # print("luminance_difference:\n{}".format(luminance_difference))
 
         luminance_difference_scalar = np.ma.divide(
             luminance_difference, maximal_reserves_luminance
         ).filled(0.0)
-        # print("luminance_difference_scalar:\n{}".format(luminance_difference_scalar))
 
         chroma_scalar = np.ma.divide(
             luminance_output - luminance_difference, maximal_chroma_luminance
         ).filled(0.0)
-        # print("chroma_scalar:\n{}".format(chroma_scalar))
 
         reserves_compliment = luminance_difference_scalar * maximal_reserves
-        # print("reserves_compliment:\n{}".format(reserves_compliment))
 
         chroma_scaled = chroma_scalar * maximal_chroma
-        # print("chroma_scaled:\n{}".format(chroma_scaled))
-
-        # (RGB * scale) + ((1.0 - scale) * luminance)
         return chroma_scaled + reserves_compliment
 
-    def DEVILS_render(self, RGB, gamut_clip=False, gamut_clip_alert=False):
+    def EVILS_render(self, RGB, gamut_clip=False, gamut_clip_alert=False):
         # Abs result to properly sum luminance for values that are outside
         # of the gamut prism.
         luminance_RGBs = self.calculate_luminance(RGB)
@@ -386,7 +167,7 @@ class generic_aesthetic_transfer_function(AbstractLUTSequenceOperator):
         # curve_evaluation = self.evaluate(maximum_RGBs)
         luminance_curve_evaluation = self.evaluate(luminance_RGBs)
 
-        return self.DEVILS_adjust_luminance(
+        return self.EVILS_calculate_RGB_from_luminance(
             np.clip(RGB, 0.0, None), luminance_curve_evaluation
         )
 
@@ -421,27 +202,6 @@ class generic_aesthetic_transfer_function(AbstractLUTSequenceOperator):
         target_gamut_clip_masked[~target_gamut_clip_masked.mask] = 0.0
 
         output_RGBs = target_gamut_clip_masked.filled(fill_value=1.0)
-
-        return output_RGBs
-
-    def apply_per_channel(self, RGBs, gamut_clip=False, gamut_clip_alert=False):
-        gamut_clipped_above = np.where(RGBs >= self._radiometric_maximum)
-        input_RGBs = np.abs(RGBs)
-        evaluate_RGBs = self.evaluate(input_RGBs)
-
-        # Restore negatives that the curve removed the sign from.
-        output_RGBs = np.negative(evaluate_RGBs, where=(RGBs < 0.0), out=evaluate_RGBs)
-
-        if gamut_clip is True:
-            output_RGBs[
-                gamut_clipped_above[0], gamut_clipped_above[1], :
-            ] = self._LUT.table[-1]
-        if gamut_clip_alert is True:
-            output_RGBs[gamut_clipped_above[0], gamut_clipped_above[1], :] = [
-                1.0,
-                0.0,
-                0.0,
-            ]
 
         return output_RGBs
 
@@ -495,24 +255,6 @@ def application_image_formation_01():
             value=1.20,
             step=0.01,
         )
-
-        bias_weights_help = streamlit.beta_expander("Bias Luminance Weights")
-        with bias_weights_help:
-            streamlit.text_area(
-                label="",
-                key="Bias Luminance Weights Help",
-                value="Percentage to bias the luminance weights toward their "
-                "mean. A small bias can help to address some psychophysical "
-                "effects such as the Helmholtz-Kohlrausch effect.",
-            )
-            bias_weights = streamlit.slider(
-                label="",
-                key="Bias Weights",
-                min_value=0.0,
-                max_value=1.0,
-                value=0.0,
-                step=0.01,
-            )
 
     region_1_1, region_1_2, region_1_3 = streamlit.beta_columns((2, 5, 2))
     image_region_1_1, image_region_1_2 = streamlit.beta_columns(2)
@@ -575,33 +317,27 @@ def application_image_formation_01():
             step=0.25,
         )
 
-        # Removed Shoulder Contrast, as this has no equivalent parameter
-        # under Siragusano Smith 2021. Can re-add it if selectable curve
-        # formations are provided.
-        #
-        # shoulder_contrast_help = streamlit.beta_expander("Shoulder Contrast")
-        # with shoulder_contrast_help:
-        #     streamlit.text_area(
-        #         label="",
-        #         key="Shoulder Contrast Help",
-        #         value="Shoulder contrast value. This value is an abstract value "
-        #         "based on the formula used for the asethetic transfer function. "
-        #         "It will control the tension of the curved portion near the "
-        #         "maximum display emission.",
-        #     )
-        # shoulder_contrast = streamlit.slider(
-        #     label="",
-        #     key="Shoulder Contrast",
-        #     min_value=0.61,
-        #     max_value=1.00,
-        #     value=0.85,
-        #     step=0.01,
-        # )
+        bias_weights_help = streamlit.beta_expander("Bias Luminance Weights")
+        with bias_weights_help:
+            streamlit.text_area(
+                label="",
+                key="Bias Luminance Weights Help",
+                value="Percentage to bias the luminance weights toward their "
+                "mean. A small bias can help to address some psychophysical "
+                "effects such as the Helmholtz-Kohlrausch effect.",
+            )
+            bias_weights = streamlit.slider(
+                label="",
+                key="Bias Weights",
+                min_value=0.0,
+                max_value=1.0,
+                value=0.0,
+                step=0.01,
+            )
 
     LUT = generic_aesthetic_transfer_function()
     LUT.set_transfer_details(
         contrast=contrast,
-        shoulder_contrast=1.0,
         middle_grey_in=middle_grey_input,
         middle_grey_out=middle_grey_output,
         ev_above_middle_grey=maximum_ev,
@@ -705,19 +441,12 @@ def application_image_formation_01():
 
     img = reduced_image
 
-    img_max_RGB = LUT.channel_clip_render(
+    img_clipped_chroma = LUT.channel_clip_render(
         video_buffer(img, exposure_adjustment),
         True,
         False,
     )
-    img_max_RGB_final = apply_inverse_EOTF(img_max_RGB, EOTF)
-
-    img_luminance = LUT.derive_luminance(
-        video_buffer(img, exposure_adjustment),
-        False,
-        False,
-    )
-    img_luminance_final = apply_inverse_EOTF(img_luminance, EOTF)
+    img_clipped_chroma_final = apply_inverse_EOTF(img_clipped_chroma, EOTF)
 
     img_map_luminance = LUT.luminance_mapping(
         video_buffer(img, exposure_adjustment),
@@ -726,38 +455,30 @@ def application_image_formation_01():
     )
     img_map_luminance_final = apply_inverse_EOTF(img_map_luminance, EOTF)
 
-    img_DEVILS_render = LUT.DEVILS_render(
+    img_DEVILS_render = LUT.EVILS_render(
         video_buffer(img, exposure_adjustment),
         False,
         False,
     )
-    img_DEVILS_render_final = apply_inverse_EOTF(img_DEVILS_render, EOTF)
+    img_EVILS_render_final = apply_inverse_EOTF(img_DEVILS_render, EOTF)
 
     with image_region_1_1:
-        streamlit.image(
-            img_max_RGB_final,
-            clamp=[0.0, 1.0],
-            use_column_width=True,
-            caption="Reconstructed Closed Domain Clipped Values",
-        )
-
         streamlit.image(
             img_map_luminance_final,
             clamp=[0.0, 1.0],
             use_column_width=True,
             caption="Open Domain Luminance Mapped to Closed Domain",
         )
+        streamlit.image(
+            img_clipped_chroma_final,
+            clamp=[0.0, 1.0],
+            use_column_width=True,
+            caption="Reconstructed Closed Domain RGB Clipped Values",
+        )
 
     with image_region_1_2:
         streamlit.image(
-            img_luminance_final,
-            clamp=[0.0, 1.0],
-            use_column_width=True,
-            caption="Luminance from Traditionl Closed Domain Calculation",
-        )
-
-        streamlit.image(
-            img_DEVILS_render_final,
+            img_EVILS_render_final,
             clamp=[0.0, 1.0],
             use_column_width=True,
             caption="Exposure Value Invariant Luminance Scaling - "
