@@ -24,6 +24,7 @@ class generic_aesthetic_transfer_function(AbstractLUTSequenceOperator):
         middle_grey_in=0.18,
         middle_grey_out=0.18,
         ev_above_middle_grey=4.0,
+        global_weights=LUMINANCE_WEIGHTS_BT709,
     ):
         self._linear = None
         self.set_transfer_details(
@@ -34,6 +35,7 @@ class generic_aesthetic_transfer_function(AbstractLUTSequenceOperator):
             ev_above_middle_grey,
         )
         self.calculate_LUT()
+        self._global_weights = global_weights
 
     @property
     def ev_above_middle_grey(self):
@@ -109,8 +111,11 @@ class generic_aesthetic_transfer_function(AbstractLUTSequenceOperator):
 
         return np.asarray(y)
 
-    def calculate_luminance(self, RGB_input):
-        return np.ma.dot(RGB_input, LUMINANCE_WEIGHTS_BT709)
+    def calculate_luminance(
+        self,
+        RGB_input,
+    ):
+        return np.ma.dot(RGB_input, self._global_weights)
 
     def calculate_maximal_chroma(self, RGB_input):
         return np.ma.divide(
@@ -119,6 +124,15 @@ class generic_aesthetic_transfer_function(AbstractLUTSequenceOperator):
 
     def compare_RGB(self, RGB_input_A, RGB_input_B):
         return np.ma.all(np.isclose(RGB_input_A, RGB_input_B), axis=-1)
+
+    def calculate_ratio(self, start, stop, ratio):
+        return start + ((stop - start) * ratio)
+
+    def adjust_weights(self, bias, entry_weights=LUMINANCE_WEIGHTS_BT709):
+        self._global_weights = self.calculate_ratio(
+            entry_weights, [1.0 / 3.0, 1.0 / 3.0, 1.0 / 3.0], bias
+        )
+        return self._global_weights
 
     def evaluate_siragusano2021(self, x):
         input_domain_scale = (
@@ -296,38 +310,6 @@ class generic_aesthetic_transfer_function(AbstractLUTSequenceOperator):
                 None,
             )
         )
-
-        # print("Max of RGB_target_diff {}".format(np.amax(RGB_target_diff)))
-        # print("Min of RGB_target_diff {}\n".format(np.amin(RGB_target_diff)))
-
-        # Any negative values are outside of the gamut volume.
-        # RGB_luminance_target_diff[RGB_luminance_target_diff < 0.0] = 0.0
-
-        # Try to give an idea of how much out of whack the values are by
-        # adding achromatic light to the difference view based on how
-        # much the difference exceeds the maximum output at the display.
-        # diff_diff = (
-        #     RGB_luminance_target_diff[..., RGB_luminance_target_diff > 1.0] - 1.0
-        # ).reshape((-1, 1))
-
-        # over_difference = np.clip(
-        #     RGB_luminance_target_diff[np.any(RGB_luminance_target_diff > 1.0, axis=-1)]
-        #     - 1.0,
-        #     0.0,
-        #     None,
-        # )
-
-        # over_difference_luminance = self.derive_luminance(RGB_luminance_target_diff)
-        # print("over_difference shape({})".format(over_difference_luminance.shape))
-
-        # print("over sample ({})".format(over_difference_luminance[0, 0, :]))
-
-        # print("np.any shape({})".format(RGB_luminance_target_diff[
-        #     np.any(RGB_luminance_target_diff > 1.0, axis=-1)
-        # ].shape))
-        # RGB_luminance_target_diff[
-        #     np.any(RGB_luminance_target_diff > 1.0, axis=-1)
-        # ] += over_difference_luminance
 
         luminance_diff = self.calculate_luminance(RGB_target_diff.copy() - 1.0)
 
@@ -514,6 +496,24 @@ def application_image_formation_01():
             step=0.01,
         )
 
+        bias_weights_help = streamlit.beta_expander("Bias Luminance Weights")
+        with bias_weights_help:
+            streamlit.text_area(
+                label="",
+                key="Bias Luminance Weights Help",
+                value="Percentage to bias the luminance weights toward their "
+                "mean. A small bias can help to address some psychophysical "
+                "effects such as the Helmholtz-Kohlrausch effect.",
+            )
+        bias_weights = streamlit.slider(
+            label="",
+            key="Bias Weights",
+            min_value=0.0,
+            max_value=1.0,
+            value=0.0,
+            step=0.01,
+        )
+
     region_1_1, region_1_2, region_1_3 = streamlit.beta_columns((2, 5, 2))
     image_region_1_1, image_region_1_2 = streamlit.beta_columns(2)
 
@@ -652,7 +652,7 @@ def application_image_formation_01():
 
     with region_1_3:
         EOTF_help = streamlit.beta_expander("Display Hardware EOTF")
-        with contrast_help:
+        with EOTF_help:
             streamlit.text_area(
                 label="",
                 key="EOTF Help",
@@ -691,6 +691,8 @@ def application_image_formation_01():
             value=3,
             step=1,
         )
+
+    global_weights = LUT.adjust_weights(bias_weights)
 
     if upload_image is None:
         default_image_path = helpers.get_dependency_local_path(default_image_path)
