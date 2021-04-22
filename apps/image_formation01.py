@@ -505,14 +505,14 @@ def application_image_formation_01():
                 "mean. A small bias can help to address some psychophysical "
                 "effects such as the Helmholtz-Kohlrausch effect.",
             )
-        bias_weights = streamlit.slider(
-            label="",
-            key="Bias Weights",
-            min_value=0.0,
-            max_value=1.0,
-            value=0.0,
-            step=0.01,
-        )
+            bias_weights = streamlit.slider(
+                label="",
+                key="Bias Weights",
+                min_value=0.0,
+                max_value=1.0,
+                value=0.0,
+                step=0.01,
+            )
 
     region_1_1, region_1_2, region_1_3 = streamlit.beta_columns((2, 5, 2))
     image_region_1_1, image_region_1_2 = streamlit.beta_columns(2)
