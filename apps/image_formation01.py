@@ -1,4 +1,5 @@
 import streamlit
+import altair
 import numpy as np
 import colour
 from colour.io.luts import AbstractLUTSequenceOperator
@@ -344,11 +345,22 @@ def application_image_formation_01():
     )
 
     with region_1_2:
-        plot_data = pandas.DataFrame(
-            {"Radiometric": LUT._linear, "Aesthetic Curve": LUT._LUT.table}
+        x_axis = "Open Domain (Log2 Scale)"
+        y_axis = "Closed Domain (Log2 Scale)"
+        plot_data = pandas.DataFrame({x_axis: LUT._linear, y_axis: LUT._LUT.table})
+        # plot_data = plot_data.set_index("Open Domain")
+        chart = (
+            altair.Chart(plot_data)
+            .transform_filter((altair.datum[x_axis] > 0) & (altair.datum[y_axis] > 0))
+            .mark_line()
+            .encode(
+                x=altair.X(x_axis + ":Q", scale=altair.Scale(type="log", base=2)),
+                y=altair.Y(y_axis + ":Q", scale=altair.Scale(type="log", base=2)),
+            )
         )
-        plot_data = plot_data.set_index("Radiometric")
-        streamlit.line_chart(data=plot_data, height=200)
+
+        streamlit.altair_chart(chart, use_container_width=True)
+        # streamlit.line_chart(data=plot_data, height=200)
 
         upload_image_help = streamlit.beta_expander("Upload Image")
         with upload_image_help:
