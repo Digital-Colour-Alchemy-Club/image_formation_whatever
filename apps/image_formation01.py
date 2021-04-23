@@ -318,23 +318,23 @@ def application_image_formation_01():
             step=0.25,
         )
 
-        bias_weights_help = streamlit.beta_expander("Bias Luminance Weights")
-        with bias_weights_help:
-            streamlit.text_area(
-                label="",
-                key="Bias Luminance Weights Help",
-                value="Percentage to bias the luminance weights toward their "
-                "mean. A small bias can help to address some psychophysical "
-                "effects such as the Helmholtz-Kohlrausch effect.",
-            )
-            bias_weights = streamlit.slider(
-                label="",
-                key="Bias Weights",
-                min_value=0.0,
-                max_value=1.0,
-                value=0.0,
-                step=0.01,
-            )
+        # bias_weights_help = streamlit.beta_expander("Bias Luminance Weights")
+        # with bias_weights_help:
+        #     streamlit.text_area(
+        #         label="",
+        #         key="Bias Luminance Weights Help",
+        #         value="Percentage to bias the luminance weights toward their "
+        #         "mean. A small bias can help to address some psychophysical "
+        #         "effects such as the Helmholtz-Kohlrausch effect.",
+        #     )
+        #     bias_weights = streamlit.slider(
+        #         label="",
+        #         key="Bias Weights",
+        #         min_value=0.0,
+        #         max_value=1.0,
+        #         value=0.0,
+        #         step=0.01,
+        #     )
 
     LUT = generic_aesthetic_transfer_function()
     LUT.set_transfer_details(
@@ -440,7 +440,7 @@ def application_image_formation_01():
             step=1,
         )
 
-    global_weights = LUT.adjust_weights(bias_weights)
+    # global_weights = LUT.adjust_weights(bias_weights)
 
     if upload_image is None:
         default_image_path = helpers.get_dependency_local_path(default_image_path)
