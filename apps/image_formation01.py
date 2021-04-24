@@ -313,7 +313,7 @@ def application_image_formation_01():
             label="",
             key="Maximum EV Above Middle Grey",
             min_value=1.0,
-            max_value=15.0,
+            max_value=25.0,
             value=10.0,
             step=0.25,
         )
