@@ -63,11 +63,17 @@ def application_image_formation_02():
                 "CLAW is the chroma adjustment tool for use with the EVILS "
                 "system. It can be used to perform gamut compression, as well "
                 "as intra-gamut compression to correct for the Helmholtz–"
-                "Kohlrausch effect. CLAW consists of two variables which "
-                "control the degree of compression and rate of compression. "
+                "Kohlrausch effect.\n\n"
+                "CLAW consists of three variables which control the maximum "
+                "chroma point, the ratio of compression of the maximum "
+                "chroma point, and exponent rate of compression.\n"
+                "For wildly out of gamut imagery, the maximum chroma should "
+                "be scaled downward.\n\n"
                 "Degree of compression is the percentage of maximum chroma to "
-                "compress the output down to. Rate of compression controls "
-                "the shape of the compression curve.",
+                "compress the output down to.\n\n"
+                "Rate of compression controls "
+                "the shape of the compression curve, with a higher value "
+                "corresponding to a less gradual and more agressive change",
             )
 
         CLAW_enable = streamlit.radio(
