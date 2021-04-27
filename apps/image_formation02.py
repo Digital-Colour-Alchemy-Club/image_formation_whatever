@@ -277,7 +277,7 @@ def application_image_formation_02():
 
     img = utilities.adjust_exposure(reduced_image, exposure_adjustment)
 
-    img_default = img
+    img_default = LUT.evaluate(np.clip(img, 0.0, None))
     img_default_final = utilities.apply_cctf_encoding(img_default, cctf_encoding)
 
     img_luminance_mapped = LUT.evaluate(
