@@ -122,8 +122,17 @@ def power_compression(
     return compressed_out
 
 
-def calculate_luminance(RGB_input, colourspace_name="sRGB"):
-    XYZ_matrix = colour.RGB_COLOURSPACES[colourspace_name].matrix_RGB_to_XYZ
+def calculate_luminance(RGB_input, colourspace_name="HK BT.709 weighting"):
+    if colourspace_name == "HK BT.709 weighting":
+        XYZ_matrix = np.array(
+            [
+                [0.13913043, 0.73043478, 0.13043478],
+                [0.13913043, 0.73043478, 0.13043478],
+                [0.13913043, 0.73043478, 0.13043478],
+            ]
+        )
+    else:
+        XYZ_matrix = colour.RGB_COLOURSPACES[colourspace_name].matrix_RGB_to_XYZ
 
     luminance_matrix = np.tile(XYZ_matrix[1], (3, 1)).T.reshape((3, 3))
     return np.ma.dot(RGB_input, luminance_matrix).filled(fill_value=0.0)
@@ -169,13 +178,19 @@ def calculate_EVILS_LICH(RGB_input, luminance_output):
     maximal_chroma = calculate_maximal_chroma(RGB_input)
 
     # Calculate the luminance of the maximal chroma expressible at the display.
-    maximal_chroma_luminance = calculate_luminance(maximal_chroma)
+    # TODO: Honour the image encoding's primaries.
+    maximal_chroma_luminance = calculate_luminance(
+        maximal_chroma, colourspace_name="sRGB"
+    )
 
     # Calculate luminance reserves of inverse maximal chroma.
     maximal_reserves = 1.0 - maximal_chroma
 
     # Calculate the luminance of the maximal reserves.
-    maximal_reserves_luminance = calculate_luminance(maximal_reserves)
+    # TODO: Honour the image encoding's primaries.
+    maximal_reserves_luminance = calculate_luminance(
+        maximal_reserves, colourspace_name="sRGB"
+    )
 
     # Calculate the difference between the desired output luminance and
     # the maximally chrominant luminance.

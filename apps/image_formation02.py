@@ -266,6 +266,18 @@ def application_image_formation_02():
             step=1,
         )
 
+        luminance_weights_help = streamlit.beta_expander("Luminance Weights")
+        with cctf_help:
+            streamlit.text_area(
+                label="",
+                key="Luminance Weights Help",
+                value="Use BT.709 weights that are balanced for compensating "
+                "a degree of Helmholtz–Kohlrausch effect.",
+            )
+        luminance_weights = streamlit.selectbox(
+            label="", key="Lumiance Weighting", options=["HK BT.709 weighting", "sRGB"]
+        )
+
     if upload_image is None:
         default_image_path = helpers.get_dependency_local_path(default_image_path)
         default_image = colour.io.read_image_Imageio(default_image_path)[..., 0:3]
@@ -281,7 +293,7 @@ def application_image_formation_02():
     img_default_final = utilities.apply_cctf_encoding(img_default, cctf_encoding)
 
     img_luminance_mapped = LUT.evaluate(
-        utilities.calculate_luminance(img, colourspace_name="sRGB")
+        utilities.calculate_luminance(img, luminance_weights)
     )
 
     img_luminance_mapped_final = utilities.apply_cctf_encoding(
@@ -289,7 +301,7 @@ def application_image_formation_02():
     )
 
     img_EVILS_LICH_render = utilities.calculate_EVILS_LICH(
-        img, LUT.evaluate(utilities.calculate_luminance(img, colourspace_name="sRGB"))
+        img, LUT.evaluate(utilities.calculate_luminance(img, luminance_weights))
     )
     img_EVILS_LICH_render_final = utilities.apply_cctf_encoding(
         np.clip(img_EVILS_LICH_render, 0.0, None), cctf_encoding
@@ -305,7 +317,7 @@ def application_image_formation_02():
                 CLAW_maximum_input=CLAW_maximum,
                 CLAW_maximum_output=np.clip(1.0 - CLAW_degree, 0.01, 1.0),
             ),
-            LUT.evaluate(utilities.calculate_luminance(img, colourspace_name="sRGB")),
+            LUT.evaluate(utilities.calculate_luminance(img, luminance_weights)),
         )
     else:
         img_EVILS_CLAW_render = img_EVILS_LICH_render
