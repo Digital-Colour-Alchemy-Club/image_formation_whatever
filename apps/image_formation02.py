@@ -266,13 +266,26 @@ def application_image_formation_02():
             step=1,
         )
 
-        luminance_weights_help = streamlit.beta_expander("Luminance Weights")
+        luminance_weights_help = streamlit.beta_expander(
+            "Creative Target Luminance Weights"
+        )
         with cctf_help:
             streamlit.text_area(
                 label="",
                 key="Luminance Weights Help",
-                value="Use BT.709 weights that are balanced for compensating "
-                "a degree of Helmholtz–Kohlrausch effect.",
+                value="This is the chosen set of weights to use for the "
+                "greyscale target. From a strictly light-meter centric "
+                "vantage, the luminance weights are fixed based on the working "
+                "space luminance weights of the primaries. However, given that "
+                "the luminous efficacy function does not account for the "
+                "perceptual ramifications of highly chrominous mixtures and "
+                "the contribution to overall stimulated luminance-"
+                "like sensation, the results are cognitively dissonant. LICH "
+                "can use any luminance as a target, and will calculate the "
+                "appropriate result accordingly. This selection box provides "
+                "a set of roughly HK-like balanced weights versus the "
+                "authoritative and strictly derived from luminous efficiacy "
+                "function weights for comparison.",
             )
         luminance_weights = streamlit.selectbox(
             label="", key="Lumiance Weighting", options=["HK BT.709 weighting", "sRGB"]
