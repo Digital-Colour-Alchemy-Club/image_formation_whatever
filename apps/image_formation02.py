@@ -338,7 +338,7 @@ def application_image_formation_02():
             img_EVILS_LICH_render_final,
             clamp=[0.0, 1.0],
             use_column_width=True,
-            caption="EVILS LICH Render",
+            caption="EVILS LICH Render (" + luminance_weights + " target)",
         )
 
     with image_region_1_2:
@@ -346,12 +346,12 @@ def application_image_formation_02():
             img_luminance_mapped_final,
             clamp=[0.0, 1.0],
             use_column_width=True,
-            caption="EVILS LICH Render, Luminance",
+            caption="EVILS LICH Render, Luminance (" + luminance_weights + " target)",
         )
 
         streamlit.image(
             img_EVILS_CLAW_render_final,
             clamp=[0.0, 1.0],
             use_column_width=True,
-            caption="EVILS CLAW Render",
+            caption="EVILS CLAW Render (" + luminance_weights + " target)",
         )
