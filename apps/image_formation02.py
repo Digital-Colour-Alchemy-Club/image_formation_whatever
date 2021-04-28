@@ -269,7 +269,7 @@ def application_image_formation_02():
         luminance_weights_help = streamlit.beta_expander(
             "Creative Target Luminance Weights"
         )
-        with cctf_help:
+        with luminance_weights_help:
             streamlit.text_area(
                 label="",
                 key="Luminance Weights Help",
