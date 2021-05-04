@@ -50,7 +50,7 @@ def application_image_formation_02():
             key="Contrast",
             min_value=0.01,
             max_value=3.00,
-            value=1.20,
+            value=1.50,
             step=0.01,
         )
 
@@ -92,7 +92,7 @@ def application_image_formation_02():
             key="CLAW Degree",
             min_value=0.01,
             max_value=3.0 * (1.0 / 3.0),
-            value=0.2,
+            value=0.55,
             step=0.001,
         )
         CLAW_rate = streamlit.slider(
@@ -100,7 +100,7 @@ def application_image_formation_02():
             key="CLAW Rate",
             min_value=0.01,
             max_value=10.0,
-            value=1.0,
+            value=5.0,
             step=0.001,
         )
 
@@ -214,8 +214,9 @@ def application_image_formation_02():
             label="",
             key="Default Test Images",
             options=[
-                "Red Xmas 709",
-                "Blue Bar 709",
+                "Nightclub BT.709",
+                "Red Xmas BT.709",
+                "Blue Bar BT.709",
                 "Alexa Models and Charts",
                 "Multi-Swatch Test Chart",
                 "CC24 Chart, Synthetic",
@@ -260,7 +261,7 @@ def application_image_formation_02():
         image_scale = streamlit.slider(
             label="",
             key="Performance Downscale",
-            min_value=2,
+            min_value=1,
             max_value=10,
             value=3,
             step=1,

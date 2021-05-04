@@ -132,63 +132,57 @@ EXTERNAL_DEPENDENCIES = {
         "/images/GM_TEST_002.0000.exr",
         "family": "image",
         "size": 8158434,
-        "metadata": {
-            "encoding": "ACES2065-1"
-        }
+        "metadata": {"encoding": "ACES2065-1"},
     },
     "Products": {
         "url": "https://zozobra.s3.us-east-1.amazonaws.com/colour"
         "/images/GM_TEST_001.0000.exr",
         "family": "image",
         "size": 5472858,
-        "metadata": {
-            "encoding": "ACES2065-1"
-        }
+        "metadata": {"encoding": "ACES2065-1"},
     },
     "Red Xmas": {
         "url": "https://zozobra.s3.us-east-1.amazonaws.com/colour"
         "/images/GM_TEST_011.0000.exr",
         "family": "image",
         "size": 9583965,
-        "metadata": {
-            "encoding": "ACES2065-1"
-        }
+        "metadata": {"encoding": "ACES2065-1"},
     },
-    "Red Xmas 709": {
+    "Red Xmas BT.709": {
         "url": "https://zozobra.s3.us-east-1.amazonaws.com/colour"
         "/images/red_xmas_rec709.exr",
         "family": "image",
         "size": 8992075,
-        "metadata": {
-            "encoding": "Linear-Rec709"
-        }
+        "metadata": {"encoding": "Linear-Rec709"},
     },
     "Blue Bar": {
         "url": "https://zozobra.s3.us-east-1.amazonaws.com/colour"
         "/images/GM_TEST_010.0187.exr",
         "family": "image",
         "size": 7267792,
-        "metadata": {
-            "encoding": "ACES2065-1"
-        }
+        "metadata": {"encoding": "ACES2065-1"},
     },
-    "Blue Bar 709": {
+    "Blue Bar BT.709": {
         "url": "https://zozobra.s3.us-east-1.amazonaws.com/colour"
         "/images/blue_bar_709.exr",
         "family": "image",
         "size": 8896298,
-        "metadata": {
-            "encoding": "Linear-Rec709"
-        }
+        "metadata": {"encoding": "Linear-Rec709"},
+    },
+    "Nightclub BT.709": {
+        "filename": "Matas_Alexa_Mini_sample_BT709.exr",
+        "url": "https://raw.githubusercontent.com/sobotka/Testing_Imagery"
+        "/master/Matas_Alexa_Mini_sample_BT709.exr",
+        "family": "image",
+        "size": 4481368,
+        "metadata": {"encoding": "Linear-Rec709"},
     },
     "Club DJ": {
         "url": "https://zozobra.s3.us-east-1.amazonaws.com/colour"
         "/images/GM_TEST_004.0357.exr",
         "family": "image",
         "size": 6894347,
-        "metadata": {
-            "encoding": "ACES2065-1"
-        }
+        "metadata": {"encoding": "ACES2065-1"},
     },
     "OCIO v2.0.0beta2": {
         "url": "https://zozobra.s3.us-east-1.amazonaws.com/colour"
