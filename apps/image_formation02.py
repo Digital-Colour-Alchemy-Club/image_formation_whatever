@@ -81,7 +81,7 @@ def application_image_formation_02():
         )
         CLAW_maximum = streamlit.slider(
             label="CLAW Maximum",
-            key="CLAW Rate",
+            key="CLAW Maximum",
             min_value=0.01,
             max_value=1.0,
             value=1.0,
