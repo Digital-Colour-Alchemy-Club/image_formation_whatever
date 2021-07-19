@@ -50,7 +50,7 @@ def application_image_formation_02():
             key="Contrast",
             min_value=0.01,
             max_value=3.00,
-            value=1.50,
+            value=1.70,
             step=0.01,
         )
 
@@ -77,7 +77,7 @@ def application_image_formation_02():
             )
 
         CLAW_enable = streamlit.radio(
-            "CLAW Gamut Compression", ["Enable", "Disable"], index=1
+            "CLAW Gamut Compression", ["Enable", "Disable"], index=0
         )
         CLAW_maximum = streamlit.slider(
             label="CLAW Maximum",
@@ -92,7 +92,7 @@ def application_image_formation_02():
             key="CLAW Degree",
             min_value=0.01,
             max_value=3.0 * (1.0 / 3.0),
-            value=0.55,
+            value=0.08,
             step=0.001,
         )
         CLAW_rate = streamlit.slider(
@@ -100,7 +100,7 @@ def application_image_formation_02():
             key="CLAW Rate",
             min_value=0.01,
             max_value=10.0,
-            value=5.0,
+            value=0.015,
             step=0.001,
         )
 
@@ -289,7 +289,7 @@ def application_image_formation_02():
                 "function weights for comparison.",
             )
         luminance_weights = streamlit.selectbox(
-            label="", key="Lumiance Weighting", options=["HK BT.709 weighting", "sRGB"]
+            label="", key="Lumiance Weighting", options=["sRGB", "HK BT.709 weighting"]
         )
 
     if upload_image is None:

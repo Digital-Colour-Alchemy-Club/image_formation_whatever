@@ -134,8 +134,11 @@ def calculate_luminance(RGB_input, colourspace_name="HK BT.709 weighting"):
     else:
         XYZ_matrix = colour.RGB_COLOURSPACES[colourspace_name].matrix_RGB_to_XYZ
 
-    luminance_matrix = np.tile(XYZ_matrix[1], (3, 1)).T.reshape((3, 3))
-    return np.ma.dot(RGB_input, luminance_matrix).filled(fill_value=0.0)
+    # luminance_matrix = np.tile(XYZ_matrix[1], (3, 1)).T.reshape((3, 3))
+    XYZ = np.clip(np.ma.dot(RGB_input, XYZ_matrix).filled(fill_value=0.0), 0.0, None)
+    luminance = np.dstack([XYZ[..., 1]] * 3)
+
+    return luminance
 
 
 def calculate_maximal_chroma(RGB_input):
