@@ -73,7 +73,7 @@ def application_image_formation_02():
                 "compress the output down to.\n\n"
                 "Rate of compression controls "
                 "the shape of the compression curve, with a higher value "
-                "corresponding to a less gradual and more agressive change",
+                "corresponding to a less gradual and more aggressive change",
             )
 
         CLAW_enable = streamlit.radio(
