@@ -214,6 +214,7 @@ def application_image_formation_02():
             label="",
             key="Default Test Images",
             options=[
+                "Brejon Lightsabers BT.709",
                 "Nightclub BT.709",
                 "Red Xmas BT.709",
                 "Blue Bar BT.709",

@@ -177,6 +177,14 @@ EXTERNAL_DEPENDENCIES = {
         "size": 4481368,
         "metadata": {"encoding": "Linear-Rec709"},
     },
+    "Brejon Lightsabers BT.709": {
+        "filename": "mery_lightSaber_lin_srgb.exr",
+        "url": "https://raw.githubusercontent.com/sobotka/Testing_Imagery"
+        "/master/mery_lightSaber_lin_srgb.exr",
+        "family": "image",
+        "size": 4539254,
+        "metadata": {"encoding": "Linear-Rec709"},
+    },
     "Club DJ": {
         "url": "https://zozobra.s3.us-east-1.amazonaws.com/colour"
         "/images/GM_TEST_004.0357.exr",
