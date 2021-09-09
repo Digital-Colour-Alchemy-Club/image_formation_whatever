@@ -1,8 +1,0 @@
-streamlit>=0.88.0
-colour-science>=0.3.16
-gdown
-glom
-matplotlib>=2.2.2
-fs
-pre-commit
-opencolorio>=2.1.0

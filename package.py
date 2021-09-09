@@ -1,6 +1,6 @@
 name = "image_formation_whatever"
 
-version = "0.2.1.7"
+version = "0.2.1.8"
 
 description = "Experiments with streamlit, OCIO, colour-science, and more."
 
