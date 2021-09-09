@@ -43,6 +43,7 @@ flake8 = { version = "*", optional = true }  # Development dependency.
 pytest = { version = "*", optional = true }  # Development dependency.
 vendy = { version = "*", optional = true }  # Development dependency.
 opencolorio = "^2.1.0"
+bleach = "4.1.0"
 
 
 [tool.poetry.dev-dependencies]
