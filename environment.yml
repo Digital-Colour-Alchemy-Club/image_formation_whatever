@@ -1,15 +1,16 @@
 name: image_formation_whatever
 channels:
-  - defaults
   - conda-forge
 dependencies:
+  - python=3.8
   - py-openimageio>=2.1.10
-  - libgcc
-  - cmake
-  - git
-  - pkg-config
-  - freetype
-  - libpng
+  #- libgcc
+  #- cmake
+  #- git
+  #- pkg-config
+  #- freetype
+  #- libpng
+  - pip
   - pip:
     - opencolorio>=2.1.0
     - numpy
