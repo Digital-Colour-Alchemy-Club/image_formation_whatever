@@ -25,7 +25,7 @@ import pkg_resources
 
 from .python3_compat import iterkeys, iteritems, Mapping, u
 
-__version__ = pkg_resources.get_distribution('munch').version
+__version__ = '2.5.0'
 VERSION = tuple(map(int, __version__.split('.')[:3]))
 
 __all__ = ('Munch', 'munchify', 'DefaultMunch', 'DefaultFactoryMunch', 'unmunchify')
