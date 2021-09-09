@@ -7,8 +7,53 @@ from colour.io import AbstractLUTSequenceOperator, LUT3D, LUT1D, LUTSequence
 from colour.models.rgb.transfer_functions.log import *
 from colour.models.rgb.transfer_functions.exponent import *
 from colour.utilities import as_float_array, tstack, tsplit, filter_kwargs
-from colour.algebra.common import spow, vector_dot
+from colour.algebra.common import spow
 import numpy as np
+
+#from colour
+def vector_dot(m, v):
+    """
+    Convenient wrapper around :func:`np.einsum` with the following subscripts:
+    *'...ij,...j->...i'*.
+
+    It performs the dot product of two arrays where *m* parameter is expected
+    to be an array of 3x3 matrices and parameter *v* an array of vectors.
+
+    Parameters
+    ----------
+    m : array_like
+        Array of 3x3 matrices.
+    v : array_like
+        Array of vectors.
+
+    Returns
+    -------
+    ndarray
+
+    Examples
+    --------
+    >>> m = np.array(
+    ...     [[0.7328, 0.4296, -0.1624],
+    ...      [-0.7036, 1.6975, 0.0061],
+    ...      [0.0030, 0.0136, 0.9834]]
+    ... )
+    >>> m = np.reshape(np.tile(m, (6, 1)), (6, 3, 3))
+    >>> v = np.array([0.20654008, 0.12197225, 0.05136952])
+    >>> v = np.tile(v, (6, 1))
+    >>> vector_dot(m, v)  # doctest: +ELLIPSIS
+    array([[ 0.1954094...,  0.0620396...,  0.0527952...],
+           [ 0.1954094...,  0.0620396...,  0.0527952...],
+           [ 0.1954094...,  0.0620396...,  0.0527952...],
+           [ 0.1954094...,  0.0620396...,  0.0527952...],
+           [ 0.1954094...,  0.0620396...,  0.0527952...],
+           [ 0.1954094...,  0.0620396...,  0.0527952...]])
+    """
+
+    m = as_float_array(m)
+    v = as_float_array(v)
+
+    return np.einsum('...ij,...j->...i', m, v)
+
 
 
 @attr.s(auto_attribs=True, frozen=True)
