@@ -13,10 +13,10 @@ import certifi
 import gdown
 import streamlit as st
 from boltons.fileutils import mkdir_p
-from munch import Munch
+from image_formation_toolkit._vendor.munch import Munch
 from streamlit.report_thread import REPORT_CONTEXT_ATTR_NAME
 
-from settings import EXTERNAL_DEPENDENCIES, LOCAL_DATA, logger
+from image_formation_toolkit.settings import EXTERNAL_DEPENDENCIES, LOCAL_DATA, logger
 
 
 @contextmanager

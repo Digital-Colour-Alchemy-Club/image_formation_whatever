@@ -1,7 +1,8 @@
 from pathlib import Path
 import logging
 import yaml
-from munch import Munch
+from pathlib import Path
+from image_formation_toolkit._vendor.munch import Munch
 import PyOpenColorIO as ocio
 
 __app__ = "Experimental Image Formation Toolset"
@@ -11,7 +12,7 @@ __version__ = "0.1.7"
 
 __all__ = ["logger", "config", "LOCAL_DATA", "OCIO_VERSION", "EXTERNAL_DEPENDENCIES"]
 
-config = Munch.fromDict(yaml.safe_load(open("config.yaml")))
+config = Munch.fromDict(yaml.safe_load(open( str(Path(__file__).parent.parent/'config.yaml'))))
 
 logger = logging.getLogger(__app__)
 logger.setLevel(logging._nameToLevel[config.logging.level])

@@ -5,7 +5,7 @@ import fs
 import streamlit as st
 from boltons.ecoutils import get_profile
 
-from helpers import st_stdout
+from image_formation_apps.helpers import st_stdout
 
 
 def diagnostics(local_data="."):

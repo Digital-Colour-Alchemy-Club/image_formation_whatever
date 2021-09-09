@@ -1,10 +1,10 @@
 import streamlit as st
 
-from helpers import st_stdout
+from image_formation_apps.helpers import st_stdout
 
 
 # @st.cache(max_entries=10)
-from ocioutils import add_aesthetic_transfer_function_to_config
+from image_formation_toolkit.ocioutils import add_aesthetic_transfer_function_to_config
 
 
 def downsize_image(image, factor=3):
@@ -14,9 +14,9 @@ def downsize_image(image, factor=3):
 
 def ocio_skeleton_config():
     import PyOpenColorIO as ocio
-    import ocioutils as ocu
-    from helpers import get_dependency_local_path
-    from operators import AestheticTransferFunction
+    import image_formation_toolkit.ocioutils as ocu
+    from image_formation_apps.helpers import get_dependency_local_path
+    from image_formation_toolkit.operators import AestheticTransferFunction
     from colour import read_image
 
     def get_test_image():

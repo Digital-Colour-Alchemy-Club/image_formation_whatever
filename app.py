@@ -9,15 +9,15 @@ __version__ = "0.1.6"
 
 st.set_page_config(page_title=__app__, layout="wide")
 
-from bootstrap import run_bootstrap
 
-# download the openexr plugin for imageio
-run_bootstrap()
+# Install imageio freeimage plugin (i.e., for EXR support)
+import imageio
+imageio.plugins.freeimage.download()
 
-from apps.ocio_config_generator import ocio_skeleton_config
-from apps.diagnostics import diagnostics
-from settings import LOCAL_DATA
-from apps import (
+
+from image_formation_apps.diagnostics import diagnostics
+from image_formation_toolkit.settings import LOCAL_DATA
+from image_formation_apps import (
     image_formation00,
     image_formation01,
     image_formation02,

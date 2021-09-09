@@ -1,6 +1,6 @@
 import numpy as np
 import colour
-import colour.io.luts
+from colour.io.luts import AbstractLUTSequenceOperator
 
 CCTF_ENCODINGS = np.array(
     [
@@ -81,7 +81,7 @@ def calculate_EVILS_eiHCY(EVILS_eiY):
 
 
 def power_compression(
-    X_input, X_maximum, Y_maximum, compression_power=None, identity_breakpoint=None
+        X_input, X_maximum, Y_maximum, compression_power=None, identity_breakpoint=None
 ):
     # X_maximum - the maximal value input of X where X crosses Y.
     # Y_maximum - the maximal value output of Y.
@@ -105,18 +105,18 @@ def power_compression(
         compression_power = 1.5
 
     scale = (X_maximum - identity_breakpoint) / (
-        ((Y_maximum - identity_breakpoint) / (X_maximum - identity_breakpoint))
-        ** (-compression_power)
-        - 1.0
+            ((Y_maximum - identity_breakpoint) / (X_maximum - identity_breakpoint))
+            ** (-compression_power)
+            - 1.0
     ) ** (1.0 / compression_power)
 
     X_minus_breakpoint = X_input - identity_breakpoint
 
     compressed_out = identity_breakpoint + (
-        scale
-        * (X_minus_breakpoint / scale)
-        / (1.0 + (X_minus_breakpoint / scale) ** compression_power)
-        ** (1.0 / compression_power)
+            scale
+            * (X_minus_breakpoint / scale)
+            / (1.0 + (X_minus_breakpoint / scale) ** compression_power)
+            ** (1.0 / compression_power)
     )
 
     return compressed_out
@@ -217,11 +217,11 @@ def calculate_EVILS_LICH(RGB_input, luminance_output):
 
 
 def calculate_EVILS_CLAW(
-    RGB_input,
-    CLAW_compression=1.0,
-    CLAW_identity_limit=None,
-    CLAW_maximum_input=None,
-    CLAW_maximum_output=None,
+        RGB_input,
+        CLAW_compression=1.0,
+        CLAW_identity_limit=None,
+        CLAW_maximum_input=None,
+        CLAW_maximum_output=None,
 ):
     XYZ_RGB = colour.sRGB_to_XYZ(RGB_input)
     EVILS_eiY = calculate_EVILS_eiY(XYZ_RGB)
@@ -275,13 +275,13 @@ def calculate_EVILS_CLAW(
     return adjust_chroma(RGB_input, chroma_scalar)
 
 
-class generic_aesthetic_transfer_function(colour.io.luts.AbstractLUTSequenceOperator):
+class generic_aesthetic_transfer_function(AbstractLUTSequenceOperator):
     def __init__(
-        self,
-        contrast=1.0,
-        middle_grey_in=0.18,
-        middle_grey_out=0.18,
-        ev_above_middle_grey=4.0,
+            self,
+            contrast=1.0,
+            middle_grey_in=0.18,
+            middle_grey_out=0.18,
+            ev_above_middle_grey=4.0,
     ):
         self._linear = None
         self.set_transfer_details(
@@ -302,11 +302,11 @@ class generic_aesthetic_transfer_function(colour.io.luts.AbstractLUTSequenceOper
         self._radiometric_maximum = np.power(2.0, ev) * self._middle_grey_in
 
     def set_transfer_details(
-        self,
-        contrast,
-        middle_grey_in,
-        middle_grey_out,
-        ev_above_middle_grey,
+            self,
+            contrast,
+            middle_grey_in,
+            middle_grey_out,
+            ev_above_middle_grey,
     ):
         self._contrast = contrast
         self._middle_grey_in = middle_grey_in
@@ -317,19 +317,19 @@ class generic_aesthetic_transfer_function(colour.io.luts.AbstractLUTSequenceOper
 
     def evaluate(self, x):
         input_domain_scale = (
-            (self._radiometric_maximum * self._middle_grey_in)
-            * (self._middle_grey_out ** (1.0 / self._contrast) - 1.0)
-        ) / (
-            self._middle_grey_in
-            - (
-                self._radiometric_maximum
-                * self._middle_grey_out ** (1.0 / self._contrast)
-            )
-        )
+                                     (self._radiometric_maximum * self._middle_grey_in)
+                                     * (self._middle_grey_out ** (1.0 / self._contrast) - 1.0)
+                             ) / (
+                                     self._middle_grey_in
+                                     - (
+                                             self._radiometric_maximum
+                                             * self._middle_grey_out ** (1.0 / self._contrast)
+                                     )
+                             )
 
         output_domain_scale = (
-            self._radiometric_maximum / (self._radiometric_maximum + input_domain_scale)
-        ) ** -self._contrast
+                                      self._radiometric_maximum / (self._radiometric_maximum + input_domain_scale)
+                              ) ** -self._contrast
 
         # Siragusano Smith 2021
         return output_domain_scale * (x / (x + input_domain_scale)) ** self._contrast

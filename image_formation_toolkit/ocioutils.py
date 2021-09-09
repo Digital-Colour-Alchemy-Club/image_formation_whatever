@@ -2,7 +2,7 @@ import colour
 import PyOpenColorIO as ocio
 import numpy as np
 
-from aenum import Enum
+from image_formation_toolkit._vendor.aenum import Enum
 
 
 class Displays(Enum):
