@@ -11,7 +11,7 @@ st.set_page_config(page_title=__app__, layout="wide")
 
 from bootstrap import run_bootstrap
 
-# Fetch and install PyOpenColorIO before importing anything else!
+# download the openexr plugin for imageio
 run_bootstrap()
 
 from apps.ocio_config_generator import ocio_skeleton_config

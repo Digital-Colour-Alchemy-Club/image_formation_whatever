@@ -3,12 +3,8 @@ colour-science>=0.3.16
 gdown
 glom
 aenum
-plumbum
 matplotlib>=2.2.2
-eliot
-options
 fs
 pre-commit
-timber
 munch
-logzio-python-handler
+opencolorio>=2.1.0

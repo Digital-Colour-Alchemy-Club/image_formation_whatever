@@ -1,20 +1,20 @@
 import base64
 import os
-from typing import List, Optional, Mapping, Union
+import sys
 import urllib
 from contextlib import contextmanager
 from io import StringIO
 from pathlib import Path
-import sys
 from threading import current_thread
+from typing import List, Mapping, Optional, Union
 
 import attr
 import certifi
 import gdown
 import streamlit as st
 from boltons.fileutils import mkdir_p
-from streamlit.report_thread import REPORT_CONTEXT_ATTR_NAME
 from munch import Munch
+from streamlit.report_thread import REPORT_CONTEXT_ATTR_NAME
 
 from settings import EXTERNAL_DEPENDENCIES, LOCAL_DATA, logger
 

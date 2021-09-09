@@ -1,7 +1,5 @@
-import PyOpenColorIO
 import colour
 import PyOpenColorIO as ocio
-import numpy
 import numpy as np
 
 from aenum import Enum
