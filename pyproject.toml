@@ -1,4 +1,66 @@
+[tool.poetry]
+name = "image_formation_whatever"
+version = "0.2.1.8"
+description = "Image Formation Toolkit"
+authors = [ "THE HERMETIC BROTHERHOOD OV SPECTRA" ]
+maintainers = ["the sisterhood of traveling nans" ]
+license = "GPL"
+readme = 'README.rst'
+repository = "https://github.com/digital-colour-alchemy-club/image_formation_whatever"
+homepage = "https://share.streamlit.io/digital-colour-alchemy-club/image_formation_whatever/main/app.py"
+keywords = [
+    "imagery",
+    "LUTs",
+    "colour-science"
+]
 
+#packages = [
+#    { include = "image_formation_toolkit" },
+#    { include = "image_formation_apps" },
+#    { include = "app.py"},
+#    { include = "extra_package/**/*.py" },
+#]
+#exclude = ['package.py']
+#include = ["config.yaml", "LICENSE", "README.md"]
+
+[build-system]
+requires = ["poetry_core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+
+[tool.poetry.dependencies]
+python = "^3.6"
+streamlit = "^0.88.0"
+colour-science = "^0.3.16"
+gdown = "^3.13"
+glom = "^20.8.0"
+boltons = "*"
+matplotlib = "^2.2.2"
+fs = "^2.4.13"
+pre-commit = { version = "*", optional = true }  # Development dependency.
+black = { version = "*", optional = true }  # Development dependency.
+flake8 = { version = "*", optional = true }  # Development dependency.
+pytest = { version = "*", optional = true }  # Development dependency.
+vendy = { version = "*", optional = true }  # Development dependency.
+opencolorio = "^2.1.0"
+
+
+[tool.poetry.dev-dependencies]
+flake8 = "*"
+pre-commit = "*"
+black = "*"
+vendy = "*"
+pytest = "*"
+
+
+[tool.poetry.extras]
+development = [
+    "flake8",
+    "pre-commit",
+    "pytest",
+    "vendy",
+    "black",
+]
 [flake8]
 max-line-length = 88
 extend-ignore = ['E203']
