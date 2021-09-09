@@ -10,3 +10,12 @@ dependencies:
   - pkg-config
   - freetype
   - libpng
+  - pip:
+    - opencolorio>=2.1.0
+    - numpy
+    - colour-science>=0.3.16
+    - glom
+    - streamlit>=0.88.0
+    - gdown
+    - matplotlib
+    - fs
