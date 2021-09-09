@@ -321,7 +321,7 @@ def application_image_formation_02():
     )
 
     img_EVILS_CLAW_render = img
-    if CLAW_enable is "Enable":
+    if CLAW_enable == "Enable":
         img_EVILS_CLAW_render = utilities.calculate_EVILS_LICH(
             utilities.calculate_EVILS_CLAW(
                 RGB_input=img,

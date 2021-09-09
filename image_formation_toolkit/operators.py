@@ -6,8 +6,8 @@ from boltons.strutils import camel2under, under2camel, slugify
 from colour.io import AbstractLUTSequenceOperator, LUT3D, LUT1D, LUTSequence
 from colour.models.rgb.transfer_functions.log import *
 from colour.models.rgb.transfer_functions.exponent import *
-from colour.utilities import as_float_array, tstack, tsplit, vector_dot, filter_kwargs
-from colour.algebra import spow
+from colour.utilities import as_float_array, tstack, tsplit, filter_kwargs
+from colour.algebra import spow, vector_dot
 import numpy as np
 
 
