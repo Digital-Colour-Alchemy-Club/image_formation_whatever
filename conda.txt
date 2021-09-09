@@ -1,0 +1,4 @@
+py-openimageio>=2.1.10
+libgcc
+cmake
+git
