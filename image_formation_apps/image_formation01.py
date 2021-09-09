@@ -4,8 +4,7 @@ import numpy as np
 import colour
 from colour.io.luts import AbstractLUTSequenceOperator
 import pandas
-import helpers
-
+from image_formation_apps import helpers
 
 LUMINANCE_WEIGHTS_BT709 = np.array(
     # Minor tweak to green's BT.709 weight to assert sum to unity.
@@ -217,7 +216,7 @@ def video_buffer(x, exposure_adjustment=0.0):
 
 def application_image_formation_01():
     with streamlit.sidebar:
-        exposure_adjustment_help = streamlit.beta_expander("Exposure Adjustment")
+        exposure_adjustment_help = streamlit.expander("Exposure Adjustment")
         with exposure_adjustment_help:
             streamlit.text_area(
                 label="",
@@ -238,7 +237,7 @@ def application_image_formation_01():
             step=0.25,
         )
 
-        contrast_help = streamlit.beta_expander("Contrast")
+        contrast_help = streamlit.expander("Contrast")
         with contrast_help:
             streamlit.text_area(
                 label="",
@@ -257,11 +256,11 @@ def application_image_formation_01():
             step=0.01,
         )
 
-    region_1_1, region_1_2, region_1_3 = streamlit.beta_columns((2, 5, 2))
-    image_region_1_1, image_region_1_2 = streamlit.beta_columns(2)
+    region_1_1, region_1_2, region_1_3 = streamlit.columns((2, 5, 2))
+    image_region_1_1, image_region_1_2 = streamlit.columns(2)
 
     with region_1_1:
-        middle_grey_input_help = streamlit.beta_expander("Middle Grey Input")
+        middle_grey_input_help = streamlit.expander("Middle Grey Input")
         with middle_grey_input_help:
             streamlit.text_area(
                 label="",
@@ -279,7 +278,7 @@ def application_image_formation_01():
             step=0.001,
         )
 
-        middle_grey_output_help = streamlit.beta_expander("Middle Grey Output")
+        middle_grey_output_help = streamlit.expander("Middle Grey Output")
         with middle_grey_output_help:
             streamlit.text_area(
                 label="",
@@ -299,7 +298,7 @@ def application_image_formation_01():
             step=0.001,
         )
 
-        maximum_ev_help = streamlit.beta_expander("Maximum EV Above Middle Grey")
+        maximum_ev_help = streamlit.expander("Maximum EV Above Middle Grey")
         with maximum_ev_help:
             streamlit.text_area(
                 label="",
@@ -318,7 +317,7 @@ def application_image_formation_01():
             step=0.25,
         )
 
-        # bias_weights_help = streamlit.beta_expander("Bias Luminance Weights")
+        # bias_weights_help = streamlit.expander("Bias Luminance Weights")
         # with bias_weights_help:
         #     streamlit.text_area(
         #         label="",
@@ -362,7 +361,7 @@ def application_image_formation_01():
         streamlit.altair_chart(chart, use_container_width=True)
         # streamlit.line_chart(data=plot_data, height=200)
 
-        upload_image_help = streamlit.beta_expander("Upload Image")
+        upload_image_help = streamlit.expander("Upload Image")
         with upload_image_help:
             streamlit.text_area(
                 label="",
@@ -374,7 +373,7 @@ def application_image_formation_01():
             label="", key="Upload Image", type=[".exr", ".hdr"]
         )
 
-        default_image_help = streamlit.beta_expander("Default Test Images")
+        default_image_help = streamlit.expander("Default Test Images")
         with default_image_help:
             streamlit.text_area(
                 label="",
@@ -399,7 +398,7 @@ def application_image_formation_01():
         )
 
     with region_1_3:
-        EOTF_help = streamlit.beta_expander("Display Hardware EOTF")
+        EOTF_help = streamlit.expander("Display Hardware EOTF")
         with EOTF_help:
             streamlit.text_area(
                 label="",
@@ -422,7 +421,7 @@ def application_image_formation_01():
             step=0.01,
         )
 
-        performance_downscale_help = streamlit.beta_expander("Performance Downscale")
+        performance_downscale_help = streamlit.expander("Performance Downscale")
         with performance_downscale_help:
             streamlit.text_area(
                 label="",

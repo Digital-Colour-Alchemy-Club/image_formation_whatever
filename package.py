@@ -1,14 +1,14 @@
 name = "image_formation_whatever"
 
-version = "0.2.1.3"
+version = "0.2.1.7"
 
 description = "Experiments with streamlit, OCIO, colour-science, and more."
 
 authors = ["THE HERMETIC BROTHERHOOD OV SPECTRA"]
 
 requires = [
-    "streamlit-0.73.0+<1",
-    "OpenColorIO-2.0",
+    "streamlit-0.88.0+<1",
+    "OpenColorIO-2.0+<3",
     "colour-0.3.16+",
     "gdown",
     "boltons",
@@ -17,7 +17,6 @@ requires = [
     "fs",
     "aenum",
     "pre_commit",
-    "timber",
     "options",
     "addict",
     "munch",

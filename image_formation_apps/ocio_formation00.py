@@ -1,7 +1,7 @@
 import PyOpenColorIO as ocio
-import ocioutils as ocu
-from helpers import get_dependency_local_path, st_stdout
-from operators import AestheticTransferFunction
+import image_formation_toolkit.ocioutils as ocu
+from image_formation_apps.helpers import get_dependency_local_path, st_stdout
+from image_formation_toolkit.operators import AestheticTransferFunction
 from colour import read_image
 import streamlit as st
 import numpy as np

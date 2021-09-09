@@ -9,7 +9,6 @@ packages = [
     'aenum==2.2.3',
     'munch==2.5',
     'addict==2.2.1',
-    'colour-science==0.3.16',
 ]
 
 [tool.black]

@@ -4,7 +4,7 @@ import colour
 import streamlit as st
 from colour.io.luts import AbstractLUTSequenceOperator
 import pandas
-import helpers
+from image_formation_apps import helpers
 
 
 class generic_aesthetic_transfer_function(AbstractLUTSequenceOperator):
@@ -195,15 +195,15 @@ def application_experimental_image_formation_00():
             label="Contrast", min_value=0.01, max_value=3.00, value=1.25, step=0.01
         )
 
-    region_1_1, region_1_2, region_1_3 = st.beta_columns((2, 5, 2))
-    scopes_1, scopes_2, scopes_3, scopes_4 = st.beta_columns((1, 1, 1, 1))
-    gamut_col_1_1, gamut_col_1_2, gamut_col_1_3, gamut_col_1_4 = st.beta_columns(
+    region_1_1, region_1_2, region_1_3 = st.columns((2, 5, 2))
+    scopes_1, scopes_2, scopes_3, scopes_4 = st.columns((1, 1, 1, 1))
+    gamut_col_1_1, gamut_col_1_2, gamut_col_1_3, gamut_col_1_4 = st.columns(
         (1, 1, 1, 1)
     )
-    image_region_1_1, image_region_1_2 = st.beta_columns(2)
-    with st.beta_expander(label="In Progress Incomplete CDL..."):
+    image_region_1_1, image_region_1_2 = st.columns(2)
+    with st.expander(label="In Progress Incomplete CDL..."):
         chain_CDLs = st.checkbox("Use Single CDL Control", value=True)
-        CDL_A, CDL_B = st.beta_columns(2)
+        CDL_A, CDL_B = st.columns(2)
 
     with region_1_1:
         EOTF = st.number_input(
