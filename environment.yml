@@ -1,0 +1,12 @@
+name: image_formation_whatever
+channels:
+  - defaults
+  - conda-forge
+dependencies:
+  - py-openimageio>=2.1.10
+  - libgcc
+  - cmake
+  - git
+  - pkg-config
+  - freetype
+  - libpng
