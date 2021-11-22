@@ -2,7 +2,7 @@ name: image_formation_whatever
 channels:
   - conda-forge
 dependencies:
-  - python=3.8
+  - python>=3.8
   - py-openimageio>=2.1.10
   #- libgcc
   #- cmake
@@ -16,7 +16,7 @@ dependencies:
     - numpy
     - colour-science>=0.3.16
     - glom
-    - streamlit>=0.88.0
+    - streamlit>=1.2.0
     - gdown
     - matplotlib
     - fs
