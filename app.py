@@ -36,7 +36,7 @@ demo_pages = {
     "Luminance Evaluation": image_formation01.application_image_formation_01,
     "Experimental Image Formation": image_formation00.application_experimental_image_formation_00,
     "Diagnostics": partial(diagnostics, LOCAL_DATA),
-    "OpenColorIO Formation": ocio_formation00.application_ocio_formation_00,
+    # "OpenColorIO Formation": ocio_formation00.application_ocio_formation_00,
 }
 
 # Install imageio freeimage plugin (i.e., for EXR support)
