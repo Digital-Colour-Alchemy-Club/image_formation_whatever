@@ -6,6 +6,7 @@ dependencies:
   - py-openimageio>=2.1.10
   - streamlit>=1.2.0
   - colour-science>=0.3.16
+  - imageio
   #- libgcc
   #- cmake
   #- git

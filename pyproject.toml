@@ -23,25 +23,26 @@
 ##exclude = ['package.py']
 ##include = ["config.yaml", "LICENSE", "README.md"]
 #
-#[build-system]
-#requires = ["poetry_core>=1.0.0"]
-#build-backend = "poetry.core.masonry.api"
+[build-system]
+requires = ["poetry_core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
 #
 #
-#[tool.poetry.dependencies]
-#python = "^3.7"
-#streamlit = "^0.88.0"
-#colour-science = "^0.3.16"
-#gdown = "^3.13"
-#glom = "^20.8.0"
-#boltons = "*"
-#matplotlib = "^2.2.2"
-#fs = "^2.4.13"
-#pre-commit = { version = "*", optional = true }  # Development dependency.
-#black = { version = "*", optional = true }  # Development dependency.
-#flake8 = { version = "*", optional = true }  # Development dependency.
-#pytest = { version = "*", optional = true }  # Development dependency.
-#vendy = { version = "*", optional = true }  # Development dependency.
+[tool.poetry.dependencies]
+python = "^3.7"
+streamlit = "^0.88.0"
+colour-science = "^0.3.16"
+gdown = "^3.13"
+glom = "^20.8.0"
+boltons = "*"
+matplotlib = "^2.2.2"
+fs = "^2.4.13"
+opencolorio = "^2.1.0"
+pre-commit = { version = "*", optional = true }  # Development dependency.
+black = { version = "*", optional = true }  # Development dependency.
+flake8 = { version = "*", optional = true }  # Development dependency.
+pytest = { version = "*", optional = true }  # Development dependency.
+vendy = { version = "*", optional = true }  # Development dependency.
 #opencolorio = "^2.1.0"
 #
 #
