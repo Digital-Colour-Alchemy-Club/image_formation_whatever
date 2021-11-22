@@ -2,19 +2,6 @@ from functools import partial
 
 import streamlit as st
 
-__app__ = "Experimental Image Formation Toolset"
-__author__ = "THE HERMETIC BROTHERHOOD OV SPECTRA"
-__license__ = "GPL3"
-__version__ = "0.1.6"
-
-st.set_page_config(page_title=__app__, layout="wide")
-
-
-# Install imageio freeimage plugin (i.e., for EXR support)
-import imageio
-imageio.plugins.freeimage.download()
-
-
 from image_formation_apps.diagnostics import diagnostics
 from image_formation_toolkit.settings import LOCAL_DATA
 from image_formation_apps import (
@@ -24,6 +11,25 @@ from image_formation_apps import (
     ocio_formation00,
 )
 
+__app__ = "Experimental Image Formation Toolset"
+__author__ = "THE HERMETIC BROTHERHOOD OV SPECTRA"
+__license__ = "GPL3"
+__version__ = "0.1.6"
+
+st.set_page_config(page_title=__app__, layout="wide")
+
+
+def bootstrap_imageio():
+    if not st.session_state.get("imageio_initialized", False):
+        try:
+            import imageio
+
+            imageio.plugins.freeimage.download()
+            st.session_set["imageio_initialized"] = True
+
+        except ImportError:
+            pass
+
 
 demo_pages = {
     "EVILS v0.1": image_formation02.application_image_formation_02,
@@ -32,6 +38,9 @@ demo_pages = {
     "Diagnostics": partial(diagnostics, LOCAL_DATA),
     "OpenColorIO Formation": ocio_formation00.application_ocio_formation_00,
 }
+
+# Install imageio freeimage plugin (i.e., for EXR support)
+bootstrap_imageio()
 
 # Draw sidebar
 pages = list(demo_pages.keys())

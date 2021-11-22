@@ -20,5 +20,6 @@ dependencies:
     - gdown
     - matplotlib
     - fs
+    - imageio
     - pandas
     - pyyaml
