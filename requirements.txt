@@ -1,0 +1,8 @@
+streamlit>=1.2.0
+colour-science>=0.3.16
+gdown>=3.13
+glom>=20.08
+matplotlib>=3.0.0
+fs>=2.4.13
+opencolorio>=2.1.0
+imageio>=2.9.0
