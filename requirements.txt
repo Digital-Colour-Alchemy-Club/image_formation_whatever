@@ -21,7 +21,7 @@ cffi==1.15.0
 cfgv==3.3.0
 chainmap==1.0.3
 charset-normalizer==2.0.4
-click==8.0.3
+click==7.1.2
 colorama==0.4.4
 colour-science==0.3.16
 combomethod==1.0.12
