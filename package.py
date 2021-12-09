@@ -1,17 +1,17 @@
 name = "image_formation_whatever"
 
-version = "0.2.1.8"
+version = "0.2.1.9"
 
 description = "Experiments with streamlit, OCIO, colour-science, and more."
 
 authors = ["THE HERMETIC BROTHERHOOD OV SPECTRA"]
 
 requires = [
-    "streamlit-0.88.0+<1",
+    "streamlit-0.88.0+<2",
     "OpenColorIO-2.0+<3",
     "colour-0.3.16+",
     "gdown",
-    "boltons",
+    "glom",
     "plumbum",
     "matplotlib",
     "fs",
@@ -20,11 +20,8 @@ requires = [
     "options",
     "addict",
     "munch",
-    "rich",
     "vendy",
-    "environs",
     "addict",
-    "fire",
 ]
 
 build_command = r"""
