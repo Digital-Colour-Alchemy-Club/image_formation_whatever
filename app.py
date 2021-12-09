@@ -25,7 +25,7 @@ def bootstrap_imageio():
             import imageio
 
             imageio.plugins.freeimage.download()
-            st.session_set["imageio_initialized"] = True
+            st.session_state["imageio_initialized"] = True
 
         except ImportError:
             pass
