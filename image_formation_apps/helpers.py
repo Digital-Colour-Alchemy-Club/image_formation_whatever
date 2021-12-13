@@ -62,10 +62,6 @@ class RemoteData:
     url: str = "https://path/to/resource.exr"
     filename: str = attr.ib()
     size: int = attr.ib()
-    family: Optional[str] = None
-    label: Optional[str] = None
-    tags: Optional[List[str]] = None
-    metadata: Optional[Mapping] = None
 
     @filename.default
     def set_initial_filename(self):
