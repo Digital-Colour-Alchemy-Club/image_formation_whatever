@@ -159,7 +159,7 @@ def application_image_formation_02():
             key="Maximum EV Above Middle Grey",
             min_value=1.0,
             max_value=25.0,
-            value=10.0,
+            value=4.0,
             step=0.25,
         )
 
@@ -266,9 +266,7 @@ def application_image_formation_02():
             step=1,
         )
 
-        luminance_weights_help = streamlit.expander(
-            "Creative Target Luminance Weights"
-        )
+        luminance_weights_help = streamlit.expander("Creative Target Luminance Weights")
         with luminance_weights_help:
             streamlit.text_area(
                 label="",
