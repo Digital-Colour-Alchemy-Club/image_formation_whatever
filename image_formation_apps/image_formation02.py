@@ -52,55 +52,55 @@ def application_image_formation_02():
             step=0.01,
         )
 
-        EVILS_CLAW_help = streamlit.expander("EVILS CLAW")
-        with EVILS_CLAW_help:
-            streamlit.text_area(
-                label="",
-                key="EVILS CLAW Help",
-                value="EVILS Chromaticity Linear Adjustment Hammer. "
-                "CLAW is the chroma adjustment tool for use with the EVILS "
-                "system. It can be used to perform gamut compression, as well "
-                "as intra-gamut compression to correct for the Helmholtz–"
-                "Kohlrausch effect.\n\n"
-                "CLAW consists of three variables which control the maximum "
-                "chroma point, the ratio of compression of the maximum "
-                "chroma point, and exponent rate of compression.\n"
-                "For wildly out of gamut imagery, the maximum chroma should "
-                "be scaled downward.\n\n"
-                "Degree of compression is the percentage of maximum chroma to "
-                "compress the output down to.\n\n"
-                "Rate of compression controls "
-                "the shape of the compression curve, with a higher value "
-                "corresponding to a less gradual and more aggressive change",
-            )
+        # EVILS_CLAW_help = streamlit.expander("EVILS CLAW")
+        # with EVILS_CLAW_help:
+        #     streamlit.text_area(
+        #         label="",
+        #         key="EVILS CLAW Help",
+        #         value="EVILS Chromaticity Linear Adjustment Hammer. "
+        #         "CLAW is the chroma adjustment tool for use with the EVILS "
+        #         "system. It can be used to perform gamut compression, as well "
+        #         "as intra-gamut compression to correct for the Helmholtz–"
+        #         "Kohlrausch effect.\n\n"
+        #         "CLAW consists of three variables which control the maximum "
+        #         "chroma point, the ratio of compression of the maximum "
+        #         "chroma point, and exponent rate of compression.\n"
+        #         "For wildly out of gamut imagery, the maximum chroma should "
+        #         "be scaled downward.\n\n"
+        #         "Degree of compression is the percentage of maximum chroma to "
+        #         "compress the output down to.\n\n"
+        #         "Rate of compression controls "
+        #         "the shape of the compression curve, with a higher value "
+        #         "corresponding to a less gradual and more aggressive change",
+        #     )
 
-        CLAW_enable = streamlit.radio(
-            "CLAW Gamut Compression", ["Enable", "Disable"], index=0
-        )
-        CLAW_maximum = streamlit.slider(
-            label="CLAW Maximum",
-            key="CLAW Maximum",
-            min_value=0.01,
-            max_value=1.0,
-            value=1.0,
-            step=0.001,
-        )
-        CLAW_degree = streamlit.slider(
-            label="CLAW Compression Degree",
-            key="CLAW Degree",
-            min_value=0.01,
-            max_value=3.0 * (1.0 / 3.0),
-            value=0.08,
-            step=0.001,
-        )
-        CLAW_rate = streamlit.slider(
-            label="CLAW Compression Rate",
-            key="CLAW Rate",
-            min_value=0.01,
-            max_value=10.0,
-            value=0.015,
-            step=0.001,
-        )
+        # CLAW_enable = streamlit.radio(
+        #     "CLAW Gamut Compression", ["Enable", "Disable"], index=1
+        # )
+        # CLAW_maximum = streamlit.slider(
+        #     label="CLAW Maximum",
+        #     key="CLAW Maximum",
+        #     min_value=0.01,
+        #     max_value=1.0,
+        #     value=1.0,
+        #     step=0.001,
+        # )
+        # CLAW_degree = streamlit.slider(
+        #     label="CLAW Compression Degree",
+        #     key="CLAW Degree",
+        #     min_value=0.01,
+        #     max_value=3.0 * (1.0 / 3.0),
+        #     value=0.08,
+        #     step=0.001,
+        # )
+        # CLAW_rate = streamlit.slider(
+        #     label="CLAW Compression Rate",
+        #     key="CLAW Rate",
+        #     min_value=0.01,
+        #     max_value=10.0,
+        #     value=0.015,
+        #     step=0.001,
+        # )
 
     region_1_1, region_1_2, region_1_3 = streamlit.columns((2, 3, 2))
     image_region_1_1, image_region_1_2 = streamlit.columns(2)
@@ -303,10 +303,16 @@ def application_image_formation_02():
     img_default = LUT.evaluate(np.clip(img, 0.0, None))
     img_default_final = utilities.apply_cctf_encoding(img_default, cctf_encoding)
 
+    img_default_luminance = utilities.calculate_luminance(
+        img_default, luminance_weights
+    )
+    img_default_luminance_final = utilities.apply_cctf_encoding(
+        img_default_luminance, cctf_encoding
+    )
+
     img_luminance_mapped = LUT.evaluate(
         utilities.calculate_luminance(img, luminance_weights)
     )
-
     img_luminance_mapped_final = utilities.apply_cctf_encoding(
         img_luminance_mapped, cctf_encoding
     )
@@ -318,23 +324,45 @@ def application_image_formation_02():
         np.clip(img_EVILS_LICH_render, 0.0, None), cctf_encoding
     )
 
-    img_EVILS_CLAW_render = img
-    if CLAW_enable == "Enable":
-        img_EVILS_CLAW_render = utilities.calculate_EVILS_LICH(
-            utilities.calculate_EVILS_CLAW(
-                RGB_input=img,
-                CLAW_compression=CLAW_rate,
-                CLAW_identity_limit=None,
-                CLAW_maximum_input=CLAW_maximum,
-                CLAW_maximum_output=np.clip(1.0 - CLAW_degree, 0.01, 1.0),
-            ),
-            LUT.evaluate(utilities.calculate_luminance(img, luminance_weights)),
-        )
-    else:
-        img_EVILS_CLAW_render = img_EVILS_LICH_render
+    # img_EVILS_CLAW_render = img
+    # if CLAW_enable == "Enable":
+    #     img_EVILS_CLAW_render = utilities.calculate_EVILS_LICH(
+    #         utilities.calculate_EVILS_CLAW(
+    #             RGB_input=img,
+    #             CLAW_compression=CLAW_rate,
+    #             CLAW_identity_limit=None,
+    #             CLAW_maximum_input=CLAW_maximum,
+    #             CLAW_maximum_output=np.clip(1.0 - CLAW_degree, 0.01, 1.0),
+    #         ),
+    #         LUT.evaluate(utilities.calculate_luminance(img, luminance_weights)),
+    #     )
+    # else:
+    #     img_EVILS_CLAW_render = img_EVILS_LICH_render
 
-    img_EVILS_CLAW_render_final = utilities.apply_cctf_encoding(
-        img_EVILS_CLAW_render, cctf_encoding
+    # img_EVILS_CLAW_render_final = utilities.apply_cctf_encoding(
+    #     img_EVILS_CLAW_render, cctf_encoding
+    # )
+
+    # img_chroma = LUT.evaluate(np.clip(img, 0.0, None))
+    # img_chroma_final = utilities.apply_cctf_encoding(
+    #     utilities.calculate_chroma(
+    #         img_chroma
+    #     ),
+    #     cctf_encoding
+    # )
+
+    img_EVILS_LICH_render_chroma = utilities.calculate_chroma(
+        utilities.calculate_EVILS_LICH(
+            img,
+            LUT.evaluate(
+                utilities.calculate_luminance(
+                    np.clip(img, 0.0, None), luminance_weights
+                )
+            ),
+        )
+    )
+    img_EVILS_LICH_render_chroma_final = utilities.apply_cctf_encoding(
+        img_EVILS_LICH_render_chroma, cctf_encoding
     )
 
     with image_region_1_1:
@@ -346,23 +374,39 @@ def application_image_formation_02():
         )
 
         streamlit.image(
+            img_default_luminance_final,
+            clamp=[0.0, 1.0],
+            use_column_width=True,
+            caption="Luminance Calculation From Default ("
+            + luminance_weights
+            + " target)",
+        )
+
+    with image_region_1_2:
+        streamlit.image(
             img_EVILS_LICH_render_final,
             clamp=[0.0, 1.0],
             use_column_width=True,
             caption="EVILS LICH Render (" + luminance_weights + " target)",
         )
 
-    with image_region_1_2:
         streamlit.image(
             img_luminance_mapped_final,
             clamp=[0.0, 1.0],
             use_column_width=True,
-            caption="EVILS LICH Render, Luminance (" + luminance_weights + " target)",
+            caption="Luminance Calculation Source (" + luminance_weights + " target)",
         )
 
         streamlit.image(
-            img_EVILS_CLAW_render_final,
+            img_EVILS_LICH_render_chroma_final,
             clamp=[0.0, 1.0],
             use_column_width=True,
-            caption="EVILS CLAW Render (" + luminance_weights + " target)",
+            caption="Chroma Calculation from EVILS LICH Render",
         )
+
+        # streamlit.image(
+        #     img_EVILS_CLAW_render_final,
+        #     clamp=[0.0, 1.0],
+        #     use_column_width=True,
+        #     caption="EVILS CLAW Render (" + luminance_weights + " target)",
+        # )
