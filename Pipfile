@@ -170,6 +170,7 @@ Pygments = "==2.10.0"
 Pympler = "==0.9"
 PyYAML = "==6.0"
 Send2Trash = "==1.8.0"
+plotly = "*"
 
 [dev-packages]
 

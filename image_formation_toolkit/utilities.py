@@ -3,31 +3,27 @@ import scipy
 import colour
 from colour.io.luts import AbstractLUTSequenceOperator
 
-CCTF_ENCODINGS = np.array(
-    [
-        "Gamma 2.2",
-        "Gamma 2.4",
-        "Gamma 2.6",
-        "sRGB",
-        # "ProPhoto RGB", "RIMM RGB", "ROMM RGB"
-        # "ACEScc", "ACEScct", "ACESproxy", "ALEXA Log C", "Canon Log 2", "Canon Log 3"
-        # "Canon Log", "Cineon", "D-Log", "ERIMM RGB", "F-Log", "Filmic Pro 6", "Log3G10"
-        # "Log3G12", "Panalog", "PLog", "Protune", "REDLog", "REDLogFilm", "S-Log", "S-Log2"
-        # "S-Log3", "T-Log", "V-Log", "ViperLog", "ARIB STD-B67", "ITU-R BT.2020"
-        # "ITU-R BT.2100 HLG", "ITU-R BT.2100 PQ", "ITU-R BT.601", "ITU-R BT.709"
-        # "SMPTE 240M", "DCDM", "DICOM GSDF", "ITU-R BT.1886", "ST 2084"
-    ]
-)
+CCTF_ENCODINGS = {
+    "Exponent 2.2": 2.2,
+    "Exponent 2.4": 2.4,
+    "Exponent 2.6": 2.6,
+    # "sRGB",
+    # "ProPhoto RGB", "RIMM RGB", "ROMM RGB"
+    # "ACEScc", "ACEScct", "ACESproxy", "ALEXA Log C", "Canon Log 2", "Canon Log 3"
+    # "Canon Log", "Cineon", "D-Log", "ERIMM RGB", "F-Log", "Filmic Pro 6", "Log3G10"
+    # "Log3G12", "Panalog", "PLog", "Protune", "REDLog", "REDLogFilm", "S-Log", "S-Log2"
+    # "S-Log3", "T-Log", "V-Log", "ViperLog", "ARIB STD-B67", "ITU-R BT.2020"
+    # "ITU-R BT.2100 HLG", "ITU-R BT.2100 PQ", "ITU-R BT.601", "ITU-R BT.709"
+    # "SMPTE 240M", "DCDM", "DICOM GSDF", "ITU-R BT.1886", "ST 2084"
+}
 
 
 def enumerate_cctf_encodings():
     return CCTF_ENCODINGS
 
 
-def apply_cctf_encoding(RGB_input, transfer_function_name="Gamma 2.2", exponent=None):
-    return colour.cctf_encoding(
-        RGB_input, function=transfer_function_name, negative_number_handling="Clamp"
-    )
+def apply_cctf_encoding(RGB_input, transfer_function_name="Exponent 2.2"):
+    return np.power(RGB_input, 1.0 / CCTF_ENCODINGS[transfer_function_name])
 
 
 def calculate_eiY(XYZ_D65):
@@ -253,7 +249,9 @@ def calculate_EVILS_LICH(RGB_input, luminance_output):
 
     chroma_scaled = chroma_scalar * maximal_chroma
 
-    return chroma_scaled + reserves_compliment
+    RGB_final = chroma_scaled + reserves_compliment
+
+    return RGB_final
 
 
 def calculate_EVILS_CLAW(

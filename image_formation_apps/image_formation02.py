@@ -1,5 +1,8 @@
 import image_formation_toolkit.utilities as utilities
 import streamlit
+import plotly
+from plotly import express
+import pandas
 import numpy as np
 import colour
 from image_formation_apps import helpers
@@ -364,6 +367,63 @@ def application_image_formation_02():
     img_EVILS_LICH_render_chroma_final = utilities.apply_cctf_encoding(
         img_EVILS_LICH_render_chroma, cctf_encoding
     )
+
+    # RGB_point_cloud = pandas.DataFrame(
+    #     data=np.reshape(img_EVILS_LICH_render, (-1, 3)),
+    #     columns=["r", "g", "b"]
+    # )
+
+    RGB_data = np.reshape(img_EVILS_LICH_render_final, (-1, 3))
+    RGB_figure = plotly.graph_objects.Figure(
+        data=[
+            plotly.graph_objects.Scatter3d(
+                x=RGB_data[..., 0],
+                y=RGB_data[..., 1],
+                z=RGB_data[..., 2],
+                mode="markers",
+                marker=dict(
+                    size=4,
+                    color=RGB_data[
+                        ..., :
+                    ],  # set color to an array/list of desired values
+                    # colorscale='Viridis',   # choose a colorscale
+                    opacity=0.8,
+                ),
+            )
+        ]
+    )
+
+    RGB_figure.update_layout(
+        # width=500,
+        height=1000
+    )
+    # plotly.Figure.update_xaxis(color="#FF0000")
+    # plotly.Figure.update_yaxis(color="#00FF00")
+    # plotly.Figure.update_zaxis(color="#0000FF")
+
+    # color=["r", "g", "b"])
+
+    streamlit.plotly_chart(RGB_figure)
+    # view_state = pydeck.ViewState(
+    #     longitude=0.0,
+    #     latitude=0.0,
+    #     target=[0.5, 0.5, 0.5],
+    #     controller=True,
+    #     rotation_x=15.0,
+    #     rotation_orbit=30.0,
+    #     zoom=3.0
+    # )
+
+    # view = pydeck.View(type="OrbitView", controller=True)
+    # RGB_point_cloud_deck = pydeck.Deck(
+    #     RGB_point_cloud_layer,
+    #     initial_view_state=view_state,
+    #     views=[view]
+    # )
+
+    # streamlit.pydeck_chart(
+    #     pydeck_obj=RGB_point_cloud_deck
+    # )
 
     with image_region_1_1:
         streamlit.image(
