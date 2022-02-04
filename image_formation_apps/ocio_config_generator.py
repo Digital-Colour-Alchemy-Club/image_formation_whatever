@@ -145,11 +145,12 @@ def ocio_skeleton_config():
 
     image = get_test_image()
 
-    # temporary hack (cuz i'm tired) to get the image / contrast adjustment under the LUT
+    # temporary hack (cuz i'm tired) to get the image / contrast adjustment under
+    # the LUT
     image = aesthetic_transfer_function.apply(image)
     # eh... TODO...
-    clf = aesthetic_transfer_function.generate_clf()
-    range_shaper = clf[0]
+    # clf = aesthetic_transfer_function.generate_clf()
+    # range_shaper = clf[0]
     # todo -- implement clf.py...
     # colour.write_LUT(clf, 'AestheticTransferFunction.clf')
 
