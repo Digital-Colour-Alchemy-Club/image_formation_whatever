@@ -221,7 +221,7 @@ def calculate_EVILS_LICH(RGB_input, luminance_output):
     maximal_chroma_luminance = calculate_luminance(
         maximal_chroma, colourspace_name="sRGB"
     )
-    luminance_output *= maximal_chroma_luminance
+    # luminance_output *= maximal_chroma_luminance
 
     # Calculate luminance reserves of inverse maximal chroma.
     maximal_reserves = 1.0 - maximal_chroma
