@@ -72,7 +72,7 @@ def calculate_EVILS_eiHCY(EVILS_eiY):
     # are required.
     e, i, eiY = np.split(EVILS_eiY, 3, axis=-1)
     eiH = np.arctan2(i, e)
-    eiC = (e ** 2.0 + i ** 2.0) ** (1.0 / 2.0)
+    eiC = (e**2.0 + i**2.0) ** (1.0 / 2.0)
 
     return np.vstack([eiH.T, eiC.T, eiY.T]).T.reshape(EVILS_eiY.shape)
 
@@ -203,7 +203,7 @@ def adjust_chroma(RGB_input, ratio):
 
 
 def adjust_exposure(RGB_input, exposure_adjustment):
-    return (2.0 ** exposure_adjustment) * RGB_input
+    return (2.0**exposure_adjustment) * RGB_input
 
 
 def calculate_EVILS_LICH(RGB_input, luminance_output):
