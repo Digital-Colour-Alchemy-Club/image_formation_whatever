@@ -10,7 +10,8 @@ from colour.utilities import as_float_array, tstack, tsplit, filter_kwargs
 from colour.algebra.common import spow
 import numpy as np
 
-#from colour
+
+# from colour
 def vector_dot(m, v):
     """
     Convenient wrapper around :func:`np.einsum` with the following subscripts:
@@ -52,8 +53,7 @@ def vector_dot(m, v):
     m = as_float_array(m)
     v = as_float_array(v)
 
-    return np.einsum('...ij,...j->...i', m, v)
-
+    return np.einsum("...ij,...j->...i", m, v)
 
 
 @attr.s(auto_attribs=True, frozen=True)
@@ -157,7 +157,7 @@ class AestheticTransferFunction(AbstractLUTSequenceOperator):
 
         return RGB_out
 
-    def generate_lut1d3d(self, size=33, shaper_size=2 ** 14):
+    def generate_lut1d3d(self, size=33, shaper_size=2**14):
         shaper_to_lin = partial(
             log_decoding_Log2,
             middle_grey=self.middle_grey_in,
@@ -574,11 +574,13 @@ class Exponent(AbstractLUTSequenceOperator):
                 self.exponent[0],
                 self.exponent[1],
                 self.exponent[2],
-                "Offset.r : {}\nOffset.g : {}\nOffset.b : {}\n".format(
-                    self.offset[0], self.offset[1], self.offset[2]
-                )
-                if self.style.lower()[:8] == "moncurve"
-                else "",
+                (
+                    "Offset.r : {}\nOffset.g : {}\nOffset.b : {}\n".format(
+                        self.offset[0], self.offset[1], self.offset[2]
+                    )
+                    if self.style.lower()[:8] == "moncurve"
+                    else ""
+                ),
                 self.style,
                 "\n\n{0}".format("\n".join(self.comments)) if self.comments else "",
             )
@@ -848,24 +850,36 @@ class Log(AbstractLUTSequenceOperator):
             "-" * (len(self.__class__.__name__) + 3 + len(title)),
             self.style,
             self.base,
-            "\nlogSideSlope   : {0}".format(self.log_side_slope)
-            if not basic_style
-            else "",
-            "\nlogSideOffset  : {0}".format(self.log_side_offset)
-            if not basic_style
-            else "",
-            "\nlinSideSlope   : {0}".format(self.lin_side_slope)
-            if not basic_style
-            else "",
-            "\nlinSideOffset  : {0}".format(self.lin_side_offset)
-            if not basic_style
-            else "",
-            "\nlinearSlope    : {0}".format(self.linear_slope)
-            if not basic_style and self.linear_slope is not None
-            else "",
-            "\nlinSideBreak   : {0}".format(self.lin_side_break)
-            if not basic_style and self.lin_side_break is not None
-            else "",
+            (
+                "\nlogSideSlope   : {0}".format(self.log_side_slope)
+                if not basic_style
+                else ""
+            ),
+            (
+                "\nlogSideOffset  : {0}".format(self.log_side_offset)
+                if not basic_style
+                else ""
+            ),
+            (
+                "\nlinSideSlope   : {0}".format(self.lin_side_slope)
+                if not basic_style
+                else ""
+            ),
+            (
+                "\nlinSideOffset  : {0}".format(self.lin_side_offset)
+                if not basic_style
+                else ""
+            ),
+            (
+                "\nlinearSlope    : {0}".format(self.linear_slope)
+                if not basic_style and self.linear_slope is not None
+                else ""
+            ),
+            (
+                "\nlinSideBreak   : {0}".format(self.lin_side_break)
+                if not basic_style and self.lin_side_break is not None
+                else ""
+            ),
             "\n\n{0}".format("\n".join(self.comments)) if self.comments else "",
         )
 
@@ -900,7 +914,7 @@ def shape_cube_lg2(
     min_exposure=-6.5,
     max_exposure=6.5,
     middle_grey=0.18,
-    shaper_size=2 ** 14 - 1,
+    shaper_size=2**14 - 1,
     cube_size=33,
     name=None,
 ):
