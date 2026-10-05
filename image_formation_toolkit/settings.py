@@ -12,7 +12,9 @@ __version__ = "0.1.7"
 
 __all__ = ["logger", "config", "LOCAL_DATA", "OCIO_VERSION", "EXTERNAL_DEPENDENCIES"]
 
-config = Munch.fromDict(yaml.safe_load(open( str(Path(__file__).parent.parent/'config.yaml'))))
+config = Munch.fromDict(
+    yaml.safe_load(open(str(Path(__file__).parent.parent / "config.yaml")))
+)
 
 logger = logging.getLogger(__app__)
 logger.setLevel(logging._nameToLevel[config.logging.level])
