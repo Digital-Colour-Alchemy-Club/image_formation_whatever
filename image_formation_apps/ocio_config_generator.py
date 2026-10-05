@@ -2,7 +2,6 @@ import streamlit as st
 
 from image_formation_apps.helpers import st_stdout
 
-
 # @st.cache(max_entries=10)
 from image_formation_toolkit.ocioutils import add_aesthetic_transfer_function_to_config
 

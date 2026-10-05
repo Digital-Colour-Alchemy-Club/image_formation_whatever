@@ -61,7 +61,7 @@ Module Contents
    Base class for creating enumerated constants that can be combined using
    the bitwise operators without losing their ``IntFlag`` membership.
    ``IntFlag`` members are also subclasses of ``int``.
-   
+
 ``Flag``
 ^^^^^^^^
    Base class for creating enumerated constants that can be combined using
