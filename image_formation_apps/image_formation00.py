@@ -126,9 +126,9 @@ class generic_aesthetic_transfer_function(AbstractLUTSequenceOperator):
         output_RGBs = curve_evaluation * ratios
 
         if gamut_clip is True:
-            output_RGBs[
-                gamut_clipped_above[0], gamut_clipped_above[1], :
-            ] = self._LUT.table[-1]
+            output_RGBs[gamut_clipped_above[0], gamut_clipped_above[1], :] = (
+                self._LUT.table[-1]
+            )
 
         if gamut_clip_alert is True:
             output_RGBs[gamut_clipped_above[0], gamut_clipped_above[1], :] = [
@@ -148,9 +148,9 @@ class generic_aesthetic_transfer_function(AbstractLUTSequenceOperator):
         output_RGBs = np.negative(evaluate_RGBs, where=(RGBs < 0.0), out=evaluate_RGBs)
 
         if gamut_clip is True:
-            output_RGBs[
-                gamut_clipped_above[0], gamut_clipped_above[1], :
-            ] = self._LUT.table[-1]
+            output_RGBs[gamut_clipped_above[0], gamut_clipped_above[1], :] = (
+                self._LUT.table[-1]
+            )
         if gamut_clip_alert is True:
             output_RGBs[gamut_clipped_above[0], gamut_clipped_above[1], :] = [
                 1.0,
@@ -166,7 +166,7 @@ def apply_inverse_EOTF(RGB, EOTF=2.2):
 
 
 def video_buffer(x, exposure_adjustment=0.0):
-    return (2.0 ** exposure_adjustment) * x
+    return (2.0**exposure_adjustment) * x
 
 
 def apply_CDL(in_RGB, slope, offset, power, pivot):

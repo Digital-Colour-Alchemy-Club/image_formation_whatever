@@ -211,7 +211,7 @@ def apply_inverse_EOTF(RGB, EOTF=2.2):
 
 
 def video_buffer(x, exposure_adjustment=0.0):
-    return (2.0 ** exposure_adjustment) * x
+    return (2.0**exposure_adjustment) * x
 
 
 def application_image_formation_01():
